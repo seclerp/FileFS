@@ -1,8 +1,8 @@
-﻿namespace FileFS.Api.Models
+﻿namespace FileFs.DataAccess.Entities
 {
     public struct FileDescriptor
     {
-        public static readonly int BytesWithoutFilename = 8;
+        public static readonly int BytesWithoutFilename = 12;
 
         public FileDescriptor(string fileName, int offset, int length)
         {

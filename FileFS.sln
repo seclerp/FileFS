@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Api.Tests", "FileFS.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Api", "FileFS.Api\FileFS.Api.csproj", "{8B0E7613-3433-45A1-8078-B21CB37017B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFs.DataAccess", "FileFs.DataAccess\FileFs.DataAccess.csproj", "{F903BDB1-BE46-4581-8253-BF62E811A35E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{8B0E7613-3433-45A1-8078-B21CB37017B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B0E7613-3433-45A1-8078-B21CB37017B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B0E7613-3433-45A1-8078-B21CB37017B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F903BDB1-BE46-4581-8253-BF62E811A35E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F903BDB1-BE46-4581-8253-BF62E811A35E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F903BDB1-BE46-4581-8253-BF62E811A35E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F903BDB1-BE46-4581-8253-BF62E811A35E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

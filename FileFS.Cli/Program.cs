@@ -1,27 +1,46 @@
-﻿using System.IO;
-using FileFS.Api;
-using FileFS.Api.Models;
-using FileFS.Api.Serializers;
+﻿using FileFs.DataAccess;
+using FileFs.DataAccess.Abstractions;
+using FileFs.DataAccess.Entities;
+using FileFs.DataAccess.Repositories;
+using FileFs.DataAccess.Serializers;
+using FileFs.DataAccess.Serializers.Abstractions;
 
 namespace FileFS.Cli
 {
     class Program
     {
+        private static void CreateNew(ISerializer<FilesystemDescriptor> filesystemDescriptorSerializer, string fileName)
+        {
+            var manager = new FileFsInitializer(filesystemDescriptorSerializer);
+            manager.Initialize(fileName, 10 * 1024 * 1024, 256, 1);
+        }
+
+        private static IFileFsConnection Open(string fileName)
+        {
+            var connection = new FileFsConnection(fileName);
+            return connection;
+        }
+
         static void Main(string[] args)
         {
+            var fileName = "filefs";
             var filesystemSerializer = new FilesystemDescriptorSerializer();
-            var manager = new FileFsManager(filesystemSerializer);
-            manager.CreateEmpty("filefs", 10 * 1024 * 1024, 256, 1);
-            using var stream = manager.Open("filefs");
-            stream.Seek(-FilesystemDescriptor.BytesTotal, SeekOrigin.End);
-            var filesystemDescriptor = filesystemSerializer.ReadFrom(stream);
 
-            var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemDescriptor);
-            var fileDescriptor = new FileDescriptor("example", 0, 0);
-            stream.Seek(0, SeekOrigin.Begin);
-            fileDescriptorSerializer.WriteTo(stream, fileDescriptor);
-            stream.Seek(0, SeekOrigin.Begin);
-            var deserializedFileDescriptor = fileDescriptorSerializer.ReadFrom(stream);
+            CreateNew(filesystemSerializer, fileName);
+            var connection = Open(fileName);
+
+            var filesystemRepository = new FilesystemDescriptorRepository(connection, filesystemSerializer);
+
+            var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemRepository);
+            var fileDescriptorRepository = new FileDescriptorRepository(connection, filesystemRepository, fileDescriptorSerializer);
+
+            var newDescriptor = new FileDescriptor("example", 123, 321);
+
+            var filesystemDescriptor = filesystemRepository.Read();
+            var fileDescriptorOffset = filesystemDescriptor.FileDescriptorLength;
+            fileDescriptorRepository.Write(newDescriptor, -FilesystemDescriptor.BytesTotal - fileDescriptorOffset);
+
+            var newDescriptorRetrieved = fileDescriptorRepository.Read(-FilesystemDescriptor.BytesTotal - fileDescriptorOffset);
         }
     }
 }

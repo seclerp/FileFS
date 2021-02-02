@@ -1,4 +1,4 @@
-﻿namespace FileFS.Api.Models
+﻿namespace FileFs.DataAccess.Entities
 {
     public struct FilesystemDescriptor
     {
