@@ -32,6 +32,12 @@ namespace FileFs.DataAccess
             return bytes;
         }
 
+        public long GetSize()
+        {
+            using var stream = OpenStream();
+            return stream.Length;
+        }
+
         private Stream OpenStream()
         {
             return new FileStream(_fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);

@@ -1,7 +1,8 @@
-﻿using FileFs.DataAccess;
+﻿using System.Text;
+using FileFS.Api;
+using FileFs.DataAccess;
 using FileFs.DataAccess.Abstractions;
 using FileFs.DataAccess.Entities;
-using FileFs.DataAccess.Repositories;
 using FileFs.DataAccess.Serializers;
 using FileFs.DataAccess.Serializers.Abstractions;
 
@@ -27,20 +28,31 @@ namespace FileFS.Cli
             var filesystemSerializer = new FilesystemDescriptorSerializer();
 
             CreateNew(filesystemSerializer, fileName);
-            var connection = Open(fileName);
 
-            var filesystemRepository = new FilesystemDescriptorRepository(connection, filesystemSerializer);
+            var client = new FileFsClient(fileName);
 
-            var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemRepository);
-            var fileDescriptorRepository = new FileDescriptorRepository(connection, filesystemRepository, fileDescriptorSerializer);
+            var newFileContent = Encoding.UTF8.GetBytes("Hello World!");
+            var newFileName = "hello-world";
 
-            var newDescriptor = new FileDescriptor("example", 123, 321);
+            client.Create(newFileName, newFileContent);
 
-            var filesystemDescriptor = filesystemRepository.Read();
-            var fileDescriptorOffset = filesystemDescriptor.FileDescriptorLength;
-            fileDescriptorRepository.Write(newDescriptor, -FilesystemDescriptor.BytesTotal - fileDescriptorOffset);
+            var fileContentBytes = client.Read(newFileName);
+            var fileContent = Encoding.UTF8.GetString(fileContentBytes);
 
-            var newDescriptorRetrieved = fileDescriptorRepository.Read(-FilesystemDescriptor.BytesTotal - fileDescriptorOffset);
+            // var connection = Open(fileName);
+            //
+            // var filesystemRepository = new FilesystemDescriptorRepository(connection, filesystemSerializer);
+            //
+            // var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemRepository);
+            // var fileDescriptorRepository = new FileDescriptorRepository(connection, filesystemRepository, fileDescriptorSerializer);
+            //
+            // var newDescriptor = new FileDescriptor("example", 123, 321);
+            //
+            // var filesystemDescriptor = filesystemRepository.Read();
+            // var fileDescriptorOffset = filesystemDescriptor.FileDescriptorLength;
+            // fileDescriptorRepository.Write(newDescriptor, -FilesystemDescriptor.BytesTotal - fileDescriptorOffset);
+            //
+            // var newDescriptorRetrieved = fileDescriptorRepository.Read(-FilesystemDescriptor.BytesTotal - fileDescriptorOffset);
         }
     }
 }

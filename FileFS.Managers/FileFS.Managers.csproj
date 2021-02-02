@@ -5,12 +5,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.Memory" Version="4.5.4" />
+      <Folder Include="Abstractions" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\FileFs.DataAccess\FileFs.DataAccess.csproj" />
-      <ProjectReference Include="..\FileFS.Managers\FileFS.Managers.csproj" />
     </ItemGroup>
 
 </Project>

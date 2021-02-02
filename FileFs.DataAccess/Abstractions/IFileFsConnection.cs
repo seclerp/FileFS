@@ -6,5 +6,6 @@ namespace FileFs.DataAccess.Abstractions
     {
         void PerformWrite(int offset, byte[] data, SeekOrigin origin);
         byte[] PerformRead(int offset, int length, SeekOrigin origin);
+        long GetSize();
     }
 }

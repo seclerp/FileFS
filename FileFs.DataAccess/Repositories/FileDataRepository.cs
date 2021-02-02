@@ -3,7 +3,7 @@ using FileFs.DataAccess.Repositories.Abstractions;
 
 namespace FileFs.DataAccess.Repositories
 {
-    class FileDataRepository : IFileDataRepository
+    public class FileDataRepository : IFileDataRepository
     {
         private readonly FileFsConnection _connection;
 
