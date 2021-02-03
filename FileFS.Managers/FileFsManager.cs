@@ -4,7 +4,7 @@ using FileFs.DataAccess.Repositories.Abstractions;
 
 namespace FileFS.Managers
 {
-    public class FileFsManager
+    public class FileFsManager : IFileFsManager
     {
         private readonly IFileAllocator _allocator;
         private readonly IFileDataRepository _fileDataRepository;
@@ -54,25 +54,69 @@ namespace FileFS.Managers
         public byte[] Read(string fileName)
         {
             // 1. Find descriptor
-            var descriptor = FindDescriptor(fileName);
+            var descriptor = FindDescriptor(fileName, out _);
 
             // 2. Read data by given offset from descriptor
-            var dataBytes = _fileDataRepository.Read(descriptor.Offset, descriptor.Length);
+            var dataBytes = _fileDataRepository.Read(descriptor.DataOffset, descriptor.DataLength);
 
             return dataBytes;
         }
 
-        private FileDescriptor FindDescriptor(string fileName)
+        public void Rename(string oldFilename, string newFilename)
         {
-            if (!TryFindDescriptor(fileName, out var descriptor))
+            // 1. Find descriptor
+            var descriptor = FindDescriptor(oldFilename, out var offset);
+
+            // 2. Create descriptor with new filename
+            var newDescriptor = new FileDescriptor(newFilename, descriptor.DataOffset, descriptor.DataLength);
+
+            // 3. Write new descriptor
+            _fileDescriptorRepository.Write(newDescriptor, offset);
+        }
+
+        public void Delete(string fileName)
+        {
+            // 1. Find last descriptor
+            var filesystemDescriptor = _filesystemDescriptorRepository.Read();
+            var lastDescriptorOffset =
+                -FilesystemDescriptor.BytesTotal -
+                (filesystemDescriptor.FileDescriptorsCount *
+                 filesystemDescriptor.FileDescriptorLength);
+            var lastDescriptor = _fileDescriptorRepository.Read(lastDescriptorOffset);
+
+            // 2. Find current descriptor
+            FindDescriptor(fileName, out var offsetToBeDeleted);
+
+            // 3. Save last descriptor in new empty space (perform swap with last)
+            _fileDescriptorRepository.Write(lastDescriptor, offsetToBeDeleted);
+
+            // 4. Decrease count of descriptors
+            filesystemDescriptor = _filesystemDescriptorRepository.Read();
+            var updatedFilesystemDescriptor = new FilesystemDescriptor(
+                filesystemDescriptor.FilesDataLength,
+                filesystemDescriptor.FileDescriptorsCount - 1,
+                filesystemDescriptor.FileDescriptorLength,
+                filesystemDescriptor.Version);
+            _filesystemDescriptorRepository.Write(updatedFilesystemDescriptor);
+        }
+
+        public bool Exists(string fileName)
+        {
+            return TryFindDescriptor(fileName, out _, out _);
+        }
+
+        private FileDescriptor FindDescriptor(string fileName, out int offset)
+        {
+            if (!TryFindDescriptor(fileName, out var descriptor, out var descriptorOffset))
             {
                 // TODO: Throw FileNotFoundException
             }
 
+            offset = descriptorOffset;
             return descriptor;
         }
 
-        private bool TryFindDescriptor(string fileName, out FileDescriptor descriptor)
+        private bool TryFindDescriptor(string fileName, out FileDescriptor descriptor, out int descriptorOffset)
         {
             var filesystemDescriptor = _filesystemDescriptorRepository.Read();
             var startFromOffset = -FilesystemDescriptor.BytesTotal - filesystemDescriptor.FileDescriptorLength;
@@ -81,6 +125,7 @@ namespace FileFS.Managers
                              filesystemDescriptor.FileDescriptorLength);
 
             descriptor = default;
+            descriptorOffset = default;
             var found = false;
             for (var offset = startFromOffset; offset >= endOffset; offset -= filesystemDescriptor.FileDescriptorLength)
             {
@@ -88,7 +133,9 @@ namespace FileFS.Managers
                 if (currentDescriptor.FileName == fileName)
                 {
                     descriptor = currentDescriptor;
+                    descriptorOffset = offset;
                     found = true;
+                    break;
                 }
             }
 

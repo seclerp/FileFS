@@ -5,10 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Abstractions" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\FileFs.DataAccess\FileFs.DataAccess.csproj" />
     </ItemGroup>
 

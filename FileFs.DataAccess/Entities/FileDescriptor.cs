@@ -4,20 +4,20 @@
     {
         public static readonly int BytesWithoutFilename = 12;
 
-        public FileDescriptor(string fileName, int offset, int length)
+        public FileDescriptor(string fileName, int dataOffset, int dataLength)
         {
             FileNameLength = fileName.Length;
             FileName = fileName;
-            Offset = offset;
-            Length = length;
+            DataOffset = dataOffset;
+            DataLength = dataLength;
         }
 
         public readonly int FileNameLength;
 
         public readonly string FileName;
 
-        public readonly int Offset;
+        public readonly int DataOffset;
 
-        public readonly int Length;
+        public readonly int DataLength;
     }
 }

@@ -38,21 +38,6 @@ namespace FileFS.Cli
 
             var fileContentBytes = client.Read(newFileName);
             var fileContent = Encoding.UTF8.GetString(fileContentBytes);
-
-            // var connection = Open(fileName);
-            //
-            // var filesystemRepository = new FilesystemDescriptorRepository(connection, filesystemSerializer);
-            //
-            // var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemRepository);
-            // var fileDescriptorRepository = new FileDescriptorRepository(connection, filesystemRepository, fileDescriptorSerializer);
-            //
-            // var newDescriptor = new FileDescriptor("example", 123, 321);
-            //
-            // var filesystemDescriptor = filesystemRepository.Read();
-            // var fileDescriptorOffset = filesystemDescriptor.FileDescriptorLength;
-            // fileDescriptorRepository.Write(newDescriptor, -FilesystemDescriptor.BytesTotal - fileDescriptorOffset);
-            //
-            // var newDescriptorRetrieved = fileDescriptorRepository.Read(-FilesystemDescriptor.BytesTotal - fileDescriptorOffset);
         }
     }
 }

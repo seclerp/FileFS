@@ -42,8 +42,8 @@ namespace FileFs.DataAccess.Serializers
             writer.Write(model.FileNameLength);
             writer.Write(fileNameBytes);
             writer.Seek(filesystemDescriptor.FileDescriptorLength - fileNameBytes.Length - FileDescriptor.BytesWithoutFilename, SeekOrigin.Current);
-            writer.Write(model.Offset);
-            writer.Write(model.Length);
+            writer.Write(model.DataOffset);
+            writer.Write(model.DataLength);
 
             return buffer;
         }

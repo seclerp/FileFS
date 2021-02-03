@@ -39,7 +39,7 @@ namespace FileFS.Api
 
         public void Delete(string fileName)
         {
-            throw new System.NotImplementedException();
+            _manager.Delete(fileName);
         }
 
         public byte[] Read(string fileName)
@@ -49,12 +49,12 @@ namespace FileFS.Api
 
         public bool Exists(string fileName)
         {
-            throw new System.NotImplementedException();
+            return _manager.Exists(fileName);
         }
 
         public void Rename(string oldName, string newName)
         {
-            throw new System.NotImplementedException();
+            _manager.Rename(oldName, newName);
         }
     }
 }
