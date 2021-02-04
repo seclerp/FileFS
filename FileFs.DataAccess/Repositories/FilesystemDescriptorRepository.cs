@@ -8,12 +8,12 @@ namespace FileFs.DataAccess.Repositories
 {
     public class FilesystemDescriptorRepository : IFilesystemDescriptorRepository
     {
-        private readonly IFileFsConnection _connection;
+        private readonly IStorageConnection _storageConnection;
         private readonly ISerializer<FilesystemDescriptor> _serializer;
 
-        public FilesystemDescriptorRepository(IFileFsConnection connection, ISerializer<FilesystemDescriptor> serializer)
+        public FilesystemDescriptorRepository(IStorageConnection storageConnection, ISerializer<FilesystemDescriptor> serializer)
         {
-            _connection = connection;
+            _storageConnection = storageConnection;
             _serializer = serializer;
         }
 
@@ -22,7 +22,7 @@ namespace FileFs.DataAccess.Repositories
             var offset = -FilesystemDescriptor.BytesTotal;
             var length = FilesystemDescriptor.BytesTotal;
             var origin = SeekOrigin.End;
-            var data = _connection.PerformRead(offset, length, origin);
+            var data = _storageConnection.PerformRead(new Cursor(offset, origin), length);
             var descriptor = _serializer.FromBuffer(data);
 
             return descriptor;
@@ -34,7 +34,7 @@ namespace FileFs.DataAccess.Repositories
             var origin = SeekOrigin.End;
             var data = _serializer.ToBuffer(model);
 
-            _connection.PerformWrite(offset, data, origin);
+            _storageConnection.PerformWrite(new Cursor(offset, origin), data);
         }
     }
 }

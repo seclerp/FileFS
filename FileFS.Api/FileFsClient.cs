@@ -14,7 +14,7 @@ namespace FileFS.Api
 
         public FileFsClient(string fileFsPath)
         {
-            var connection = new FileFsConnection(fileFsPath);
+            var connection = new StorageConnection(fileFsPath);
 
             var filesystemSerializer = new FilesystemDescriptorSerializer();
             var filesystemRepository = new FilesystemDescriptorRepository(connection, filesystemSerializer);
@@ -24,9 +24,10 @@ namespace FileFS.Api
 
             var fileDataRepository = new FileDataRepository(connection);
 
-            var allocator = new FileAllocator(connection, filesystemRepository);
+            var optimizer = new StorageOptimizer(fileDescriptorRepository, fileDataRepository);
+            var allocator = new FileAllocator(connection, filesystemRepository, optimizer);
 
-            _manager = new FileFsManager(allocator, fileDataRepository, filesystemRepository, fileDescriptorRepository);
+            _manager = new FileFsManager(allocator, fileDataRepository, filesystemRepository, fileDescriptorRepository, optimizer);
         }
 
         public void Create(string fileName, byte[] content)
@@ -36,7 +37,7 @@ namespace FileFS.Api
 
         public void Update(string fileName, byte[] newContent)
         {
-            throw new System.NotImplementedException();
+            _manager.Update(fileName, newContent);
         }
 
         public void Delete(string fileName)
@@ -62,6 +63,11 @@ namespace FileFS.Api
         public IReadOnlyCollection<EntryInfo> List()
         {
             return _manager.List();
+        }
+
+        public void ForceOptimize()
+        {
+            _manager.ForceOptimize();
         }
     }
 }

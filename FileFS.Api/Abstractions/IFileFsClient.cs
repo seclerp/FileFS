@@ -50,5 +50,7 @@ namespace FileFS.Api.Abstractions
         void Rename(string oldName, string newName);
 
         IReadOnlyCollection<EntryInfo> List();
+
+        void ForceOptimize();
     }
 }

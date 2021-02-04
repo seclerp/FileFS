@@ -5,10 +5,10 @@ namespace FileFs.DataAccess.Repositories.Abstractions
 {
     public interface IFileDescriptorRepository
     {
-        FileDescriptor Read(int offset);
+        StorageItem<FileDescriptor> Read(int offset);
 
-        IReadOnlyCollection<FileDescriptor> ReadAll();
+        IReadOnlyCollection<StorageItem<FileDescriptor>> ReadAll();
 
-        void Write(FileDescriptor descriptor, int offset);
+        void Write(StorageItem<FileDescriptor> item);
     }
 }

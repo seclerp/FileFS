@@ -7,6 +7,8 @@ namespace FileFS.Managers.Abstractions
     {
         void Create(string fileName, byte[] contentBytes);
 
+        void Update(string fileName, byte[] newContentBytes);
+
         byte[] Read(string fileName);
 
         void Rename(string oldFilename, string newFilename);
@@ -16,5 +18,7 @@ namespace FileFS.Managers.Abstractions
         bool Exists(string fileName);
 
         IReadOnlyCollection<EntryInfo> List();
+
+        void ForceOptimize();
     }
 }

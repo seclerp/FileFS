@@ -16,7 +16,7 @@ namespace FileFS.Cli
         private static void HandleInit(InitOptions options)
         {
             var serializer = new FilesystemDescriptorSerializer();
-            var manager = new FileFsInitializer(serializer);
+            var manager = new StorageInitializer(serializer);
             manager.Initialize(options.Instance, options.Size, options.PathLength, FileFsStorageVersion);
         }
 
@@ -27,10 +27,27 @@ namespace FileFS.Cli
             client.Create(options.FileName, contentBytes);
         }
 
+        private static void HandleUpdate(UpdateOptions options)
+        {
+            var client = new FileFsClient(options.Instance);
+            var contentBytes = Encoding.UTF8.GetBytes(options.Content);
+            client.Update(options.FileName, contentBytes);
+
+            if (options.ForceOptimize)
+            {
+                client.ForceOptimize();
+            }
+        }
+
         private static void HandleDelete(DeleteOptions options)
         {
             var client = new FileFsClient(options.Instance);
             client.Delete(options.FileName);
+
+            if (options.ForceOptimize)
+            {
+                client.ForceOptimize();
+            }
         }
 
         private static void HandleRename(RenameOptions options)
@@ -70,6 +87,7 @@ namespace FileFS.Cli
             Parser.Default.ParseArguments<
                     InitOptions,
                     CreateOptions,
+                    UpdateOptions,
                     DeleteOptions,
                     RenameOptions,
                     ExistsOptions,
@@ -78,6 +96,7 @@ namespace FileFS.Cli
                 >(args)
                 .WithParsed<InitOptions>(HandleInit)
                 .WithParsed<CreateOptions>(HandleCreate)
+                .WithParsed<UpdateOptions>(HandleUpdate)
                 .WithParsed<DeleteOptions>(HandleDelete)
                 .WithParsed<RenameOptions>(HandleRename)
                 .WithParsed<ExistsOptions>(HandleExists)

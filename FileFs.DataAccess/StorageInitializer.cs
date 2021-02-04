@@ -5,11 +5,11 @@ using FileFs.DataAccess.Serializers.Abstractions;
 
 namespace FileFs.DataAccess
 {
-    public class FileFsInitializer : IFileFsInitializer
+    public class StorageInitializer : IStorageInitializer
     {
         private readonly ISerializer<FilesystemDescriptor> _serializer;
 
-        public FileFsInitializer(ISerializer<FilesystemDescriptor> serializer)
+        public StorageInitializer(ISerializer<FilesystemDescriptor> serializer)
         {
             _serializer = serializer;
         }

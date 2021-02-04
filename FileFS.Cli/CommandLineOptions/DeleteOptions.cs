@@ -8,7 +8,7 @@ namespace FileFS.Cli.CommandLineOptions
         [Value(0, Required = true, HelpText = "Name of a file to delete.")]
         public string FileName { get; set; }
 
-        [Option('d', "--force-defrag", Default = false, Required = false, HelpText = "True if storage defragmentation should be executed after deletion, otherwise false")]
-        public bool ForceDefrag { get; set; }
+        [Option('o', "force-optimize", Default = false, Required = false, HelpText = "True if storage should be optimized directly after deletion, otherwise false")]
+        public bool ForceOptimize { get; set; }
     }
 }

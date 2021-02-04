@@ -5,5 +5,7 @@
         byte[] Read(int offset, int length);
 
         void Write(byte[] data, int offset);
+
+        void Copy(int sourceOffset, int destinationOffset, int length);
     }
 }
