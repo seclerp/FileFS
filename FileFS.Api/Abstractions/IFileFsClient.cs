@@ -1,4 +1,7 @@
-﻿namespace FileFS.Api.Abstractions
+﻿using System.Collections.Generic;
+using FileFS.Managers.Models;
+
+namespace FileFS.Api.Abstractions
 {
     /// <summary>
     /// Interface that represents entry point to interact with FileFS.
@@ -45,5 +48,7 @@
         /// <param name="oldName">Old name of a file.</param>
         /// <param name="newName">New name of a file.</param>
         void Rename(string oldName, string newName);
+
+        IReadOnlyCollection<EntryInfo> List();
     }
 }

@@ -1,6 +1,10 @@
-﻿using FileFs.DataAccess;
+﻿using System.Collections.Generic;
+using System.Linq;
+using FileFs.DataAccess.Abstractions;
 using FileFs.DataAccess.Entities;
 using FileFs.DataAccess.Repositories.Abstractions;
+using FileFS.Managers.Abstractions;
+using FileFS.Managers.Models;
 
 namespace FileFS.Managers
 {
@@ -103,6 +107,14 @@ namespace FileFS.Managers
         public bool Exists(string fileName)
         {
             return TryFindDescriptor(fileName, out _, out _);
+        }
+
+        public IReadOnlyCollection<EntryInfo> List()
+        {
+            return _fileDescriptorRepository
+                .ReadAll()
+                .Select(descriptor => new EntryInfo(descriptor.FileName, descriptor.DataLength))
+                .ToArray();
         }
 
         private FileDescriptor FindDescriptor(string fileName, out int offset)

@@ -1,4 +1,4 @@
-﻿namespace FileFs.DataAccess
+﻿namespace FileFs.DataAccess.Abstractions
 {
     public interface IFileAllocator
     {

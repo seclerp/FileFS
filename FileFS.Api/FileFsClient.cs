@@ -1,8 +1,10 @@
-﻿using FileFS.Api.Abstractions;
+﻿using System.Collections.Generic;
+using FileFS.Api.Abstractions;
 using FileFs.DataAccess;
 using FileFs.DataAccess.Repositories;
 using FileFs.DataAccess.Serializers;
 using FileFS.Managers;
+using FileFS.Managers.Models;
 
 namespace FileFS.Api
 {
@@ -55,6 +57,11 @@ namespace FileFS.Api
         public void Rename(string oldName, string newName)
         {
             _manager.Rename(oldName, newName);
+        }
+
+        public IReadOnlyCollection<EntryInfo> List()
+        {
+            return _manager.List();
         }
     }
 }

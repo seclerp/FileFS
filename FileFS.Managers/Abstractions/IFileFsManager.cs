@@ -1,4 +1,7 @@
-﻿namespace FileFS.Managers
+﻿using System.Collections.Generic;
+using FileFS.Managers.Models;
+
+namespace FileFS.Managers.Abstractions
 {
     public interface IFileFsManager
     {
@@ -11,5 +14,7 @@
         void Delete(string fileName);
 
         bool Exists(string fileName);
+
+        IReadOnlyCollection<EntryInfo> List();
     }
 }
