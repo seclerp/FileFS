@@ -35,16 +35,16 @@ namespace FileFs.DataAccess
             // 3. Iterate over all descriptors to find gaps
             for (var i = 0; i < descriptors.Count - 1; i++)
             {
-                var first = orderedDescriptors[i];
-                var second = orderedDescriptors[i + 1];
-                var firstEnd = first.Value.DataOffset + first.Value.DataLength;
-                var secondStart = second.Value.DataOffset;
+                var current = orderedDescriptors[i];
+                var next = orderedDescriptors[i + 1];
+                var currentEnd = current.Value.DataOffset + current.Value.DataLength;
+                var nextStart = next.Value.DataOffset;
 
                 // 4. Found a gap, write data of second right after first
-                if (secondStart - firstEnd > 0)
+                if (nextStart - currentEnd > 0)
                 {
-                    var newOffset = firstEnd;
-                    var newStorageItem = CopyFile(second.Value, second.Cursor, newOffset);
+                    var newOffset = currentEnd;
+                    var newStorageItem = CopyFile(next.Value, next.Cursor, newOffset);
                     orderedDescriptors[i + 1] = newStorageItem;
                 }
             }

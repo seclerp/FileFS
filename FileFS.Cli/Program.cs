@@ -50,6 +50,18 @@ namespace FileFS.Cli
             }
         }
 
+        private static void HandleImport(ImportOptions options)
+        {
+            var client = new FileFsClient(options.Instance);
+            client.Import(options.ImportPath, options.FileName);
+        }
+
+        private static void HandleExport(ExportOptions options)
+        {
+            var client = new FileFsClient(options.Instance);
+            client.Export(options.FileName, options.ExportPath);
+        }
+
         private static void HandleRename(RenameOptions options)
         {
             var client = new FileFsClient(options.Instance);
@@ -89,6 +101,8 @@ namespace FileFS.Cli
                     CreateOptions,
                     UpdateOptions,
                     DeleteOptions,
+                    ImportOptions,
+                    ExportOptions,
                     RenameOptions,
                     ExistsOptions,
                     ReadOptions,
@@ -98,6 +112,8 @@ namespace FileFS.Cli
                 .WithParsed<CreateOptions>(HandleCreate)
                 .WithParsed<UpdateOptions>(HandleUpdate)
                 .WithParsed<DeleteOptions>(HandleDelete)
+                .WithParsed<ImportOptions>(HandleImport)
+                .WithParsed<ExportOptions>(HandleExport)
                 .WithParsed<RenameOptions>(HandleRename)
                 .WithParsed<ExistsOptions>(HandleExists)
                 .WithParsed<ReadOptions>(HandleRead)

@@ -25,7 +25,7 @@ namespace FileFS.Api
             var fileDataRepository = new FileDataRepository(connection);
 
             var optimizer = new StorageOptimizer(fileDescriptorRepository, fileDataRepository);
-            var allocator = new FileAllocator(connection, filesystemRepository, optimizer);
+            var allocator = new FileAllocator(connection, filesystemRepository, fileDescriptorRepository, optimizer);
 
             _manager = new FileFsManager(allocator, fileDataRepository, filesystemRepository, fileDescriptorRepository, optimizer);
         }
@@ -43,6 +43,16 @@ namespace FileFS.Api
         public void Delete(string fileName)
         {
             _manager.Delete(fileName);
+        }
+
+        public void Import(string externalPath, string fileName)
+        {
+            _manager.Import(externalPath, fileName);
+        }
+
+        public void Export(string fileName, string externalPath)
+        {
+            _manager.Export(fileName, externalPath);
         }
 
         public byte[] Read(string fileName)

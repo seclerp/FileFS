@@ -28,6 +28,10 @@ namespace FileFS.Api.Abstractions
         /// <param name="fileName">Name of a file.</param>
         void Delete(string fileName);
 
+        void Import(string externalPath, string fileName);
+
+        void Export(string fileName, string externalPath);
+
         /// <summary>
         /// Returns content of a file with given filename.
         /// </summary>

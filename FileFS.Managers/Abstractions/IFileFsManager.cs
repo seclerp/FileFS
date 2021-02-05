@@ -15,6 +15,10 @@ namespace FileFS.Managers.Abstractions
 
         void Delete(string fileName);
 
+        void Import(string externalPath, string fileName);
+
+        void Export(string fileName, string externalPath);
+
         bool Exists(string fileName);
 
         IReadOnlyCollection<EntryInfo> List();

@@ -139,6 +139,42 @@ namespace FileFS.Managers
             _filesystemDescriptorRepository.Write(updatedFilesystemDescriptor);
         }
 
+        public void Import(string externalPath, string fileName)
+        {
+            if (Exists(fileName))
+            {
+                // TODO: Throw FileAlreadyExistsException
+            }
+
+            if (File.Exists(externalPath))
+            {
+                // TODO: Throw ExternalFileAlreadyExistsException
+            }
+
+            // TODO: Use stream and buffering
+            var contentBytes = File.ReadAllBytes(externalPath);
+
+            Create(fileName, contentBytes);
+        }
+
+        public void Export(string fileName, string externalPath)
+        {
+            if (!Exists(fileName))
+            {
+                // TODO: Throw FileNotFoundException
+            }
+
+            if (!File.Exists(externalPath))
+            {
+                // TODO: Throw ExternalFileNotFoundException
+            }
+
+            // TODO: Use stream and buffering
+            var contentBytes = Read(fileName);
+
+            File.WriteAllBytes(externalPath, contentBytes);
+        }
+
         public bool Exists(string fileName)
         {
             return TryFindDescriptor(fileName, out _);
