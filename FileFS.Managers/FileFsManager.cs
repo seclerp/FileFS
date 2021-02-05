@@ -7,6 +7,7 @@ using FileFs.DataAccess.Entities;
 using FileFs.DataAccess.Repositories.Abstractions;
 using FileFS.Managers.Abstractions;
 using FileFS.Managers.Models;
+using Microsoft.Extensions.Logging;
 
 namespace FileFS.Managers
 {
@@ -17,27 +18,37 @@ namespace FileFS.Managers
         private readonly IFilesystemDescriptorRepository _filesystemDescriptorRepository;
         private readonly IFileDescriptorRepository _fileDescriptorRepository;
         private readonly IStorageOptimizer _storageOptimizer;
+        private readonly IExternalFileManager _externalFileManager;
+        private readonly ILogger<FileFsManager> _logger;
 
         public FileFsManager(
             IFileAllocator allocator,
             IFileDataRepository fileDataRepository,
             IFilesystemDescriptorRepository filesystemDescriptorRepository,
             IFileDescriptorRepository fileDescriptorRepository,
-            IStorageOptimizer storageOptimizer)
+            IStorageOptimizer storageOptimizer,
+            IExternalFileManager externalFileManager,
+            ILogger<FileFsManager> logger)
         {
             _allocator = allocator;
             _fileDataRepository = fileDataRepository;
             _filesystemDescriptorRepository = filesystemDescriptorRepository;
             _fileDescriptorRepository = fileDescriptorRepository;
             _storageOptimizer = storageOptimizer;
+            _externalFileManager = externalFileManager;
+            _logger = logger;
         }
 
         public void Create(string fileName, byte[] contentBytes)
         {
+            _logger.LogInformation($"Start file create process, filename {fileName}, bytes count {contentBytes.Length}");
+
             // 1. Allocate space
             var allocatedCursor = _allocator.AllocateFile(contentBytes.Length);
 
             // 2. Write file descriptor
+            _logger.LogInformation($"Start writing file descriptor for filename {fileName}");
+
             var filesystemDescriptor = _filesystemDescriptorRepository.Read();
             var fileDescriptor = new FileDescriptor(fileName, allocatedCursor.Offset, contentBytes.Length);
             var fileDescriptorOffset = -FilesystemDescriptor.BytesTotal -
@@ -50,6 +61,10 @@ namespace FileFS.Managers
 
             _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(ref fileDescriptor, ref cursor));
 
+            _logger.LogInformation($"Done writing file descriptor for filename {fileName}");
+
+            _logger.LogInformation("Start updating filesystem descriptor");
+
             // 3. Update filesystem descriptor
             var updatedFilesystemDescriptor = new FilesystemDescriptor(
                 filesystemDescriptor.FilesDataLength,
@@ -59,8 +74,12 @@ namespace FileFS.Managers
 
             _filesystemDescriptorRepository.Write(updatedFilesystemDescriptor);
 
+            _logger.LogInformation("Done updating filesystem descriptor");
+
             // 4. Write data
             _fileDataRepository.Write(contentBytes, allocatedCursor.Offset);
+
+            _logger.LogInformation($"File {fileName} was created");
         }
 
         public void Update(string fileName, byte[] newContentBytes)
@@ -68,9 +87,8 @@ namespace FileFS.Managers
             // 1. Find descriptor
             var descriptorItem = FindDescriptor(fileName);
 
-            // 2. If new content size equals or less than was allocated to this file,
+            // 2. If new content size equals or smaller than was previously allocated to this file,
             // we don't need to allocate new space, only change length
-            // otherwise - allocate new space
             var allocatedOffset = newContentBytes.Length <= descriptorItem.Value.DataLength
                 ? descriptorItem.Value.DataOffset
                 : _allocator.AllocateFile(newContentBytes.Length).Offset;
@@ -152,7 +170,8 @@ namespace FileFS.Managers
             }
 
             // TODO: Use stream and buffering
-            var contentBytes = File.ReadAllBytes(externalPath);
+
+            var contentBytes = _externalFileManager.Read(externalPath);
 
             Create(fileName, contentBytes);
         }
@@ -172,7 +191,7 @@ namespace FileFS.Managers
             // TODO: Use stream and buffering
             var contentBytes = Read(fileName);
 
-            File.WriteAllBytes(externalPath, contentBytes);
+            _externalFileManager.Write(externalPath, contentBytes);
         }
 
         public bool Exists(string fileName)

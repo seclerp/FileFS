@@ -5,6 +5,7 @@ using FileFs.DataAccess.Repositories;
 using FileFs.DataAccess.Serializers;
 using FileFS.Managers;
 using FileFS.Managers.Models;
+using Microsoft.Extensions.Logging;
 
 namespace FileFS.Api
 {
@@ -12,9 +13,9 @@ namespace FileFS.Api
     {
         private readonly FileFsManager _manager;
 
-        public FileFsClient(string fileFsPath)
+        public FileFsClient(string fileFsPath, ILoggerFactory loggerFactory)
         {
-            var connection = new StorageConnection(fileFsPath);
+            var connection = new StorageConnection(fileFsPath, loggerFactory.CreateLogger<StorageConnection>());
 
             var filesystemSerializer = new FilesystemDescriptorSerializer();
             var filesystemRepository = new FilesystemDescriptorRepository(connection, filesystemSerializer);
@@ -24,10 +25,12 @@ namespace FileFS.Api
 
             var fileDataRepository = new FileDataRepository(connection);
 
-            var optimizer = new StorageOptimizer(fileDescriptorRepository, fileDataRepository);
-            var allocator = new FileAllocator(connection, filesystemRepository, fileDescriptorRepository, optimizer);
+            var optimizer = new StorageOptimizer(fileDescriptorRepository, fileDataRepository, loggerFactory.CreateLogger<StorageOptimizer>());
+            var allocator = new FileAllocator(connection, filesystemRepository, fileDescriptorRepository, optimizer, loggerFactory.CreateLogger<FileAllocator>());
 
-            _manager = new FileFsManager(allocator, fileDataRepository, filesystemRepository, fileDescriptorRepository, optimizer);
+            var externalFileManager = new ExternalFileManager(loggerFactory.CreateLogger<ExternalFileManager>());
+
+            _manager = new FileFsManager(allocator, fileDataRepository, filesystemRepository, fileDescriptorRepository, optimizer, externalFileManager, loggerFactory.CreateLogger<FileFsManager>());
         }
 
         public void Create(string fileName, byte[] content)

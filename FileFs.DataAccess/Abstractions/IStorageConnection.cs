@@ -1,4 +1,6 @@
-﻿namespace FileFs.DataAccess.Abstractions
+﻿using System.IO;
+
+namespace FileFs.DataAccess.Abstractions
 {
     public interface IStorageConnection
     {
@@ -6,5 +8,6 @@
         byte[] PerformRead(Cursor cursor, int length);
         void PerformCopy(Cursor sourceCursor, Cursor destinationCursor, int length);
         long GetSize();
+        Stream OpenStream();
     }
 }
