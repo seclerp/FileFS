@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Text;
 using CommandLine;
-using FileFS.Api;
-using FileFS.Api.Abstractions;
 using FileFS.Cli.CommandLineOptions;
-using FileFs.DataAccess;
-using FileFs.DataAccess.Exceptions;
-using FileFs.DataAccess.Serializers;
+using FileFS.Client;
+using FileFS.Client.Abstractions;
+using FileFS.DataAccess;
+using FileFS.DataAccess.Exceptions;
+using FileFS.DataAccess.Serializers;
 using Serilog;
 
 namespace FileFS.Cli
 {
     internal class Program
     {
-
         // Increase version when layout of FileFS storage changes
         private static readonly int FileFsStorageVersion = 1;
 
@@ -36,7 +35,7 @@ namespace FileFS.Cli
 
         private static IFileFsClient CreateClient(BaseOptions options)
         {
-            return new FileFsClient(options.Instance, CreateLogger(options.IsDebug));
+            return FileFsClientFactory.Create(options.Instance, CreateLogger(options.IsDebug));
         }
 
         private static void SafeExecute<TOptions>(TOptions options, Action<TOptions> action)
@@ -160,7 +159,7 @@ namespace FileFS.Cli
             SafeExecute(readOptions, options =>
             {
                 var client = CreateClient(options);
-                var contentBytes = client.Read(options.FileName);
+                var contentBytes = client.ReadContent(options.FileName);
                 var content = Encoding.UTF8.GetString(contentBytes);
                 Console.WriteLine(content);
             });

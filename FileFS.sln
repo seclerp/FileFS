@@ -2,13 +2,19 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Cli", "FileFS.Cli\FileFS.Cli.csproj", "{EB4131E5-9BA5-411D-9A99-FB9720103E2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Api.Tests", "FileFS.Api.Tests\FileFS.Api.Tests.csproj", "{B7FF70FC-0FBF-43B3-82B1-55020032D40D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Client.Tests", "FileFS.Client.Tests\FileFS.Client.Tests.csproj", "{B7FF70FC-0FBF-43B3-82B1-55020032D40D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Api", "FileFS.Api\FileFS.Api.csproj", "{8B0E7613-3433-45A1-8078-B21CB37017B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.DataAccess", "FileFS.DataAccess\FileFS.DataAccess.csproj", "{F903BDB1-BE46-4581-8253-BF62E811A35E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFs.DataAccess", "FileFs.DataAccess\FileFs.DataAccess.csproj", "{F903BDB1-BE46-4581-8253-BF62E811A35E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Client", "FileFS.Client\FileFS.Client.csproj", "{FAB6FF13-1739-4884-86E8-7F836D7C6F58}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Managers", "FileFS.Managers\FileFS.Managers.csproj", "{FAB6FF13-1739-4884-86E8-7F836D7C6F58}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.DataAccess.Tests", "FileFS.DataAccess.Tests\FileFS.DataAccess.Tests.csproj", "{8000BDFC-F7CA-420C-B9E8-541090557194}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{CE32DAC6-5671-4870-BF69-FBA1578B87AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Extensions.DependencyInjection", "FileFS.Extensions.DependencyInjection\FileFS.Extensions.DependencyInjection.csproj", "{135C3BB0-64A7-40FB-8CEC-402CC11AE74B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Extensions.DependencyInjection.Tests", "FileFS.Extensions.DependencyInjection.Tests\FileFS.Extensions.DependencyInjection.Tests.csproj", "{3B322F91-0124-4F24-A4CA-4ED7901E84D1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,10 +30,6 @@ Global
 		{B7FF70FC-0FBF-43B3-82B1-55020032D40D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B7FF70FC-0FBF-43B3-82B1-55020032D40D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B7FF70FC-0FBF-43B3-82B1-55020032D40D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B0E7613-3433-45A1-8078-B21CB37017B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B0E7613-3433-45A1-8078-B21CB37017B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B0E7613-3433-45A1-8078-B21CB37017B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B0E7613-3433-45A1-8078-B21CB37017B1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F903BDB1-BE46-4581-8253-BF62E811A35E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F903BDB1-BE46-4581-8253-BF62E811A35E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F903BDB1-BE46-4581-8253-BF62E811A35E}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -36,5 +38,22 @@ Global
 		{FAB6FF13-1739-4884-86E8-7F836D7C6F58}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FAB6FF13-1739-4884-86E8-7F836D7C6F58}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FAB6FF13-1739-4884-86E8-7F836D7C6F58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8000BDFC-F7CA-420C-B9E8-541090557194}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8000BDFC-F7CA-420C-B9E8-541090557194}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8000BDFC-F7CA-420C-B9E8-541090557194}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8000BDFC-F7CA-420C-B9E8-541090557194}.Release|Any CPU.Build.0 = Release|Any CPU
+		{135C3BB0-64A7-40FB-8CEC-402CC11AE74B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{135C3BB0-64A7-40FB-8CEC-402CC11AE74B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{135C3BB0-64A7-40FB-8CEC-402CC11AE74B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{135C3BB0-64A7-40FB-8CEC-402CC11AE74B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B322F91-0124-4F24-A4CA-4ED7901E84D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B322F91-0124-4F24-A4CA-4ED7901E84D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B322F91-0124-4F24-A4CA-4ED7901E84D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B322F91-0124-4F24-A4CA-4ED7901E84D1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B7FF70FC-0FBF-43B3-82B1-55020032D40D} = {CE32DAC6-5671-4870-BF69-FBA1578B87AC}
+		{8000BDFC-F7CA-420C-B9E8-541090557194} = {CE32DAC6-5671-4870-BF69-FBA1578B87AC}
+		{3B322F91-0124-4F24-A4CA-4ED7901E84D1} = {CE32DAC6-5671-4870-BF69-FBA1578B87AC}
 	EndGlobalSection
 EndGlobal
