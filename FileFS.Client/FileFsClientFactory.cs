@@ -6,11 +6,20 @@ using Serilog;
 
 namespace FileFS.Client
 {
-    public class FileFsClientFactory
+    /// <summary>
+    /// Class that allows to create configured <see cref="IFileFsClient"/> instances.
+    /// </summary>
+    public static class FileFsClientFactory
     {
-        public static IFileFsClient Create(string fileFsPath, ILogger logger)
+        /// <summary>
+        /// Creates instance of <see cref="IFileFsClient"/>.
+        /// </summary>
+        /// <param name="fileFsStoragePath">Path to FileFS storage file.</param>
+        /// <param name="logger">Logger instance.</param>
+        /// <returns>Instance of <see cref="IFileFsClient"/>.</returns>
+        public static IFileFsClient Create(string fileFsStoragePath, ILogger logger)
         {
-            var connection = new StorageConnection(fileFsPath, logger);
+            var connection = new StorageConnection(fileFsStoragePath, logger);
 
             var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer();
             var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(connection, filesystemDescriptorSerializer);

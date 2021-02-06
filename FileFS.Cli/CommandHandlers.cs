@@ -141,7 +141,7 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(readOptions, options =>
             {
                 var client = CommandHandlerHelper.CreateClient(options);
-                var contentBytes = client.ReadContent(options.FileName);
+                var contentBytes = client.Read(options.FileName);
                 var content = Encoding.UTF8.GetString(contentBytes);
                 Console.WriteLine(content);
             });
