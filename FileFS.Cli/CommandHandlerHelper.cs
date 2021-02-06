@@ -7,8 +7,16 @@ using Serilog;
 
 namespace FileFS.Cli
 {
+    /// <summary>
+    /// Class that contains helper methods used by command handlers.
+    /// </summary>
     internal static class CommandHandlerHelper
     {
+        /// <summary>
+        /// Creates configured logger instance.
+        /// </summary>
+        /// <param name="isDebug">If true, all logs would be logged, otherwise only Warning and higher levels.</param>
+        /// <returns>Configured logger instance.</returns>
         internal static ILogger CreateLogger(bool isDebug)
         {
             var configuration = new LoggerConfiguration();
@@ -26,11 +34,22 @@ namespace FileFS.Cli
                 .CreateLogger();
         }
 
+        /// <summary>
+        /// Creates ready to use <see cref="IFileFsClient"/> instance.
+        /// </summary>
+        /// <param name="options">Contains base command options, used to configure client.</param>
+        /// <returns>Ready to use <see cref="IFileFsClient"/> instance.</returns>
         internal static IFileFsClient CreateClient(BaseOptions options)
         {
             return FileFsClientFactory.Create(options.Instance, CreateLogger(options.IsDebug));
         }
 
+        /// <summary>
+        /// Wraps given action execution into try/catch block, executes it and formats known errors into console.
+        /// </summary>
+        /// <param name="options">Command options instance.</param>
+        /// <param name="action">Action to be executed.</param>
+        /// <typeparam name="TOptions">Type of a command options.</typeparam>
         internal static void TryExecute<TOptions>(TOptions options, Action<TOptions> action)
             where TOptions : BaseOptions
         {

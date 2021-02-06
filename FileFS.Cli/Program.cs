@@ -3,9 +3,16 @@ using FileFS.Cli.Options;
 
 namespace FileFS.Cli
 {
+    /// <summary>
+    /// Entry point container class.
+    /// </summary>
     internal class Program
     {
-        static void Main(string[] args)
+        /// <summary>
+        /// Main entry point for the application.
+        /// </summary>
+        /// <param name="args">Array containing command line arguments.</param>
+        private static void Main(string[] args)
         {
             Parser.Default.ParseArguments<
                     InitOptions,

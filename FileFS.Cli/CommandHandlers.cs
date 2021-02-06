@@ -8,8 +8,15 @@ using FileFS.DataAccess.Serializers;
 
 namespace FileFS.Cli
 {
+    /// <summary>
+    /// Class that contains methods used to handle commands.
+    /// </summary>
     internal class CommandHandlers
     {
+        /// <summary>
+        /// Method that handles "init" command.
+        /// </summary>
+        /// <param name="initOptions">Options passed to the command.</param>
         internal static void HandleInit(InitOptions initOptions)
         {
             CommandHandlerHelper.TryExecute(initOptions, options =>
@@ -21,6 +28,10 @@ namespace FileFS.Cli
             });
         }
 
+        /// <summary>
+        /// Method that handles "create" command.
+        /// </summary>
+        /// <param name="createOptions">Options passed to the command.</param>
         internal static void HandleCreate(CreateOptions createOptions)
         {
             CommandHandlerHelper.TryExecute(createOptions, options =>
@@ -31,6 +42,10 @@ namespace FileFS.Cli
             });
         }
 
+        /// <summary>
+        /// Method that handles "update" command.
+        /// </summary>
+        /// <param name="updateOptions">Options passed to the command.</param>
         internal static void HandleUpdate(UpdateOptions updateOptions)
         {
             CommandHandlerHelper.TryExecute(updateOptions, options =>
@@ -46,6 +61,10 @@ namespace FileFS.Cli
             });
         }
 
+        /// <summary>
+        /// Method that handles "delete" command.
+        /// </summary>
+        /// <param name="deleteOptions">Options passed to the command.</param>
         internal static void HandleDelete(DeleteOptions deleteOptions)
         {
             CommandHandlerHelper.TryExecute(deleteOptions, options =>
@@ -60,6 +79,10 @@ namespace FileFS.Cli
             });
         }
 
+        /// <summary>
+        /// Method that handles "import" command.
+        /// </summary>
+        /// <param name="importOptions">Options passed to the command.</param>
         internal static void HandleImport(ImportOptions importOptions)
         {
             CommandHandlerHelper.TryExecute(importOptions, options =>
@@ -69,6 +92,10 @@ namespace FileFS.Cli
             });
         }
 
+        /// <summary>
+        /// Method that handles "export" command.
+        /// </summary>
+        /// <param name="exportOptions">Options passed to the command.</param>
         internal static void HandleExport(ExportOptions exportOptions)
         {
             CommandHandlerHelper.TryExecute(exportOptions, options =>
@@ -78,6 +105,10 @@ namespace FileFS.Cli
             });
         }
 
+        /// <summary>
+        /// Method that handles "rename" command.
+        /// </summary>
+        /// <param name="renameOptions">Options passed to the command.</param>
         internal static void HandleRename(RenameOptions renameOptions)
         {
             CommandHandlerHelper.TryExecute(renameOptions, options =>
@@ -87,6 +118,10 @@ namespace FileFS.Cli
             });
         }
 
+        /// <summary>
+        /// Method that handles "exists" command.
+        /// </summary>
+        /// <param name="existsOptions">Options passed to the command.</param>
         internal static void HandleExists(ExistsOptions existsOptions)
         {
             CommandHandlerHelper.TryExecute(existsOptions, options =>
@@ -97,6 +132,10 @@ namespace FileFS.Cli
             });
         }
 
+        /// <summary>
+        /// Method that handles "read" command.
+        /// </summary>
+        /// <param name="readOptions">Options passed to the command.</param>
         internal static void HandleRead(ReadOptions readOptions)
         {
             CommandHandlerHelper.TryExecute(readOptions, options =>
@@ -108,6 +147,10 @@ namespace FileFS.Cli
             });
         }
 
+        /// <summary>
+        /// Method that handles "list" command.
+        /// </summary>
+        /// <param name="listOptions">Options passed to the command.</param>
         internal static void HandleList(ListOptions listOptions)
         {
             CommandHandlerHelper.TryExecute(listOptions, options =>
