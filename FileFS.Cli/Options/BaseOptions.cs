@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FileFS.Cli.CommandLineOptions
+namespace FileFS.Cli.Options
 {
     public class BaseOptions
     {

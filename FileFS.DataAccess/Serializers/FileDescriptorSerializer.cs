@@ -25,10 +25,12 @@ namespace FileFS.DataAccess.Serializers
             var fileNameBytes = reader.ReadBytes(stringLength);
             var fileName = Encoding.UTF8.GetString(fileNameBytes);
             stream.Seek(filesystemDescriptor.FileDescriptorLength - stringLength - FileDescriptor.BytesWithoutFilename, SeekOrigin.Current);
+            var createdOn = reader.ReadInt64();
+            var updatedOn = reader.ReadInt64();
             var offset = reader.ReadInt32();
             var length = reader.ReadInt32();
 
-            return new FileDescriptor(fileName, offset, length);
+            return new FileDescriptor(fileName, createdOn, updatedOn, offset, length);
         }
 
         public byte[] ToBuffer(FileDescriptor model)
@@ -42,6 +44,8 @@ namespace FileFS.DataAccess.Serializers
             writer.Write(model.FileNameLength);
             writer.Write(fileNameBytes);
             writer.Seek(filesystemDescriptor.FileDescriptorLength - fileNameBytes.Length - FileDescriptor.BytesWithoutFilename, SeekOrigin.Current);
+            writer.Write(model.CreatedOn);
+            writer.Write(model.UpdatedOn);
             writer.Write(model.DataOffset);
             writer.Write(model.DataLength);
 

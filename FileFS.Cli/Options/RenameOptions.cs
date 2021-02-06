@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FileFS.Cli.CommandLineOptions
+namespace FileFS.Cli.Options
 {
     [Verb("rename", HelpText = "Rename file in FileFS storage.")]
     public class RenameOptions : BaseOptions

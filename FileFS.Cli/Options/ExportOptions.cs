@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FileFS.Cli.CommandLineOptions
+namespace FileFS.Cli.Options
 {
     [Verb("export", HelpText = "Exports file from FileFS storage to a new file in your filesystem.")]
     public class ExportOptions : BaseOptions

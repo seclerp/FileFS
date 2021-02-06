@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FileFS.Cli.CommandLineOptions
+namespace FileFS.Cli.Options
 {
     [Verb("read", HelpText = "Read contents of file inside FileFS storage.")]
     public class ReadOptions : BaseOptions

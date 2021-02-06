@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FileFS.Cli.CommandLineOptions
+namespace FileFS.Cli.Options
 {
     [Verb("create", HelpText = "Create new file inside FileFS storage.")]
     public class CreateOptions : BaseOptions

@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FileFS.Cli.CommandLineOptions
+namespace FileFS.Cli.Options
 {
     [Verb("import", HelpText = "Imports existing file in your filesystem to a new file inside FileFS storage.")]
     public class ImportOptions : BaseOptions

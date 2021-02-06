@@ -15,9 +15,8 @@ namespace FileFS.DataAccess.Serializers
             var filesDataLength = reader.ReadInt32();
             var fileDescriptorsCount = reader.ReadInt32();
             var fileDescriptorLength = reader.ReadInt32();
-            var version = reader.ReadInt32();
 
-            return new FilesystemDescriptor(filesDataLength, fileDescriptorsCount, fileDescriptorLength, version);
+            return new FilesystemDescriptor(filesDataLength, fileDescriptorsCount, fileDescriptorLength);
         }
 
         public byte[] ToBuffer(FilesystemDescriptor model)
@@ -29,7 +28,6 @@ namespace FileFS.DataAccess.Serializers
             writer.Write(model.FilesDataLength);
             writer.Write(model.FileDescriptorsCount);
             writer.Write(model.FileDescriptorLength);
-            writer.Write(model.Version);
 
             return buffer;
         }

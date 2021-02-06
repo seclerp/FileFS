@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FileFS.Cli.CommandLineOptions
+namespace FileFS.Cli.Options
 {
     [Verb("exists", HelpText = "Check that file is exists in FileFS storage.")]
     public class ExistsOptions : BaseOptions

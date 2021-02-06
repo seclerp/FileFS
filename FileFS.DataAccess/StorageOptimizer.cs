@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
+using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
 
@@ -80,7 +82,9 @@ namespace FileFS.DataAccess
 
         private StorageItem<FileDescriptor> CopyFile(FileDescriptor fileDescriptor, Cursor cursor, int destinationOffset)
         {
-            var newDescriptor = new FileDescriptor(fileDescriptor.FileName, destinationOffset, fileDescriptor.DataLength);
+            var createdOn = DateTime.UtcNow.ToUnixTime();
+            var updatedOn = createdOn;
+            var newDescriptor = new FileDescriptor(fileDescriptor.FileName, createdOn, updatedOn, destinationOffset, fileDescriptor.DataLength);
             var newStorageItem = new StorageItem<FileDescriptor>(ref newDescriptor, ref cursor);
 
             _logger.Information($"Moving {fileDescriptor.DataLength} bytes of data from {fileDescriptor.DataOffset} to {destinationOffset}");

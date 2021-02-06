@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FileFS.Cli.CommandLineOptions
+namespace FileFS.Cli.Options
 {
     [Verb("update", HelpText = "Update file content inside FileFS storage.")]
     public class UpdateOptions : BaseOptions

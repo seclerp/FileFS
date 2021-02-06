@@ -21,7 +21,7 @@ namespace FileFS.Client.Abstractions
 
         bool Exists(string fileName);
 
-        IReadOnlyCollection<FileEntryInfo> List();
+        IReadOnlyCollection<FileEntryInfo> ListFiles();
 
         void ForceOptimize();
     }

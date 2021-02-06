@@ -9,8 +9,7 @@ namespace FileFS.DataAccess.Extensions
             return new FilesystemDescriptor(
                 filesDataLength,
                 descriptor.FileDescriptorsCount,
-                descriptor.FileDescriptorLength,
-                descriptor.Version);
+                descriptor.FileDescriptorLength);
         }
 
         public static FilesystemDescriptor WithFileDescriptorsCount(this in FilesystemDescriptor descriptor, int fileDescriptorsCount)
@@ -18,8 +17,7 @@ namespace FileFS.DataAccess.Extensions
             return new FilesystemDescriptor(
                 descriptor.FilesDataLength,
                 fileDescriptorsCount,
-                descriptor.FileDescriptorLength,
-                descriptor.Version);
+                descriptor.FileDescriptorLength);
         }
 
         public static FilesystemDescriptor WithFileDescriptorLength(this in FilesystemDescriptor descriptor, int fileDescriptorLength)
@@ -27,17 +25,7 @@ namespace FileFS.DataAccess.Extensions
             return new FilesystemDescriptor(
                 descriptor.FilesDataLength,
                 descriptor.FileDescriptorsCount,
-                fileDescriptorLength,
-                descriptor.Version);
-        }
-
-        public static FilesystemDescriptor WithVersion(this in FilesystemDescriptor descriptor, int version)
-        {
-            return new FilesystemDescriptor(
-                descriptor.FilesDataLength,
-                descriptor.FileDescriptorsCount,
-                descriptor.FileDescriptorLength,
-                version);
+                fileDescriptorLength);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FileFS.Cli.CommandLineOptions
+namespace FileFS.Cli.Options
 {
     [Verb("delete", HelpText = "Deletes file from FileFS storage.")]
     public class DeleteOptions : BaseOptions

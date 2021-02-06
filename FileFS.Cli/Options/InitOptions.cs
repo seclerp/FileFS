@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace FileFS.Cli.CommandLineOptions
+namespace FileFS.Cli.Options
 {
     [Verb("init", HelpText = "Initialize new storage instance of FileFS.")]
     public class InitOptions : BaseOptions

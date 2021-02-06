@@ -144,7 +144,7 @@ namespace FileFS.Client
             return _fileRepository.Exists(fileName);
         }
 
-        public IReadOnlyCollection<FileEntryInfo> List()
+        public IReadOnlyCollection<FileEntryInfo> ListFiles()
         {
             return _fileRepository
                 .GetAllFilesInfo()
