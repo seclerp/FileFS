@@ -1,15 +1,15 @@
 ﻿using System.IO;
 using FileFs.DataAccess.Abstractions;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace FileFs.DataAccess
 {
     public class StorageConnection : IStorageConnection
     {
         private readonly string _fileName;
-        private readonly ILogger<StorageConnection> _logger;
+        private readonly ILogger _logger;
 
-        public StorageConnection(string fileName, ILogger<StorageConnection> logger)
+        public StorageConnection(string fileName, ILogger logger)
         {
             _fileName = fileName;
             _logger = logger;
@@ -17,7 +17,7 @@ namespace FileFs.DataAccess
 
         public void PerformWrite(Cursor cursor, byte[] data)
         {
-            _logger.LogInformation($"Start write operation at offset {cursor.Offset} for {data.Length} bytes");
+            _logger.Information($"Start write operation at offset {cursor.Offset} for {data.Length} bytes");
 
             using var stream = OpenStream();
             using var writer = CreateWriter(stream);
@@ -25,12 +25,12 @@ namespace FileFs.DataAccess
             writer.Seek(cursor.Offset, cursor.Origin);
             writer.Write(data);
 
-            _logger.LogInformation($"Done write operation at offset {cursor.Offset} for {data.Length} bytes");
+            _logger.Information($"Done write operation at offset {cursor.Offset} for {data.Length} bytes");
         }
 
         public byte[] PerformRead(Cursor cursor, int length)
         {
-            _logger.LogInformation($"Start read operation at offset {cursor.Offset} for {length} bytes");
+            _logger.Information($"Start read operation at offset {cursor.Offset} for {length} bytes");
 
             using var stream = OpenStream();
             using var reader = CreateReader(stream);
@@ -38,14 +38,14 @@ namespace FileFs.DataAccess
             stream.Seek(cursor.Offset, cursor.Origin);
             var bytes = reader.ReadBytes(length);
 
-            _logger.LogInformation($"Done read operation at offset {cursor.Offset} for {length} bytes");
+            _logger.Information($"Done read operation at offset {cursor.Offset} for {length} bytes");
 
             return bytes;
         }
 
         public void PerformCopy(Cursor sourceCursor, Cursor destinationCursor, int length)
         {
-            _logger.LogInformation($"Start copy operation from offset {sourceCursor.Offset} to offset {destinationCursor.Offset}, {length} bytes length");
+            _logger.Information($"Start copy operation from offset {sourceCursor.Offset} to offset {destinationCursor.Offset}, {length} bytes length");
 
             using var tempStream = new MemoryStream(length);
             using var tempStreamReader = CreateReader(tempStream);
@@ -61,7 +61,7 @@ namespace FileFs.DataAccess
             tempStream.Seek(0, SeekOrigin.Begin);
             writer.Write(tempStreamReader.ReadBytes(length));
 
-            _logger.LogInformation($"Done copy operation from offset {sourceCursor.Offset} to offset {destinationCursor.Offset}, {length} bytes length");
+            _logger.Information($"Done copy operation from offset {sourceCursor.Offset} to offset {destinationCursor.Offset}, {length} bytes length");
         }
 
         public long GetSize()
@@ -72,11 +72,11 @@ namespace FileFs.DataAccess
 
         public Stream OpenStream()
         {
-            _logger.LogInformation($"Trying to open stream for filename {_fileName}");
+            _logger.Information($"Trying to open stream for filename {_fileName}");
 
             var stream = new FileStream(_fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
 
-            _logger.LogInformation($"Stream for filename {_fileName} opened");
+            _logger.Information($"Stream for filename {_fileName} opened");
 
             return stream;
         }

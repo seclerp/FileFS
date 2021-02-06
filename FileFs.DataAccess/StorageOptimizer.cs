@@ -1,27 +1,31 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using FileFs.DataAccess.Abstractions;
 using FileFs.DataAccess.Entities;
 using FileFs.DataAccess.Repositories.Abstractions;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace FileFs.DataAccess
 {
     public class StorageOptimizer : IStorageOptimizer
     {
+        private readonly IStorageConnection _connection;
         private readonly IFileDescriptorRepository _fileDescriptorRepository;
-        private readonly IFileDataRepository _dataRepository;
-        private readonly ILogger<StorageOptimizer> _logger;
+        private readonly ILogger _logger;
 
-        public StorageOptimizer(IFileDescriptorRepository fileDescriptorRepository, IFileDataRepository dataRepository, ILogger<StorageOptimizer> logger)
+        public StorageOptimizer(
+            IStorageConnection connection,
+            IFileDescriptorRepository fileDescriptorRepository,
+            ILogger logger)
         {
+            _connection = connection;
             _fileDescriptorRepository = fileDescriptorRepository;
-            _dataRepository = dataRepository;
             _logger = logger;
         }
 
         public void Optimize()
         {
-            _logger.LogInformation("Start optimization process");
+            _logger.Information("Start optimization process");
 
             var dataItemsMoved = 0;
             var bytesOptimized = 0;
@@ -29,7 +33,7 @@ namespace FileFs.DataAccess
             // 1. Get all descriptors
             var descriptors = _fileDescriptorRepository.ReadAll();
 
-            _logger.LogInformation($"There is {descriptors.Count} descriptors found");
+            _logger.Information($"There is {descriptors.Count} descriptors found");
 
             // 2. Sort by offset
             var orderedDescriptors = descriptors.OrderBy(descriptor => descriptor.Value.DataOffset).ToArray();
@@ -61,14 +65,14 @@ namespace FileFs.DataAccess
                 }
             }
 
-            _logger.LogInformation($"Optimization process completed, {dataItemsMoved} items moved, {bytesOptimized} bytes optimized");
+            _logger.Information($"Optimization process completed, {dataItemsMoved} items moved, {bytesOptimized} bytes optimized");
         }
 
         private void ProcessGap(StorageItem<FileDescriptor>[] orderedDescriptors, int descriptorIndex, int gapOffset)
         {
             var movingDataDescriptorItem = orderedDescriptors[descriptorIndex];
 
-            _logger.LogInformation($"Found gap of size {movingDataDescriptorItem.Value.DataOffset - 1} on offset {gapOffset}");
+            _logger.Information($"Found gap of size {movingDataDescriptorItem.Value.DataOffset - 1} on offset {gapOffset}");
 
             var newStorageItem = CopyFile(movingDataDescriptorItem.Value, movingDataDescriptorItem.Cursor, gapOffset);
             orderedDescriptors[descriptorIndex] = newStorageItem;
@@ -79,14 +83,21 @@ namespace FileFs.DataAccess
             var newDescriptor = new FileDescriptor(fileDescriptor.FileName, destinationOffset, fileDescriptor.DataLength);
             var newStorageItem = new StorageItem<FileDescriptor>(ref newDescriptor, ref cursor);
 
-            _logger.LogInformation($"Moving {fileDescriptor.DataLength} bytes of data from {fileDescriptor.DataOffset} to {destinationOffset}");
+            _logger.Information($"Moving {fileDescriptor.DataLength} bytes of data from {fileDescriptor.DataOffset} to {destinationOffset}");
 
-            _dataRepository.Copy(fileDescriptor.DataOffset, destinationOffset, fileDescriptor.DataLength);
+            PerformCopy(fileDescriptor.DataOffset, destinationOffset, fileDescriptor.DataLength);
             _fileDescriptorRepository.Write(newStorageItem);
 
-            _logger.LogInformation($"{fileDescriptor.DataLength} bytes of data moved to offset {destinationOffset}");
+            _logger.Information($"{fileDescriptor.DataLength} bytes of data moved to offset {destinationOffset}");
 
             return newStorageItem;
+        }
+
+        private void PerformCopy(int sourceOffset, int destinationOffset, int length)
+        {
+            var origin = SeekOrigin.Begin;
+
+            _connection.PerformCopy(new Cursor(sourceOffset, origin), new Cursor(destinationOffset, origin), length);
         }
     }
 }

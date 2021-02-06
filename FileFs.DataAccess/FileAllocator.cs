@@ -3,28 +3,29 @@ using System.Linq;
 using FileFs.DataAccess.Abstractions;
 using FileFs.DataAccess.Entities;
 using FileFs.DataAccess.Exceptions;
+using FileFs.DataAccess.Extensions;
 using FileFs.DataAccess.Repositories.Abstractions;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace FileFs.DataAccess
 {
     public class FileAllocator : IFileAllocator
     {
         private readonly IStorageConnection _storageConnection;
-        private readonly IFilesystemDescriptorRepository _filesystemDescriptorRepository;
+        private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly IFileDescriptorRepository _fileDescriptorRepository;
         private readonly IStorageOptimizer _optimizer;
-        private readonly ILogger<FileAllocator> _logger;
+        private readonly ILogger _logger;
 
         public FileAllocator(
             IStorageConnection storageConnection,
-            IFilesystemDescriptorRepository filesystemDescriptorRepository,
+            IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             IFileDescriptorRepository fileDescriptorRepository,
             IStorageOptimizer optimizer,
-            ILogger<FileAllocator> logger)
+            ILogger logger)
         {
             _storageConnection = storageConnection;
-            _filesystemDescriptorRepository = filesystemDescriptorRepository;
+            _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _fileDescriptorRepository = fileDescriptorRepository;
             _optimizer = optimizer;
             _logger = logger;
@@ -32,12 +33,12 @@ namespace FileFs.DataAccess
 
         public Cursor AllocateFile(int dataSize)
         {
-            _logger.LogInformation($"Start memory allocation flow for {dataSize} bytes");
+            _logger.Information($"Start memory allocation flow for {dataSize} bytes");
 
             // 1. Try find existing gap of given size
             if (TryFindGap(dataSize, out var cursor))
             {
-                _logger.LogInformation($"Done performing allocation of {dataSize} bytes");
+                _logger.Information($"Done performing allocation of {dataSize} bytes");
 
                 return cursor;
             }
@@ -45,7 +46,7 @@ namespace FileFs.DataAccess
             // 2. No gaps with given size exists - try to allocate known empty space
             if (!CouldAllocate(dataSize))
             {
-                _logger.LogInformation($"Failed to allocate new space with size of {dataSize} bytes, starting optimizer");
+                _logger.Information($"Failed to allocate new space with size of {dataSize} bytes, starting optimizer");
 
                 // First try to optimize space
                 _optimizer.Optimize();
@@ -64,9 +65,9 @@ namespace FileFs.DataAccess
 
         private bool CouldAllocate(int dataSize)
         {
-            _logger.LogInformation($"Checking possibility to allocate new {dataSize} bytes");
+            _logger.Information($"Checking possibility to allocate new {dataSize} bytes");
 
-            var filesystemDescriptor = _filesystemDescriptorRepository.Read();
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var overallSpace = _storageConnection.GetSize();
             var specialSpace = FilesystemDescriptor.BytesTotal +
                                (filesystemDescriptor.FileDescriptorsCount * filesystemDescriptor.FileDescriptorLength);
@@ -76,39 +77,36 @@ namespace FileFs.DataAccess
 
             var couldAllocate = remainingSpace >= dataSize;
 
-            _logger.LogInformation($"Could allocate decision: {couldAllocate}");
+            _logger.Information($"Could allocate decision: {couldAllocate}");
 
             return couldAllocate;
         }
 
         private Cursor PerformAllocate(int dataSize)
         {
-            _logger.LogInformation($"Performing allocation for newly acquired space of {dataSize} bytes");
+            _logger.Information($"Performing allocation for newly acquired space of {dataSize} bytes");
 
-            var filesystemDescriptor = _filesystemDescriptorRepository.Read();
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var newDataOffset = filesystemDescriptor.FilesDataLength;
             var newDataCursor = new Cursor(newDataOffset, SeekOrigin.Begin);
 
-            _logger.LogInformation($"Space allocated at offset {newDataOffset}");
-            _logger.LogInformation("Updating filesystem descriptor");
+            _logger.Information($"Space allocated at offset {newDataOffset}");
+            _logger.Information("Updating filesystem descriptor");
 
-            var updatedFilesystemDescriptor = new FilesystemDescriptor(
-                filesystemDescriptor.FilesDataLength + dataSize,
-                filesystemDescriptor.FileDescriptorsCount,
-                filesystemDescriptor.FileDescriptorLength,
-                filesystemDescriptor.Version);
+            var updatedFilesystemDescriptor = filesystemDescriptor
+                .WithFileDataLength(filesystemDescriptor.FilesDataLength + dataSize);
 
-            _filesystemDescriptorRepository.Write(updatedFilesystemDescriptor);
+            _filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
 
-            _logger.LogInformation("filesystem descriptor updated");
-            _logger.LogInformation($"Done performing allocation of {dataSize} bytes");
+            _logger.Information("filesystem descriptor updated");
+            _logger.Information($"Done performing allocation of {dataSize} bytes");
 
             return newDataCursor;
         }
 
         private bool TryFindGap(int size, out Cursor cursor)
         {
-            _logger.LogInformation($"Trying to find existing gap of {size} bytes");
+            _logger.Information($"Trying to find existing gap of {size} bytes");
 
             cursor = default;
 
@@ -124,7 +122,7 @@ namespace FileFs.DataAccess
                 // Start of storage is our gap
                 cursor = new Cursor(0, SeekOrigin.Begin);
 
-                _logger.LogInformation($"Found gap of size {size} bytes at offset {cursor.Offset}");
+                _logger.Information($"Found gap of size {size} bytes at offset {cursor.Offset}");
 
                 return true;
             }
@@ -157,12 +155,12 @@ namespace FileFs.DataAccess
             {
                 cursor = minimalGapCursor;
 
-                _logger.LogInformation($"Found gap of size {size} bytes at offset {cursor.Offset}");
+                _logger.Information($"Found gap of size {size} bytes at offset {cursor.Offset}");
 
                 return true;
             }
 
-            _logger.LogInformation($"Gap of size {size} bytes not found");
+            _logger.Information($"Gap of size {size} bytes not found");
 
             return false;
         }

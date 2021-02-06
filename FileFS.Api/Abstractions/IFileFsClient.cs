@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using FileFS.Managers.Models;
+using FileFs.DataAccess.Entities;
 
 namespace FileFS.Api.Abstractions
 {
@@ -53,7 +53,7 @@ namespace FileFS.Api.Abstractions
         /// <param name="newName">New name of a file.</param>
         void Rename(string oldName, string newName);
 
-        IReadOnlyCollection<EntryInfo> List();
+        IReadOnlyCollection<FileEntryInfo> List();
 
         void ForceOptimize();
     }

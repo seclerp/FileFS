@@ -1,175 +1,117 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FileFs.DataAccess;
+using System.Text.RegularExpressions;
 using FileFs.DataAccess.Abstractions;
 using FileFs.DataAccess.Entities;
 using FileFs.DataAccess.Repositories.Abstractions;
 using FileFS.Managers.Abstractions;
-using FileFS.Managers.Models;
-using Microsoft.Extensions.Logging;
+using FileFS.Managers.Constants;
+using FileFS.Managers.Exceptions;
+using FileNotFoundException = FileFS.Managers.Exceptions.FileNotFoundException;
 
 namespace FileFS.Managers
 {
     public class FileFsManager : IFileFsManager
     {
-        private readonly IFileAllocator _allocator;
-        private readonly IFileDataRepository _fileDataRepository;
-        private readonly IFilesystemDescriptorRepository _filesystemDescriptorRepository;
-        private readonly IFileDescriptorRepository _fileDescriptorRepository;
-        private readonly IStorageOptimizer _storageOptimizer;
+        private readonly IFileRepository _fileRepository;
         private readonly IExternalFileManager _externalFileManager;
-        private readonly ILogger<FileFsManager> _logger;
+        private readonly IStorageOptimizer _optimizer;
 
         public FileFsManager(
-            IFileAllocator allocator,
-            IFileDataRepository fileDataRepository,
-            IFilesystemDescriptorRepository filesystemDescriptorRepository,
-            IFileDescriptorRepository fileDescriptorRepository,
-            IStorageOptimizer storageOptimizer,
+            IFileRepository fileRepository,
             IExternalFileManager externalFileManager,
-            ILogger<FileFsManager> logger)
+            IStorageOptimizer optimizer)
         {
-            _allocator = allocator;
-            _fileDataRepository = fileDataRepository;
-            _filesystemDescriptorRepository = filesystemDescriptorRepository;
-            _fileDescriptorRepository = fileDescriptorRepository;
-            _storageOptimizer = storageOptimizer;
+            _fileRepository = fileRepository;
             _externalFileManager = externalFileManager;
-            _logger = logger;
+            _optimizer = optimizer;
         }
 
         public void Create(string fileName, byte[] contentBytes)
         {
-            _logger.LogInformation($"Start file create process, filename {fileName}, bytes count {contentBytes.Length}");
+            if (!IsValidFilename(fileName))
+            {
+                throw new InvalidFilenameException(fileName);
+            }
 
-            // 1. Allocate space
-            var allocatedCursor = _allocator.AllocateFile(contentBytes.Length);
+            if (Exists(fileName))
+            {
+                throw new FileAlreadyExistsException(fileName);
+            }
 
-            // 2. Write file descriptor
-            _logger.LogInformation($"Start writing file descriptor for filename {fileName}");
+            if (contentBytes.Length is 0)
+            {
+                throw new EmptyContentException(fileName);
+            }
 
-            var filesystemDescriptor = _filesystemDescriptorRepository.Read();
-            var fileDescriptor = new FileDescriptor(fileName, allocatedCursor.Offset, contentBytes.Length);
-            var fileDescriptorOffset = -FilesystemDescriptor.BytesTotal -
-                                       (filesystemDescriptor.FileDescriptorsCount *
-                                        filesystemDescriptor.FileDescriptorLength)
-                                       - filesystemDescriptor.FileDescriptorLength;
-
-            var origin = SeekOrigin.End;
-            var cursor = new Cursor(fileDescriptorOffset, origin);
-
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(ref fileDescriptor, ref cursor));
-
-            _logger.LogInformation($"Done writing file descriptor for filename {fileName}");
-
-            _logger.LogInformation("Start updating filesystem descriptor");
-
-            // 3. Update filesystem descriptor
-            var updatedFilesystemDescriptor = new FilesystemDescriptor(
-                filesystemDescriptor.FilesDataLength,
-                filesystemDescriptor.FileDescriptorsCount + 1,
-                filesystemDescriptor.FileDescriptorLength,
-                filesystemDescriptor.Version);
-
-            _filesystemDescriptorRepository.Write(updatedFilesystemDescriptor);
-
-            _logger.LogInformation("Done updating filesystem descriptor");
-
-            // 4. Write data
-            _fileDataRepository.Write(contentBytes, allocatedCursor.Offset);
-
-            _logger.LogInformation($"File {fileName} was created");
+            _fileRepository.Create(new FileEntry(fileName, contentBytes));
         }
 
         public void Update(string fileName, byte[] newContentBytes)
         {
-            // 1. Find descriptor
-            var descriptorItem = FindDescriptor(fileName);
+            if (!IsValidFilename(fileName))
+            {
+                throw new InvalidFilenameException(fileName);
+            }
 
-            // 2. If new content size equals or smaller than was previously allocated to this file,
-            // we don't need to allocate new space, only change length
-            var allocatedOffset = newContentBytes.Length <= descriptorItem.Value.DataLength
-                ? descriptorItem.Value.DataOffset
-                : _allocator.AllocateFile(newContentBytes.Length).Offset;
+            if (Exists(fileName))
+            {
+                throw new FileAlreadyExistsException(fileName);
+            }
 
-            // 3. Write file data
-            _fileDataRepository.Write(newContentBytes, allocatedOffset);
+            if (newContentBytes.Length is 0)
+            {
+                throw new EmptyContentException(fileName);
+            }
 
-            var updatedDescriptor = new FileDescriptor(
-                descriptorItem.Value.FileName,
-                allocatedOffset,
-                newContentBytes.Length);
-            var cursor = descriptorItem.Cursor;
-
-            // 4. Write descriptor
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(ref updatedDescriptor, ref cursor));
+            _fileRepository.Update(new FileEntry(fileName, newContentBytes));
         }
 
-        public byte[] Read(string fileName)
+        public byte[] ReadContent(string fileName)
         {
-            // 1. Find descriptor
-            var descriptorItem = FindDescriptor(fileName);
+            if (!IsValidFilename(fileName))
+            {
+                throw new InvalidFilenameException(fileName);
+            }
 
-            // 2. Read data by given offset from descriptor
-            var dataBytes = _fileDataRepository.Read(descriptorItem.Value.DataOffset, descriptorItem.Value.DataLength);
-
-            return dataBytes;
+            return _fileRepository.Read(fileName).Content;
         }
 
         public void Rename(string oldFilename, string newFilename)
         {
-            // 1. Find descriptor
-            var descriptorItem = FindDescriptor(oldFilename);
+            if (!IsValidFilename(oldFilename))
+            {
+                throw new InvalidFilenameException(oldFilename);
+            }
 
-            // 2. Create descriptor with new filename
-            var newDescriptor = new FileDescriptor(newFilename, descriptorItem.Value.DataOffset, descriptorItem.Value.DataLength);
-            var cursor = descriptorItem.Cursor;
-
-            // 3. Write new descriptor
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(ref newDescriptor, ref cursor));
+            if (!IsValidFilename(newFilename))
+            {
+                throw new InvalidFilenameException(newFilename);
+            }
         }
 
         public void Delete(string fileName)
         {
-            // 1. Find last descriptor
-            var filesystemDescriptor = _filesystemDescriptorRepository.Read();
-            var lastDescriptorOffset =
-                -FilesystemDescriptor.BytesTotal -
-                (filesystemDescriptor.FileDescriptorsCount *
-                 filesystemDescriptor.FileDescriptorLength);
-            var lastDescriptor = _fileDescriptorRepository.Read(lastDescriptorOffset).Value;
+            if (!IsValidFilename(fileName))
+            {
+                throw new InvalidFilenameException(fileName);
+            }
 
-            // 2. Find current descriptor
-            var descriptorItem = FindDescriptor(fileName);
-            var cursor = descriptorItem.Cursor;
-
-            // 3. Save last descriptor in new empty space (perform swap with last)
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(ref lastDescriptor, ref cursor));
-
-            // 4. Decrease count of descriptors
-            filesystemDescriptor = _filesystemDescriptorRepository.Read();
-            var updatedFilesystemDescriptor = new FilesystemDescriptor(
-                filesystemDescriptor.FilesDataLength,
-                filesystemDescriptor.FileDescriptorsCount - 1,
-                filesystemDescriptor.FileDescriptorLength,
-                filesystemDescriptor.Version);
-            _filesystemDescriptorRepository.Write(updatedFilesystemDescriptor);
+            _fileRepository.Delete(fileName);
         }
 
         public void Import(string externalPath, string fileName)
         {
             if (Exists(fileName))
             {
-                // TODO: Throw FileAlreadyExistsException
+                throw new FileAlreadyExistsException(fileName);
             }
 
-            if (File.Exists(externalPath))
+            if (!File.Exists(externalPath))
             {
-                // TODO: Throw ExternalFileAlreadyExistsException
+                throw new ExternalFileNotFoundException(externalPath);
             }
-
-            // TODO: Use stream and buffering
 
             var contentBytes = _externalFileManager.Read(externalPath);
 
@@ -180,70 +122,44 @@ namespace FileFS.Managers
         {
             if (!Exists(fileName))
             {
-                // TODO: Throw FileNotFoundException
+                throw new FileNotFoundException(fileName);
             }
 
-            if (!File.Exists(externalPath))
+            if (File.Exists(externalPath))
             {
-                // TODO: Throw ExternalFileNotFoundException
+                throw new ExternalFileAlreadyExistsException(externalPath);
             }
 
-            // TODO: Use stream and buffering
-            var contentBytes = Read(fileName);
+            var contentBytes = ReadContent(fileName);
 
             _externalFileManager.Write(externalPath, contentBytes);
         }
 
         public bool Exists(string fileName)
         {
-            return TryFindDescriptor(fileName, out _);
+            if (!IsValidFilename(fileName))
+            {
+                throw new InvalidFilenameException(fileName);
+            }
+
+            return _fileRepository.Exists(fileName);
         }
 
-        public IReadOnlyCollection<EntryInfo> List()
+        public IReadOnlyCollection<FileEntryInfo> List()
         {
-            return _fileDescriptorRepository
-                .ReadAll()
-                .Select(descriptor => new EntryInfo(descriptor.Value.FileName, descriptor.Value.DataLength))
+            return _fileRepository
+                .GetAllFilesInfo()
                 .ToArray();
         }
 
         public void ForceOptimize()
         {
-            _storageOptimizer.Optimize();
+            _optimizer.Optimize();
         }
 
-        private StorageItem<FileDescriptor> FindDescriptor(string fileName)
+        private static bool IsValidFilename(string fileName)
         {
-            if (!TryFindDescriptor(fileName, out var descriptorItem))
-            {
-                // TODO: Throw FileNotFoundException
-            }
-
-            return descriptorItem;
-        }
-
-        private bool TryFindDescriptor(string fileName, out StorageItem<FileDescriptor> descriptorItem)
-        {
-            var filesystemDescriptor = _filesystemDescriptorRepository.Read();
-            var startFromOffset = -FilesystemDescriptor.BytesTotal - filesystemDescriptor.FileDescriptorLength;
-            var endOffset = -FilesystemDescriptor.BytesTotal -
-                            (filesystemDescriptor.FileDescriptorsCount *
-                             filesystemDescriptor.FileDescriptorLength);
-
-            descriptorItem = default;
-            var found = false;
-            for (var offset = startFromOffset; offset >= endOffset; offset -= filesystemDescriptor.FileDescriptorLength)
-            {
-                var currentDescriptor = _fileDescriptorRepository.Read(offset);
-                if (currentDescriptor.Value.FileName == fileName)
-                {
-                    descriptorItem = currentDescriptor;
-                    found = true;
-                    break;
-                }
-            }
-
-            return found;
+            return Regex.IsMatch(fileName, PatternMatching.ValidFilename);
         }
     }
 }

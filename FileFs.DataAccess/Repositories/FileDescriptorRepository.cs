@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using FileFs.DataAccess.Abstractions;
 using FileFs.DataAccess.Entities;
 using FileFs.DataAccess.Repositories.Abstractions;
 using FileFs.DataAccess.Serializers.Abstractions;
@@ -8,23 +9,23 @@ namespace FileFs.DataAccess.Repositories
 {
     public class FileDescriptorRepository : IFileDescriptorRepository
     {
-        private readonly DataAccess.Abstractions.IStorageConnection _storageConnection;
-        private readonly IFilesystemDescriptorRepository _filesystemDescriptorRepository;
+        private readonly IStorageConnection _storageConnection;
+        private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly ISerializer<FileDescriptor> _serializer;
 
         public FileDescriptorRepository(
-            DataAccess.Abstractions.IStorageConnection storageConnection,
-            IFilesystemDescriptorRepository filesystemDescriptorRepository,
+            IStorageConnection storageConnection,
+            IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             ISerializer<FileDescriptor> serializer)
         {
             _storageConnection = storageConnection;
-            _filesystemDescriptorRepository = filesystemDescriptorRepository;
+            _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _serializer = serializer;
         }
 
         public StorageItem<FileDescriptor> Read(int offset)
         {
-            var filesystemDescriptor = _filesystemDescriptorRepository.Read();
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var length = filesystemDescriptor.FileDescriptorLength;
             var origin = SeekOrigin.End;
             var cursor = new Cursor(offset, origin);
@@ -36,7 +37,7 @@ namespace FileFs.DataAccess.Repositories
 
         public IReadOnlyCollection<StorageItem<FileDescriptor>> ReadAll()
         {
-            var filesystemDescriptor = _filesystemDescriptorRepository.Read();
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
 
             var startFromOffset = -FilesystemDescriptor.BytesTotal - filesystemDescriptor.FileDescriptorLength;
             var endOffset = -FilesystemDescriptor.BytesTotal -
@@ -66,6 +67,54 @@ namespace FileFs.DataAccess.Repositories
             var data = _serializer.ToBuffer(item.Value);
 
             _storageConnection.PerformWrite(item.Cursor, data);
+        }
+
+        public StorageItem<FileDescriptor> Find(string fileName)
+        {
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+            var descriptorsCursorRange = GetDescriptorsRange(in filesystemDescriptor);
+
+            for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.FileDescriptorLength)
+            {
+                var currentDescriptor = Read(offset);
+                if (currentDescriptor.Value.FileName == fileName)
+                {
+                    return currentDescriptor;
+                }
+            }
+
+            return default;
+        }
+
+        public bool Exists(string fileName)
+        {
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+            var descriptorsCursorRange = GetDescriptorsRange(in filesystemDescriptor);
+
+            for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.FileDescriptorLength)
+            {
+                var currentDescriptor = Read(offset);
+                if (currentDescriptor.Value.FileName == fileName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private CursorRange GetDescriptorsRange(in FilesystemDescriptor filesystemDescriptor)
+        {
+            var startFromOffset = -FilesystemDescriptor.BytesTotal - filesystemDescriptor.FileDescriptorLength;
+            var endOffset = -FilesystemDescriptor.BytesTotal -
+                            (filesystemDescriptor.FileDescriptorsCount *
+                             filesystemDescriptor.FileDescriptorLength);
+
+            var origin = SeekOrigin.End;
+            var begin = new Cursor(startFromOffset, origin);
+            var end = new Cursor(endOffset, origin);
+
+            return new CursorRange(begin, end);
         }
     }
 }

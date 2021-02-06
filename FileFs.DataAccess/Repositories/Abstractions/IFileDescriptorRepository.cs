@@ -10,5 +10,9 @@ namespace FileFs.DataAccess.Repositories.Abstractions
         IReadOnlyCollection<StorageItem<FileDescriptor>> ReadAll();
 
         void Write(StorageItem<FileDescriptor> item);
+
+        StorageItem<FileDescriptor> Find(string fileName);
+
+        bool Exists(string fileName);
     }
 }

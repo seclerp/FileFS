@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace FileFs.DataAccess.Exceptions
+﻿namespace FileFs.DataAccess.Exceptions
 {
-    public class NotEnoughSpaceException : Exception
+    public class NotEnoughSpaceException : FileFsException
     {
         public NotEnoughSpaceException(string message)
             : base(message)

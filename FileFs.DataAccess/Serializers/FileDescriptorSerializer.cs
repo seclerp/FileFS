@@ -8,16 +8,16 @@ namespace FileFs.DataAccess.Serializers
 {
     public class FileDescriptorSerializer : ISerializer<FileDescriptor>
     {
-        private readonly IFilesystemDescriptorRepository _filesystemDescriptorRepository;
+        private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
 
-        public FileDescriptorSerializer(IFilesystemDescriptorRepository filesystemDescriptorRepository)
+        public FileDescriptorSerializer(IFilesystemDescriptorAccessor filesystemDescriptorAccessor)
         {
-            _filesystemDescriptorRepository = filesystemDescriptorRepository;
+            _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
         }
 
         public FileDescriptor FromBuffer(byte[] buffer)
         {
-            var filesystemDescriptor = _filesystemDescriptorRepository.Read();
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             using var stream = new MemoryStream(buffer);
             using var reader = new BinaryReader(stream, Encoding.UTF8, true);
 
@@ -33,7 +33,7 @@ namespace FileFs.DataAccess.Serializers
 
         public byte[] ToBuffer(FileDescriptor model)
         {
-            var filesystemDescriptor = _filesystemDescriptorRepository.Read();
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var fileNameBytes = Encoding.UTF8.GetBytes(model.FileName);
             var buffer = new byte[filesystemDescriptor.FileDescriptorLength];
             using var stream = new MemoryStream(buffer);

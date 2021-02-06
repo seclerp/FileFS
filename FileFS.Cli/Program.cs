@@ -5,108 +5,179 @@ using FileFS.Api;
 using FileFS.Api.Abstractions;
 using FileFS.Cli.CommandLineOptions;
 using FileFs.DataAccess;
+using FileFs.DataAccess.Exceptions;
 using FileFs.DataAccess.Serializers;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace FileFS.Cli
 {
     internal class Program
     {
+
         // Increase version when layout of FileFS storage changes
         private static readonly int FileFsStorageVersion = 1;
 
-        private static ILoggerFactory CreateLoggerFactory(bool isDebug)
+        private static ILogger CreateLogger(bool isDebug)
         {
-            return LoggerFactory.Create(builder => builder
-                .AddConsole()
-                .SetMinimumLevel(isDebug ? LogLevel.Information : LogLevel.Warning));
+            var configuration = new LoggerConfiguration();
+            if (isDebug)
+            {
+                configuration = configuration.MinimumLevel.Information();
+            }
+            else
+            {
+                configuration = configuration.MinimumLevel.Warning();
+            }
+
+            return configuration
+                .WriteTo.Console()
+                .CreateLogger();
         }
 
         private static IFileFsClient CreateClient(BaseOptions options)
         {
-            return new FileFsClient(options.Instance, CreateLoggerFactory(options.IsDebug));
+            return new FileFsClient(options.Instance, CreateLogger(options.IsDebug));
         }
 
-        private static void HandleInit(InitOptions options)
+        private static void SafeExecute<TOptions>(TOptions options, Action<TOptions> action)
+            where TOptions : BaseOptions
         {
-            var serializer = new FilesystemDescriptorSerializer();
-            var loggerFactory = CreateLoggerFactory(options.IsDebug);
-            var manager = new StorageInitializer(serializer, loggerFactory.CreateLogger<StorageInitializer>());
-            manager.Initialize(options.Instance, options.Size, options.PathLength, FileFsStorageVersion);
-        }
-
-        private static void HandleCreate(CreateOptions options)
-        {
-            var client = CreateClient(options);
-            var contentBytes = Encoding.UTF8.GetBytes(options.Content);
-            client.Create(options.FileName, contentBytes);
-        }
-
-        private static void HandleUpdate(UpdateOptions options)
-        {
-            var client = CreateClient(options);
-            var contentBytes = Encoding.UTF8.GetBytes(options.Content);
-            client.Update(options.FileName, contentBytes);
-
-            if (options.ForceOptimize)
+            try
             {
-                client.ForceOptimize();
+                action(options);
+            }
+
+            // Catch here only known exception
+            catch (FileFsException ex)
+            {
+                if (options.IsDebug)
+                {
+                    var currentColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(ex);
+                    Console.ForegroundColor = currentColor;
+                }
+                else
+                {
+                    var currentColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("ERROR: ");
+                    Console.ForegroundColor = currentColor;
+                    Console.WriteLine(ex.Message);
+                }
             }
         }
 
-        private static void HandleDelete(DeleteOptions options)
+        private static void HandleInit(InitOptions initOptionas)
         {
-            var client = CreateClient(options);
-            client.Delete(options.FileName);
-
-            if (options.ForceOptimize)
+            SafeExecute(initOptionas, options =>
             {
-                client.ForceOptimize();
-            }
+                var serializer = new FilesystemDescriptorSerializer();
+                var logger = CreateLogger(options.IsDebug);
+                var manager = new StorageInitializer(serializer, logger);
+                manager.Initialize(options.Instance, options.Size, options.PathLength, FileFsStorageVersion);
+            });
         }
 
-        private static void HandleImport(ImportOptions options)
+        private static void HandleCreate(CreateOptions createOptions)
         {
-            var client = CreateClient(options);
-            client.Import(options.ImportPath, options.FileName);
-        }
-
-        private static void HandleExport(ExportOptions options)
-        {
-            var client = CreateClient(options);
-            client.Export(options.FileName, options.ExportPath);
-        }
-
-        private static void HandleRename(RenameOptions options)
-        {
-            var client = CreateClient(options);
-            client.Rename(options.OldFileName, options.NewFileName);
-        }
-
-        private static void HandleExists(ExistsOptions options)
-        {
-            var client = CreateClient(options);
-            var exists = client.Exists(options.FileName);
-            Console.WriteLine(exists);
-        }
-
-        private static void HandleRead(ReadOptions options)
-        {
-            var client = CreateClient(options);
-            var contentBytes = client.Read(options.FileName);
-            var content = Encoding.UTF8.GetString(contentBytes);
-            Console.WriteLine(content);
-        }
-
-        private static void HandleList(ListOptions options)
-        {
-            var client = CreateClient(options);
-            var allEntries = client.List();
-            Console.WriteLine("{0, -20}{1, 5}", "NAME", "SIZE");
-            foreach (var entryInfo in allEntries)
+            SafeExecute(createOptions, options =>
             {
-                Console.WriteLine("{0, -20}{1, 5}", entryInfo.Path, $"{entryInfo.Size}B");
-            }
+                var client = CreateClient(options);
+                var contentBytes = Encoding.UTF8.GetBytes(options.Content);
+                client.Create(options.FileName, contentBytes);
+            });
+        }
+
+        private static void HandleUpdate(UpdateOptions updateOptions)
+        {
+            SafeExecute(updateOptions, options =>
+            {
+                var client = CreateClient(options);
+                var contentBytes = Encoding.UTF8.GetBytes(options.Content);
+                client.Update(options.FileName, contentBytes);
+
+                if (options.ForceOptimize)
+                {
+                    client.ForceOptimize();
+                }
+            });
+        }
+
+        private static void HandleDelete(DeleteOptions deleteOptions)
+        {
+            SafeExecute(deleteOptions, options =>
+            {
+                var client = CreateClient(options);
+                client.Delete(options.FileName);
+
+                if (options.ForceOptimize)
+                {
+                    client.ForceOptimize();
+                }
+            });
+        }
+
+        private static void HandleImport(ImportOptions importOptions)
+        {
+            SafeExecute(importOptions, options =>
+            {
+                var client = CreateClient(options);
+                client.Import(options.ImportPath, options.FileName);
+            });
+        }
+
+        private static void HandleExport(ExportOptions exportOptions)
+        {
+            SafeExecute(exportOptions, options =>
+            {
+                var client = CreateClient(options);
+                client.Export(options.FileName, options.ExportPath);
+            });
+        }
+
+        private static void HandleRename(RenameOptions renameOptions)
+        {
+            SafeExecute(renameOptions, options =>
+            {
+                var client = CreateClient(options);
+                client.Rename(options.OldFileName, options.NewFileName);
+            });
+        }
+
+        private static void HandleExists(ExistsOptions existsOptions)
+        {
+            SafeExecute(existsOptions, options =>
+            {
+                var client = CreateClient(options);
+                var exists = client.Exists(options.FileName);
+                Console.WriteLine(exists);
+            });
+        }
+
+        private static void HandleRead(ReadOptions readOptions)
+        {
+            SafeExecute(readOptions, options =>
+            {
+                var client = CreateClient(options);
+                var contentBytes = client.Read(options.FileName);
+                var content = Encoding.UTF8.GetString(contentBytes);
+                Console.WriteLine(content);
+            });
+        }
+
+        private static void HandleList(ListOptions listOptions)
+        {
+            SafeExecute(listOptions, options =>
+            {
+                var client = CreateClient(options);
+                var allEntries = client.List();
+                Console.WriteLine("{0, -20}{1, 5}", "NAME", "SIZE");
+                foreach (var entryInfo in allEntries)
+                {
+                    Console.WriteLine("{0, -20}{1, 5}", entryInfo.FileName, $"{entryInfo.Size}B");
+                }
+            });
         }
 
         static void Main(string[] args)

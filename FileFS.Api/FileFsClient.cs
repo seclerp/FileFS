@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using FileFS.Api.Abstractions;
 using FileFs.DataAccess;
+using FileFs.DataAccess.Entities;
 using FileFs.DataAccess.Repositories;
 using FileFs.DataAccess.Serializers;
 using FileFS.Managers;
-using FileFS.Managers.Models;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace FileFS.Api
 {
@@ -13,24 +13,24 @@ namespace FileFS.Api
     {
         private readonly FileFsManager _manager;
 
-        public FileFsClient(string fileFsPath, ILoggerFactory loggerFactory)
+        public FileFsClient(string fileFsPath, ILogger logger)
         {
-            var connection = new StorageConnection(fileFsPath, loggerFactory.CreateLogger<StorageConnection>());
+            var connection = new StorageConnection(fileFsPath, logger);
 
-            var filesystemSerializer = new FilesystemDescriptorSerializer();
-            var filesystemRepository = new FilesystemDescriptorRepository(connection, filesystemSerializer);
+            var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer();
+            var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(connection, filesystemDescriptorSerializer);
 
-            var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemRepository);
-            var fileDescriptorRepository = new FileDescriptorRepository(connection, filesystemRepository, fileDescriptorSerializer);
+            var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemDescriptorAccessor);
+            var fileDescriptorRepository = new FileDescriptorRepository(connection, filesystemDescriptorAccessor, fileDescriptorSerializer);
 
-            var fileDataRepository = new FileDataRepository(connection);
+            var optimizer = new StorageOptimizer(connection, fileDescriptorRepository, logger);
+            var allocator = new FileAllocator(connection, filesystemDescriptorAccessor, fileDescriptorRepository, optimizer, logger);
 
-            var optimizer = new StorageOptimizer(fileDescriptorRepository, fileDataRepository, loggerFactory.CreateLogger<StorageOptimizer>());
-            var allocator = new FileAllocator(connection, filesystemRepository, fileDescriptorRepository, optimizer, loggerFactory.CreateLogger<FileAllocator>());
+            var fileRepository = new FileRepository(connection, allocator, filesystemDescriptorAccessor, fileDescriptorRepository, logger);
 
-            var externalFileManager = new ExternalFileManager(loggerFactory.CreateLogger<ExternalFileManager>());
+            var externalFileManager = new ExternalFileManager(logger);
 
-            _manager = new FileFsManager(allocator, fileDataRepository, filesystemRepository, fileDescriptorRepository, optimizer, externalFileManager, loggerFactory.CreateLogger<FileFsManager>());
+            _manager = new FileFsManager(fileRepository, externalFileManager, optimizer);
         }
 
         public void Create(string fileName, byte[] content)
@@ -60,7 +60,7 @@ namespace FileFS.Api
 
         public byte[] Read(string fileName)
         {
-            return _manager.Read(fileName);
+            return _manager.ReadContent(fileName);
         }
 
         public bool Exists(string fileName)
@@ -73,7 +73,7 @@ namespace FileFS.Api
             _manager.Rename(oldName, newName);
         }
 
-        public IReadOnlyCollection<EntryInfo> List()
+        public IReadOnlyCollection<FileEntryInfo> List()
         {
             return _manager.List();
         }

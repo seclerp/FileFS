@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using FileFS.Managers.Models;
+using FileFs.DataAccess.Entities;
 
 namespace FileFS.Managers.Abstractions
 {
@@ -9,7 +9,7 @@ namespace FileFS.Managers.Abstractions
 
         void Update(string fileName, byte[] newContentBytes);
 
-        byte[] Read(string fileName);
+        byte[] ReadContent(string fileName);
 
         void Rename(string oldFilename, string newFilename);
 
@@ -21,7 +21,7 @@ namespace FileFS.Managers.Abstractions
 
         bool Exists(string fileName);
 
-        IReadOnlyCollection<EntryInfo> List();
+        IReadOnlyCollection<FileEntryInfo> List();
 
         void ForceOptimize();
     }

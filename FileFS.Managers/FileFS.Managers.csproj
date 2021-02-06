@@ -8,4 +8,8 @@
       <ProjectReference Include="..\FileFs.DataAccess\FileFs.DataAccess.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Models" />
+    </ItemGroup>
+
 </Project>
