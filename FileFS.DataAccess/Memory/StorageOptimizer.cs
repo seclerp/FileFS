@@ -1,20 +1,31 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Extensions;
+using FileFS.DataAccess.Memory.Abstractions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
 
-namespace FileFS.DataAccess
+namespace FileFS.DataAccess.Memory
 {
+    /// <summary>
+    /// Storage optimizer implementation.
+    /// </summary>
     public class StorageOptimizer : IStorageOptimizer
     {
         private readonly IStorageConnection _connection;
         private readonly IFileDescriptorRepository _fileDescriptorRepository;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StorageOptimizer"/> class.
+        /// </summary>
+        /// <param name="connection">Storage connection instance.</param>
+        /// <param name="fileDescriptorRepository">File descriptor repository instance.</param>
+        /// <param name="logger">Logger instance.</param>
         public StorageOptimizer(
             IStorageConnection connection,
             IFileDescriptorRepository fileDescriptorRepository,
@@ -25,6 +36,7 @@ namespace FileFS.DataAccess
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public void Optimize()
         {
             _logger.Information("Start optimization process");
@@ -70,7 +82,7 @@ namespace FileFS.DataAccess
             _logger.Information($"Optimization process completed, {dataItemsMoved} items moved, {bytesOptimized} bytes optimized");
         }
 
-        private void ProcessGap(StorageItem<FileDescriptor>[] orderedDescriptors, int descriptorIndex, int gapOffset)
+        private void ProcessGap(IList<StorageItem<FileDescriptor>> orderedDescriptors, int descriptorIndex, int gapOffset)
         {
             var movingDataDescriptorItem = orderedDescriptors[descriptorIndex];
 
@@ -85,7 +97,7 @@ namespace FileFS.DataAccess
             var createdOn = DateTime.UtcNow.ToUnixTime();
             var updatedOn = createdOn;
             var newDescriptor = new FileDescriptor(fileDescriptor.FileName, createdOn, updatedOn, destinationOffset, fileDescriptor.DataLength);
-            var newStorageItem = new StorageItem<FileDescriptor>(ref newDescriptor, ref cursor);
+            var newStorageItem = new StorageItem<FileDescriptor>(in newDescriptor, in cursor);
 
             _logger.Information($"Moving {fileDescriptor.DataLength} bytes of data from {fileDescriptor.DataOffset} to {destinationOffset}");
 
@@ -99,7 +111,7 @@ namespace FileFS.DataAccess
 
         private void PerformCopy(int sourceOffset, int destinationOffset, int length)
         {
-            var origin = SeekOrigin.Begin;
+            const SeekOrigin origin = SeekOrigin.Begin;
 
             _connection.PerformCopy(new Cursor(sourceOffset, origin), new Cursor(destinationOffset, origin), length);
         }

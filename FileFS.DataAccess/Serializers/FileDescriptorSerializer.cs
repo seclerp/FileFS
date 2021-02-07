@@ -6,15 +6,23 @@ using FileFS.DataAccess.Serializers.Abstractions;
 
 namespace FileFS.DataAccess.Serializers
 {
+    /// <summary>
+    /// File descriptor serializer implementation.
+    /// </summary>
     public class FileDescriptorSerializer : ISerializer<FileDescriptor>
     {
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileDescriptorSerializer"/> class.
+        /// </summary>
+        /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
         public FileDescriptorSerializer(IFilesystemDescriptorAccessor filesystemDescriptorAccessor)
         {
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
         }
 
+        /// <inheritdoc />
         public FileDescriptor FromBuffer(byte[] buffer)
         {
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
@@ -33,6 +41,7 @@ namespace FileFS.DataAccess.Serializers
             return new FileDescriptor(fileName, createdOn, updatedOn, offset, length);
         }
 
+        /// <inheritdoc />
         public byte[] ToBuffer(FileDescriptor model)
         {
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;

@@ -5,11 +5,15 @@ using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Extensions;
+using FileFS.DataAccess.Memory.Abstractions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
 
 namespace FileFS.DataAccess.Repositories
 {
+    /// <summary>
+    /// File repository implementation.
+    /// </summary>
     public class FileRepository : IFileRepository
     {
         private readonly IStorageConnection _connection;
@@ -18,6 +22,14 @@ namespace FileFS.DataAccess.Repositories
         private readonly IFileDescriptorRepository _fileDescriptorRepository;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileRepository"/> class.
+        /// </summary>
+        /// <param name="connection">Storage connection instance.</param>
+        /// <param name="allocator">File allocator instance.</param>
+        /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
+        /// <param name="fileDescriptorRepository">File descriptor repository.</param>
+        /// <param name="logger">Logger instance.</param>
         public FileRepository(
             IStorageConnection connection,
             IFileAllocator allocator,
@@ -32,6 +44,7 @@ namespace FileFS.DataAccess.Repositories
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public void Create(FileEntry file)
         {
             _logger.Information($"Start file create process, filename {file.FileName}, bytes count {file.Data.Length}");
@@ -39,7 +52,7 @@ namespace FileFS.DataAccess.Repositories
             // 1. Allocate space
             var allocatedCursor = _allocator.AllocateFile(file.Data.Length);
 
-            // 2. Write file descriptor
+            // 2. Write new file descriptor
             _logger.Information($"Start writing file descriptor for filename {file.FileName}");
 
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
@@ -54,7 +67,7 @@ namespace FileFS.DataAccess.Repositories
             var origin = SeekOrigin.End;
             var cursor = new Cursor(fileDescriptorOffset, origin);
 
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(ref fileDescriptor, ref cursor));
+            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(in fileDescriptor, in cursor));
 
             _logger.Information($"Done writing file descriptor for filename {file.FileName}");
 
@@ -69,11 +82,12 @@ namespace FileFS.DataAccess.Repositories
             _logger.Information("Done updating filesystem descriptor");
 
             // 4. Write data
-            WriteFileData(allocatedCursor.Offset, file.Data);
+            WriteFileData(allocatedCursor, file.Data);
 
             _logger.Information($"File {file.FileName} was created");
         }
 
+        /// <inheritdoc />
         public void Update(FileEntry file)
         {
             // 1. Find descriptor
@@ -81,41 +95,43 @@ namespace FileFS.DataAccess.Repositories
 
             // 2. If new content size equals or smaller than was previously allocated to this file,
             // we don't need to allocate new space, only change length
-            var allocatedOffset = file.Data.Length <= descriptorItem.Value.DataLength
-                ? descriptorItem.Value.DataOffset
-                : _allocator.AllocateFile(file.Data.Length).Offset;
+            var allocatedCursor = file.Data.Length <= descriptorItem.Value.DataLength
+                ? new Cursor(descriptorItem.Value.DataOffset, SeekOrigin.Begin)
+                : _allocator.AllocateFile(file.Data.Length);
 
             // 3. Write file data
-            WriteFileData(allocatedOffset, file.Data);
+            WriteFileData(allocatedCursor, file.Data);
 
             var updatedOn = DateTime.UtcNow.ToUnixTime();
             var updatedDescriptor = new FileDescriptor(
                 descriptorItem.Value.FileName,
                 descriptorItem.Value.CreatedOn,
                 updatedOn,
-                allocatedOffset,
+                allocatedCursor.Offset,
                 file.Data.Length);
             var cursor = descriptorItem.Cursor;
 
             // 4. Write descriptor
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(ref updatedDescriptor, ref cursor));
+            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(in updatedDescriptor, in cursor));
         }
 
+        /// <inheritdoc />
         public FileEntry Read(string fileName)
         {
             // 1. Find descriptor
             var descriptorItem = _fileDescriptorRepository.Find(fileName);
 
             // 2. Read data by given offset from descriptor
-            var dataBytes = ReadFileData(descriptorItem.Value.DataOffset, descriptorItem.Value.DataLength);
+            var dataBytes = ReadFileData(new Cursor(descriptorItem.Value.DataOffset, SeekOrigin.Begin), descriptorItem.Value.DataLength);
 
             return new FileEntry(fileName, dataBytes);
         }
 
-        public void Rename(string oldFilename, string newFilename)
+        /// <inheritdoc />
+        public void Rename(string currentFilename, string newFilename)
         {
             // 1. Find descriptor
-            var descriptorItem = _fileDescriptorRepository.Find(oldFilename);
+            var descriptorItem = _fileDescriptorRepository.Find(currentFilename);
 
             // 2. Create descriptor with new filename
             var newDescriptor = new FileDescriptor(
@@ -127,9 +143,10 @@ namespace FileFS.DataAccess.Repositories
             var cursor = descriptorItem.Cursor;
 
             // 3. Write new descriptor
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(ref newDescriptor, ref cursor));
+            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(in newDescriptor, in cursor));
         }
 
+        /// <inheritdoc />
         public void Delete(string fileName)
         {
             // 1. Find last descriptor
@@ -145,7 +162,7 @@ namespace FileFS.DataAccess.Repositories
             var cursor = descriptorItem.Cursor;
 
             // 3. Save last descriptor in new empty space (perform swap with last)
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(ref lastDescriptor, ref cursor));
+            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(in lastDescriptor, in cursor));
 
             // 4. Decrease count of descriptors
             var updatedFilesystemDescriptor =
@@ -154,12 +171,14 @@ namespace FileFS.DataAccess.Repositories
             _filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
         }
 
+        /// <inheritdoc />
         public bool Exists(string fileName)
         {
             return _fileDescriptorRepository.Exists(fileName);
         }
 
-        public IReadOnlyCollection<FileEntryInfo> GetAllFilesInfo()
+        /// <inheritdoc />
+        public IEnumerable<FileEntryInfo> GetAllFilesInfo()
         {
             return _fileDescriptorRepository
                 .ReadAll()
@@ -171,18 +190,14 @@ namespace FileFS.DataAccess.Repositories
                 .ToArray();
         }
 
-        private byte[] ReadFileData(int offset, int length)
+        private byte[] ReadFileData(Cursor cursor, int length)
         {
-            var origin = SeekOrigin.Begin;
-
-            return _connection.PerformRead(new Cursor(offset, origin), length);
+            return _connection.PerformRead(cursor, length);
         }
 
-        private void WriteFileData(int offset, byte[] data)
+        private void WriteFileData(Cursor cursor, byte[] data)
         {
-            var origin = SeekOrigin.Begin;
-
-            _connection.PerformWrite(new Cursor(offset, origin), data);
+            _connection.PerformWrite(cursor, data);
         }
     }
 }

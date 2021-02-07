@@ -22,7 +22,7 @@
         /// </summary>
         /// <param name="value">Value stored in FileFS storage.</param>
         /// <param name="cursor">Cursor that points on data stored in FileFS storage.</param>
-        public StorageItem(ref TValue value, ref Cursor cursor)
+        public StorageItem(in TValue value, in Cursor cursor)
         {
             Value = value;
             Cursor = cursor;

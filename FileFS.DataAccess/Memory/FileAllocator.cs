@@ -3,34 +3,47 @@ using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Exceptions;
-using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Extensions;
+using FileFS.DataAccess.Memory.Abstractions;
+using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
 
-namespace FileFS.DataAccess
+namespace FileFS.DataAccess.Memory
 {
+    /// <summary>
+    /// Linear file allocator implementation.
+    /// </summary>
     public class FileAllocator : IFileAllocator
     {
-        private readonly IStorageConnection _storageConnection;
+        private readonly IStorageConnection _connection;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly IFileDescriptorRepository _fileDescriptorRepository;
         private readonly IStorageOptimizer _optimizer;
         private readonly ILogger _logger;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileAllocator"/> class.
+        /// </summary>
+        /// <param name="connection">Storage connection instance.</param>
+        /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
+        /// <param name="fileDescriptorRepository">File descriptor repository instance.</param>
+        /// <param name="optimizer">Storage optimizer instance.</param>
+        /// <param name="logger">Logger instance.</param>
         public FileAllocator(
-            IStorageConnection storageConnection,
+            IStorageConnection connection,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             IFileDescriptorRepository fileDescriptorRepository,
             IStorageOptimizer optimizer,
             ILogger logger)
         {
-            _storageConnection = storageConnection;
+            _connection = connection;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _fileDescriptorRepository = fileDescriptorRepository;
             _optimizer = optimizer;
             _logger = logger;
         }
 
+        /// <inheritdoc />
         public Cursor AllocateFile(int dataSize)
         {
             _logger.Information($"Start memory allocation flow for {dataSize} bytes");
@@ -68,7 +81,7 @@ namespace FileFS.DataAccess
             _logger.Information($"Checking possibility to allocate new {dataSize} bytes");
 
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var overallSpace = _storageConnection.GetSize();
+            var overallSpace = _connection.GetSize();
             var specialSpace = FilesystemDescriptor.BytesTotal +
                                (filesystemDescriptor.FileDescriptorsCount * filesystemDescriptor.FileDescriptorLength);
 

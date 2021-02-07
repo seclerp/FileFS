@@ -1,5 +1,6 @@
 ﻿using FileFS.Client.Abstractions;
 using FileFS.DataAccess;
+using FileFS.DataAccess.Memory;
 using FileFS.DataAccess.Repositories;
 using FileFS.DataAccess.Serializers;
 using Serilog;

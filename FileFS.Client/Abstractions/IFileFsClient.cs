@@ -52,15 +52,15 @@ namespace FileFS.Client.Abstractions
         /// <summary>
         /// Exports file from FileFS storage to new external file.
         /// </summary>
-        /// <param name="externalPath">Path to external file to import.</param>
-        /// <param name="fileName">Name of a new file in FileFS storage.</param>
+        /// <param name="fileName">Name of a existing file in FileFS storage.</param>
+        /// <param name="externalPath">Path to new external file to export.</param>
         void Export(string fileName, string externalPath);
 
         /// <summary>
         /// Returns true if file with given name exists in FileFS storage, otherwise false.
         /// </summary>
         /// <param name="fileName">Name of a file to check.</param>
-        /// <returns></returns>
+        /// <returns>True if file with given name exists in FileFS storage, otherwise false.</returns>
         bool Exists(string fileName);
 
         /// <summary>
