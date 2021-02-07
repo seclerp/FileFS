@@ -21,8 +21,8 @@ namespace FileFS.Cli
         {
             CommandHandlerHelper.TryExecute(initOptions, options =>
             {
-                var serializer = new FilesystemDescriptorSerializer();
                 var logger = CommandHandlerHelper.CreateLogger(options.IsDebug);
+                var serializer = new FilesystemDescriptorSerializer(logger);
                 var manager = new StorageInitializer(serializer, logger);
                 manager.Initialize(options.Instance, options.Size, options.FileNameLength);
             });

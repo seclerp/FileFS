@@ -22,11 +22,11 @@ namespace FileFS.Client
         {
             var connection = new StorageConnection(fileFsStoragePath, logger);
 
-            var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer();
-            var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(connection, filesystemDescriptorSerializer);
+            var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer(logger);
+            var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(connection, filesystemDescriptorSerializer, logger);
 
-            var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemDescriptorAccessor);
-            var fileDescriptorRepository = new FileDescriptorRepository(connection, filesystemDescriptorAccessor, fileDescriptorSerializer);
+            var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemDescriptorAccessor, logger);
+            var fileDescriptorRepository = new FileDescriptorRepository(connection, filesystemDescriptorAccessor, fileDescriptorSerializer, logger);
 
             var optimizer = new StorageOptimizer(connection, fileDescriptorRepository, logger);
             var allocator = new FileAllocator(connection, filesystemDescriptorAccessor, fileDescriptorRepository, optimizer, logger);
@@ -35,9 +35,9 @@ namespace FileFS.Client
 
             var externalFileManager = new ExternalFileManager(logger);
 
-            var manager = new FileFsClient(fileRepository, externalFileManager, optimizer);
+            var client = new FileFsClient(fileRepository, externalFileManager, optimizer);
 
-            return manager;
+            return client;
         }
     }
 }

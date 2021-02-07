@@ -4,6 +4,7 @@ using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Serializers.Abstractions;
+using Serilog;
 
 namespace FileFS.DataAccess.Repositories
 {
@@ -15,6 +16,7 @@ namespace FileFS.DataAccess.Repositories
         private readonly IStorageConnection _connection;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly ISerializer<FileDescriptor> _serializer;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileDescriptorRepository"/> class.
@@ -22,25 +24,39 @@ namespace FileFS.DataAccess.Repositories
         /// <param name="connection">Storage connection instance.</param>
         /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
         /// <param name="serializer">File descriptor serializer instance.</param>
+        /// <param name="logger">Logger instance.</param>
         public FileDescriptorRepository(
             IStorageConnection connection,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
-            ISerializer<FileDescriptor> serializer)
+            ISerializer<FileDescriptor> serializer,
+            ILogger logger)
         {
             _connection = connection;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _serializer = serializer;
+            _logger = logger;
         }
 
         /// <inheritdoc />
         public StorageItem<FileDescriptor> Read(int offset)
         {
+            _logger.Information("Start file descriptor data reading process");
+
+            const SeekOrigin origin = SeekOrigin.End;
+
+            _logger.Information("Retrieving info about file descriptor length");
+
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var length = filesystemDescriptor.FileDescriptorLength;
-            var origin = SeekOrigin.End;
+
             var cursor = new Cursor(offset, origin);
+
+            _logger.Information("Reading file descriptor data");
+
             var data = _connection.PerformRead(new Cursor(offset, origin), length);
             var descriptor = _serializer.FromBuffer(data);
+
+            _logger.Information("Done reading file descriptor data");
 
             return new StorageItem<FileDescriptor>(in descriptor, in cursor);
         }
@@ -48,22 +64,30 @@ namespace FileFS.DataAccess.Repositories
         /// <inheritdoc />
         public IReadOnlyCollection<StorageItem<FileDescriptor>> ReadAll()
         {
+            _logger.Information("Start reading all file descriptors data");
+
+            _logger.Information("Retrieving info about file descriptors from filesystem descriptor");
+
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var descriptorsCursorRange = GetDescriptorsRange(in filesystemDescriptor);
+
+            _logger.Information("Reading all file descriptors data");
 
             var allDescriptors = new StorageItem<FileDescriptor>[filesystemDescriptor.FileDescriptorsCount];
             var index = 0;
             for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.FileDescriptorLength)
             {
-                var length = filesystemDescriptor.FileDescriptorLength;
-                var origin = SeekOrigin.End;
-                var data = _connection.PerformRead(new Cursor(offset, origin), length);
-                var descriptor = _serializer.FromBuffer(data);
-                var cursor = new Cursor(offset, origin);
+                var cursor = new Cursor(offset, SeekOrigin.End);
 
-                allDescriptors[index] = new StorageItem<FileDescriptor>(in descriptor, in cursor);
+                var length = filesystemDescriptor.FileDescriptorLength;
+                var data = _connection.PerformRead(cursor, length);
+                var descriptor = _serializer.FromBuffer(data);
+
+                allDescriptors[index] = new StorageItem<FileDescriptor>(descriptor, cursor);
                 index++;
             }
+
+            _logger.Information("Done reading all file descriptors data");
 
             return allDescriptors;
         }
@@ -71,25 +95,42 @@ namespace FileFS.DataAccess.Repositories
         /// <inheritdoc />
         public void Write(StorageItem<FileDescriptor> item)
         {
+            _logger.Information("Start file descriptor data writing process");
+
             var data = _serializer.ToBuffer(item.Value);
 
             _connection.PerformWrite(item.Cursor, data);
+
+            _logger.Information("Done writing file descriptor data");
         }
 
         /// <inheritdoc />
         public StorageItem<FileDescriptor> Find(string fileName)
         {
+            _logger.Information("Start file descriptor search process");
+
+            _logger.Information("Retrieving info about file descriptors from filesystem descriptor");
+
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var descriptorsCursorRange = GetDescriptorsRange(filesystemDescriptor);
 
+            _logger.Information("Searching for specific file descriptor");
+
             for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.FileDescriptorLength)
             {
-                var currentDescriptor = Read(offset);
-                if (currentDescriptor.Value.FileName == fileName)
+                var cursor = new Cursor(offset, SeekOrigin.End);
+                var data = _connection.PerformRead(cursor, filesystemDescriptor.FileDescriptorLength);
+                var currentDescriptor = _serializer.FromBuffer(data);
+
+                if (currentDescriptor.FileName == fileName)
                 {
-                    return currentDescriptor;
+                    _logger.Information("Specific descriptor found");
+
+                    return new StorageItem<FileDescriptor>(currentDescriptor, cursor);
                 }
             }
+
+            _logger.Information("Specific descriptor not found");
 
             return default;
         }
@@ -97,17 +138,30 @@ namespace FileFS.DataAccess.Repositories
         /// <inheritdoc />
         public bool Exists(string fileName)
         {
+            _logger.Information("Start file descriptor existence checking process");
+
+            _logger.Information("Retrieving info about file descriptors from filesystem descriptor");
+
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var descriptorsCursorRange = GetDescriptorsRange(filesystemDescriptor);
 
+            _logger.Information("Searching for specific file descriptor");
+
             for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.FileDescriptorLength)
             {
-                var currentDescriptor = Read(offset);
-                if (currentDescriptor.Value.FileName == fileName)
+                var cursor = new Cursor(offset, SeekOrigin.End);
+                var data = _connection.PerformRead(cursor, filesystemDescriptor.FileDescriptorLength);
+                var currentDescriptor = _serializer.FromBuffer(data);
+
+                if (currentDescriptor.FileName == fileName)
                 {
+                    _logger.Information("Specific descriptor found");
+
                     return true;
                 }
             }
+
+            _logger.Information("Specific descriptor not found");
 
             return false;
         }
