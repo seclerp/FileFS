@@ -17,20 +17,20 @@ namespace FileFS.DataAccess
             _logger = logger;
         }
 
-        public void Initialize(string fileName, int fileSize, int fileNameLength)
+        public void Initialize(string fileFsStoragePath, int fileSize, int fileNameLength)
         {
-            _logger.Information($"Start storage initialization process, filename {fileName}, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
+            _logger.Information($"Start storage initialization process, filename {fileFsStoragePath}, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
 
             var fileSystemDescriptor =
                 new FilesystemDescriptor(0, 0, fileNameLength + FileDescriptor.BytesWithoutFilename);
             var buffer = _serializer.ToBuffer(fileSystemDescriptor);
 
-            using var stream = new FileStream(fileName, FileMode.Create, FileAccess.Write);
+            using var stream = new FileStream(fileFsStoragePath, FileMode.Create, FileAccess.Write);
             stream.SetLength(fileSize);
             stream.Seek(-FilesystemDescriptor.BytesTotal, SeekOrigin.End);
             stream.Write(buffer);
 
-            _logger.Information($"Done storage initialization process, filename {fileName}, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
+            _logger.Information($"Done storage initialization process, filename {fileFsStoragePath}, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
         }
     }
 }

@@ -16,9 +16,9 @@ namespace FileFS.Cli.Options
         public int Size { get; set; }
 
         /// <summary>
-        /// Gets or sets maximum length of path of the file in bytes.
+        /// Gets or sets maximum length of name of the file in bytes.
         /// </summary>
-        [Option('p', "path-length", Default = 256, Required = false, HelpText = "Maximum length of path of the file in bytes.")]
-        public int PathLength { get; set; }
+        [Option('n', "name-length", Default = 256, Required = false, HelpText = "Maximum length of name of the file in bytes.")]
+        public int FileNameLength { get; set; }
     }
 }

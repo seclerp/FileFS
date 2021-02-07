@@ -34,10 +34,10 @@ namespace FileFS.DataAccess.Repositories
 
         public void Create(FileEntry file)
         {
-            _logger.Information($"Start file create process, filename {file.FileName}, bytes count {file.Content.Length}");
+            _logger.Information($"Start file create process, filename {file.FileName}, bytes count {file.Data.Length}");
 
             // 1. Allocate space
-            var allocatedCursor = _allocator.AllocateFile(file.Content.Length);
+            var allocatedCursor = _allocator.AllocateFile(file.Data.Length);
 
             // 2. Write file descriptor
             _logger.Information($"Start writing file descriptor for filename {file.FileName}");
@@ -45,7 +45,7 @@ namespace FileFS.DataAccess.Repositories
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var createdOn = DateTime.UtcNow.ToUnixTime();
             var updatedOn = createdOn;
-            var fileDescriptor = new FileDescriptor(file.FileName, createdOn, updatedOn, allocatedCursor.Offset, file.Content.Length);
+            var fileDescriptor = new FileDescriptor(file.FileName, createdOn, updatedOn, allocatedCursor.Offset, file.Data.Length);
             var fileDescriptorOffset = -FilesystemDescriptor.BytesTotal -
                                        (filesystemDescriptor.FileDescriptorsCount *
                                         filesystemDescriptor.FileDescriptorLength)
@@ -69,7 +69,7 @@ namespace FileFS.DataAccess.Repositories
             _logger.Information("Done updating filesystem descriptor");
 
             // 4. Write data
-            WriteFileData(allocatedCursor.Offset, file.Content);
+            WriteFileData(allocatedCursor.Offset, file.Data);
 
             _logger.Information($"File {file.FileName} was created");
         }
@@ -81,12 +81,12 @@ namespace FileFS.DataAccess.Repositories
 
             // 2. If new content size equals or smaller than was previously allocated to this file,
             // we don't need to allocate new space, only change length
-            var allocatedOffset = file.Content.Length <= descriptorItem.Value.DataLength
+            var allocatedOffset = file.Data.Length <= descriptorItem.Value.DataLength
                 ? descriptorItem.Value.DataOffset
-                : _allocator.AllocateFile(file.Content.Length).Offset;
+                : _allocator.AllocateFile(file.Data.Length).Offset;
 
             // 3. Write file data
-            WriteFileData(allocatedOffset, file.Content);
+            WriteFileData(allocatedOffset, file.Data);
 
             var updatedOn = DateTime.UtcNow.ToUnixTime();
             var updatedDescriptor = new FileDescriptor(
@@ -94,7 +94,7 @@ namespace FileFS.DataAccess.Repositories
                 descriptorItem.Value.CreatedOn,
                 updatedOn,
                 allocatedOffset,
-                file.Content.Length);
+                file.Data.Length);
             var cursor = descriptorItem.Cursor;
 
             // 4. Write descriptor

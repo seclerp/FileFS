@@ -94,7 +94,7 @@ namespace FileFS.Client
                 throw new InvalidFilenameException(fileName);
             }
 
-            return _fileRepository.Read(fileName).Content;
+            return _fileRepository.Read(fileName).Data;
         }
 
         /// <inheritdoc />
