@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
+using FileFS.DataAccess.Entities.Abstractions;
 using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Memory.Abstractions;
 using FileFS.DataAccess.Repositories.Abstractions;
@@ -47,72 +48,25 @@ namespace FileFS.DataAccess.Repositories
         /// <inheritdoc />
         public void Create(FileEntry file)
         {
-            _logger.Information($"Start file create process, filename {file.FileName}, bytes count {file.Data.Length}");
+            CreateInternal(file, cursor => WriteFileData(cursor, file.Data));
+        }
 
-            // 1. Allocate space
-            var allocatedCursor = _allocator.AllocateFile(file.Data.Length);
-
-            // 2. Write new file descriptor
-            _logger.Information($"Start writing file descriptor for filename {file.FileName}");
-
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var createdOn = DateTime.UtcNow.ToUnixTime();
-            var updatedOn = createdOn;
-            var fileDescriptor = new FileDescriptor(file.FileName, createdOn, updatedOn, allocatedCursor.Offset, file.Data.Length);
-            var fileDescriptorOffset = -FilesystemDescriptor.BytesTotal -
-                                       (filesystemDescriptor.FileDescriptorsCount *
-                                        filesystemDescriptor.FileDescriptorLength)
-                                       - filesystemDescriptor.FileDescriptorLength;
-
-            var origin = SeekOrigin.End;
-            var cursor = new Cursor(fileDescriptorOffset, origin);
-
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(in fileDescriptor, in cursor));
-
-            _logger.Information($"Done writing file descriptor for filename {file.FileName}");
-
-            _logger.Information("Start updating filesystem descriptor");
-
-            // 3. Update filesystem descriptor
-            var updatedFilesystemDescriptor =
-                filesystemDescriptor.WithFileDescriptorsCount(filesystemDescriptor.FileDescriptorsCount + 1);
-
-            _filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
-
-            _logger.Information("Done updating filesystem descriptor");
-
-            // 4. Write data
-            WriteFileData(allocatedCursor, file.Data);
-
-            _logger.Information($"File {file.FileName} was created");
+        /// <inheritdoc />
+        public void Create(StreamedFileEntry streamedFile)
+        {
+            CreateInternal(streamedFile, cursor => WriteStreamedFileData(cursor, streamedFile.DataStream, streamedFile.DataLength));
         }
 
         /// <inheritdoc />
         public void Update(FileEntry file)
         {
-            // 1. Find descriptor
-            var descriptorItem = _fileDescriptorRepository.Find(file.FileName);
+            UpdateInternal(file, cursor => WriteFileData(cursor, file.Data));
+        }
 
-            // 2. If new content size equals or smaller than was previously allocated to this file,
-            // we don't need to allocate new space, only change length
-            var allocatedCursor = file.Data.Length <= descriptorItem.Value.DataLength
-                ? new Cursor(descriptorItem.Value.DataOffset, SeekOrigin.Begin)
-                : _allocator.AllocateFile(file.Data.Length);
-
-            // 3. Write file data
-            WriteFileData(allocatedCursor, file.Data);
-
-            var updatedOn = DateTime.UtcNow.ToUnixTime();
-            var updatedDescriptor = new FileDescriptor(
-                descriptorItem.Value.FileName,
-                descriptorItem.Value.CreatedOn,
-                updatedOn,
-                allocatedCursor.Offset,
-                file.Data.Length);
-            var cursor = descriptorItem.Cursor;
-
-            // 4. Write descriptor
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(in updatedDescriptor, in cursor));
+        /// <inheritdoc />
+        public void Update(StreamedFileEntry streamedFile)
+        {
+            UpdateInternal(streamedFile, cursor => WriteStreamedFileData(cursor, streamedFile.DataStream, streamedFile.DataLength));
         }
 
         /// <inheritdoc />
@@ -125,6 +79,16 @@ namespace FileFS.DataAccess.Repositories
             var dataBytes = ReadFileData(new Cursor(descriptorItem.Value.DataOffset, SeekOrigin.Begin), descriptorItem.Value.DataLength);
 
             return new FileEntry(fileName, dataBytes);
+        }
+
+        /// <inheritdoc />
+        public void Read(string fileName, Stream destinationStream)
+        {
+            // 1. Find descriptor
+            var descriptorItem = _fileDescriptorRepository.Find(fileName);
+
+            // 2. Read data by given offset from descriptor
+            ReadStreamedFileData(new Cursor(descriptorItem.Value.DataOffset, SeekOrigin.Begin), descriptorItem.Value.DataLength, destinationStream);
         }
 
         /// <inheritdoc />
@@ -190,14 +154,108 @@ namespace FileFS.DataAccess.Repositories
                 .ToArray();
         }
 
+        private void CreateInternal(IFileEntry file, Action<Cursor> writeAction)
+        {
+            _logger.Information($"Start file create process, filename {file.FileName}, bytes count {file.DataLength}");
+
+            // 1. Allocate space
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+
+            // 2. Write new file descriptor
+            var allocatedDataCursor = WriteFileDescriptor(file, filesystemDescriptor);
+
+            // 3. Update filesystem descriptor
+            UpdateFilesystemDescriptor(filesystemDescriptor);
+
+            // 4. Write data
+            writeAction(allocatedDataCursor);
+
+            _logger.Information($"File {file.FileName} was created");
+        }
+
+        private void UpdateFilesystemDescriptor(FilesystemDescriptor filesystemDescriptor)
+        {
+            _logger.Information("Start updating filesystem descriptor");
+
+            var updatedFilesystemDescriptor =
+                filesystemDescriptor.WithFileDescriptorsCount(filesystemDescriptor.FileDescriptorsCount + 1);
+
+            _filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
+
+            _logger.Information("Done updating filesystem descriptor");
+        }
+
+        private Cursor WriteFileDescriptor(IFileEntry file, FilesystemDescriptor filesystemDescriptor)
+        {
+            _logger.Information($"Start writing file descriptor for filename {file.FileName}");
+
+            var allocatedCursor = _allocator.AllocateFile(file.DataLength);
+
+            var createdOn = DateTime.UtcNow.ToUnixTime();
+            var updatedOn = createdOn;
+            var fileDescriptor = new FileDescriptor(file.FileName, createdOn, updatedOn, allocatedCursor.Offset, file.DataLength);
+            var fileDescriptorOffset = -FilesystemDescriptor.BytesTotal -
+                                       (filesystemDescriptor.FileDescriptorsCount *
+                                        filesystemDescriptor.FileDescriptorLength)
+                                       - filesystemDescriptor.FileDescriptorLength;
+
+            var origin = SeekOrigin.End;
+            var cursor = new Cursor(fileDescriptorOffset, origin);
+
+            var storageItem = new StorageItem<FileDescriptor>(in fileDescriptor, in cursor);
+
+            _fileDescriptorRepository.Write(storageItem);
+
+            _logger.Information($"Done writing file descriptor for filename {file.FileName}");
+
+            return allocatedCursor;
+        }
+
+        private void UpdateInternal(IFileEntry file, Action<Cursor> writeAction)
+        {
+            // 1. Find descriptor
+            var descriptorItem = _fileDescriptorRepository.Find(file.FileName);
+
+            // 2. If new content size equals or smaller than was previously allocated to this file,
+            // we don't need to allocate new space, only change length
+            var allocatedCursor = file.DataLength <= descriptorItem.Value.DataLength
+                ? new Cursor(descriptorItem.Value.DataOffset, SeekOrigin.Begin)
+                : _allocator.AllocateFile(file.DataLength);
+
+            // 3. Write file data
+            writeAction(allocatedCursor);
+
+            var updatedOn = DateTime.UtcNow.ToUnixTime();
+            var updatedDescriptor = new FileDescriptor(
+                descriptorItem.Value.FileName,
+                descriptorItem.Value.CreatedOn,
+                updatedOn,
+                allocatedCursor.Offset,
+                file.DataLength);
+            var cursor = descriptorItem.Cursor;
+
+            // 4. Write descriptor
+            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(in updatedDescriptor, in cursor));
+        }
+
         private byte[] ReadFileData(Cursor cursor, int length)
         {
             return _connection.PerformRead(cursor, length);
         }
 
+        private void ReadStreamedFileData(Cursor cursor, int length, Stream destinationStream)
+        {
+            _connection.PerformRead(cursor, length, destinationStream);
+        }
+
         private void WriteFileData(Cursor cursor, byte[] data)
         {
             _connection.PerformWrite(cursor, data);
+        }
+
+        private void WriteStreamedFileData(Cursor cursor, Stream dataStream, int length)
+        {
+            _connection.PerformWrite(cursor, length, dataStream);
         }
     }
 }

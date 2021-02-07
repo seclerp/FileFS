@@ -1,15 +1,12 @@
-﻿namespace FileFS.DataAccess.Entities
+﻿using FileFS.DataAccess.Entities.Abstractions;
+
+namespace FileFS.DataAccess.Entities
 {
     /// <summary>
-    /// Type that represents file and its data.
+    /// Type that represents file and its byte array data representation.
     /// </summary>
-    public readonly struct FileEntry
+    public readonly struct FileEntry : IFileEntry
     {
-        /// <summary>
-        /// Name of the file.
-        /// </summary>
-        public readonly string FileName;
-
         /// <summary>
         /// File data.
         /// </summary>
@@ -25,5 +22,11 @@
             FileName = fileName;
             Data = data;
         }
+
+        /// <inheritdoc />
+        public string FileName { get; }
+
+        /// <inheritdoc />
+        public int DataLength => Data.Length;
     }
 }

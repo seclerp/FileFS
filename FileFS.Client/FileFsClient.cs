@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using FileFS.Client.Abstractions;
 using FileFS.Client.Constants;
 using FileFS.Client.Exceptions;
-using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Memory.Abstractions;
 using FileFS.DataAccess.Repositories.Abstractions;
@@ -41,7 +41,7 @@ namespace FileFS.Client
         /// <inheritdoc />
         /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
         /// <exception cref="FileAlreadyExistsException">Throws if file already exists.</exception>
-        /// <exception cref="EmptyContentException">Throws if data is empty.</exception>
+        /// <exception cref="EmptyDataException">Throws if data is empty.</exception>
         public void Create(string fileName, byte[] data)
         {
             if (!IsValidFilename(fileName))
@@ -54,9 +54,9 @@ namespace FileFS.Client
                 throw new FileAlreadyExistsException(fileName);
             }
 
-            if (data.Length is 0)
+            if (data is null || data.Length is 0)
             {
-                throw new EmptyContentException(fileName);
+                throw new EmptyDataException(fileName);
             }
 
             _fileRepository.Create(new FileEntry(fileName, data));
@@ -64,8 +64,32 @@ namespace FileFS.Client
 
         /// <inheritdoc />
         /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
+        /// <exception cref="FileAlreadyExistsException">Throws if file already exists.</exception>
+        /// <exception cref="EmptyDataException">Throws if data is empty.</exception>
+        public void Create(string fileName, Stream sourceStream, int length)
+        {
+            if (!IsValidFilename(fileName))
+            {
+                throw new InvalidFilenameException(fileName);
+            }
+
+            if (Exists(fileName))
+            {
+                throw new FileAlreadyExistsException(fileName);
+            }
+
+            if (sourceStream is null || sourceStream.Length is 0)
+            {
+                throw new EmptyDataException(fileName);
+            }
+
+            _fileRepository.Create(new StreamedFileEntry(fileName, sourceStream, length));
+        }
+
+        /// <inheritdoc />
+        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
         /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
-        /// <exception cref="EmptyContentException">Throws if data is empty.</exception>
+        /// <exception cref="EmptyDataException">Throws if data is empty.</exception>
         public void Update(string fileName, byte[] newData)
         {
             if (!IsValidFilename(fileName))
@@ -78,12 +102,36 @@ namespace FileFS.Client
                 throw new FileNotFoundException(fileName);
             }
 
-            if (newData.Length is 0)
+            if (newData is null || newData.Length is 0)
             {
-                throw new EmptyContentException(fileName);
+                throw new EmptyDataException(fileName);
             }
 
             _fileRepository.Update(new FileEntry(fileName, newData));
+        }
+
+        /// <inheritdoc />
+        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
+        /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
+        /// <exception cref="EmptyDataException">Throws if data is empty.</exception>
+        public void Update(string fileName, Stream sourceStream, int length)
+        {
+            if (!IsValidFilename(fileName))
+            {
+                throw new InvalidFilenameException(fileName);
+            }
+
+            if (!Exists(fileName))
+            {
+                throw new FileNotFoundException(fileName);
+            }
+
+            if (sourceStream is null || sourceStream.Length is 0)
+            {
+                throw new EmptyDataException(fileName);
+            }
+
+            _fileRepository.Update(new StreamedFileEntry(fileName, sourceStream, length));
         }
 
         /// <inheritdoc />
@@ -96,6 +144,23 @@ namespace FileFS.Client
             }
 
             return _fileRepository.Read(fileName).Data;
+        }
+
+        /// <inheritdoc />
+        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
+        public void Read(string fileName, Stream destinationStream)
+        {
+            if (!IsValidFilename(fileName))
+            {
+                throw new InvalidFilenameException(fileName);
+            }
+
+            if (destinationStream is null)
+            {
+                throw new ArgumentException("Argument cannot be null", nameof(destinationStream));
+            }
+
+            _fileRepository.Read(fileName, destinationStream);
         }
 
         /// <inheritdoc />
@@ -141,14 +206,14 @@ namespace FileFS.Client
                 throw new FileAlreadyExistsException(fileName);
             }
 
-            if (!File.Exists(externalPath))
+            if (!_externalFileManager.Exists(externalPath))
             {
                 throw new ExternalFileNotFoundException(externalPath);
             }
 
-            var contentBytes = _externalFileManager.Read(externalPath);
+            using var externalFileStream = _externalFileManager.OpenReadStream(externalPath);
 
-            Create(fileName, contentBytes);
+            Create(fileName, externalFileStream, (int)externalFileStream.Length);
         }
 
         /// <inheritdoc />
@@ -167,14 +232,14 @@ namespace FileFS.Client
                 throw new FileNotFoundException(fileName);
             }
 
-            if (File.Exists(externalPath))
+            if (_externalFileManager.Exists(externalPath))
             {
                 throw new ExternalFileAlreadyExistsException(externalPath);
             }
 
-            var contentBytes = Read(fileName);
+            using var externalFileStream = _externalFileManager.OpenWriteStream(externalPath);
 
-            _externalFileManager.Write(externalPath, contentBytes);
+            Read(fileName, externalFileStream);
         }
 
         /// <inheritdoc />

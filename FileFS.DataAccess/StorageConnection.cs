@@ -12,16 +12,19 @@ namespace FileFS.DataAccess
     {
         private readonly string _fileFsStoragePath;
         private readonly ILogger _logger;
+        private readonly int _bufferSize;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StorageConnection"/> class.
         /// </summary>
         /// <param name="fileFsStoragePath">Path to a existing file that is used as FileFS storage.</param>
         /// <param name="logger">Logger instance.</param>
-        public StorageConnection(string fileFsStoragePath, ILogger logger)
+        /// <param name="bufferSize">Buffer size to use in buffered operations.</param>
+        public StorageConnection(string fileFsStoragePath, ILogger logger, int bufferSize = 4096)
         {
             _fileFsStoragePath = fileFsStoragePath;
             _logger = logger;
+            _bufferSize = bufferSize;
         }
 
         /// <inheritdoc />
@@ -39,6 +42,19 @@ namespace FileFS.DataAccess
         }
 
         /// <inheritdoc />
+        public void PerformWrite(Cursor cursor, int length, Stream sourceStream)
+        {
+            _logger.Information($"Start buffered write operation at offset {cursor.Offset} for {length} bytes");
+
+            using var stream = OpenStream();
+
+            stream.Seek(cursor);
+            sourceStream.WriteBuffered(stream, length, _bufferSize);
+
+            _logger.Information($"Done buffered write operation at offset {cursor.Offset} for {length} bytes");
+        }
+
+        /// <inheritdoc />
         public byte[] PerformRead(Cursor cursor, int length)
         {
             _logger.Information($"Start read operation at offset {cursor.Offset} for {length} bytes");
@@ -52,6 +68,19 @@ namespace FileFS.DataAccess
             _logger.Information($"Done read operation at offset {cursor.Offset} for {length} bytes");
 
             return bytes;
+        }
+
+        /// <inheritdoc />
+        public void PerformRead(Cursor cursor, int length, Stream destinationStream)
+        {
+            _logger.Information($"Start buffered read operation at offset {cursor.Offset} for {length} bytes");
+
+            using var stream = OpenStream();
+
+            stream.Seek(cursor);
+            stream.WriteBuffered(destinationStream, length, _bufferSize);
+
+            _logger.Information($"Done buffered read operation at offset {cursor.Offset} for {length} bytes");
         }
 
         /// <inheritdoc />

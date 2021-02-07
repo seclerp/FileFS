@@ -12,9 +12,36 @@ namespace FileFS.DataAccess.Extensions
         /// </summary>
         /// <param name="stream">Instance of <see cref="Stream"/>.</param>
         /// <param name="cursor">Instance of <see cref="Cursor"/>.</param>
-        public static void Seek(this Stream stream, Cursor cursor)
+        public static void Seek(this Stream stream, in Cursor cursor)
         {
             stream.Seek(cursor.Offset, cursor.Origin);
+        }
+
+        /// <summary>
+        /// Reads data from source stream and writes it to destination stream using fixed size buffer.
+        /// </summary>
+        /// <param name="source">Source <see cref="Stream"/> instance.</param>
+        /// <param name="destination">Destination <see cref="Stream"/> instance.</param>
+        /// <param name="length">Overall amount of bytes to be read.</param>
+        /// <param name="bufferSize">Size of intermediate buffer.</param>
+        public static void WriteBuffered(this Stream source, Stream destination, int length, int bufferSize)
+        {
+            var buffer = new byte[bufferSize];
+            var bytesProcessed = 0;
+
+            while (bytesProcessed < length)
+            {
+                var bytesRead = source.Read(buffer, 0, bufferSize);
+                destination.Write(buffer, 0, bytesRead);
+
+                // End of stream
+                if (bytesRead < bufferSize)
+                {
+                    break;
+                }
+
+                bytesProcessed += bytesRead;
+            }
         }
     }
 }

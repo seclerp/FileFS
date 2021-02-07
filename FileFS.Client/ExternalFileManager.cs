@@ -41,5 +41,23 @@ namespace FileFS.Client
 
             return bytes;
         }
+
+        /// <inheritdoc />
+        public Stream OpenReadStream(string externalFileName)
+        {
+            return File.OpenRead(externalFileName);
+        }
+
+        /// <inheritdoc />
+        public Stream OpenWriteStream(string externalFileName)
+        {
+            return File.OpenWrite(externalFileName);
+        }
+
+        /// <inheritdoc />
+        public bool Exists(string externalFileName)
+        {
+            return File.Exists(externalFileName);
+        }
     }
 }

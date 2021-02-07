@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using FileFS.DataAccess.Entities;
 
 namespace FileFS.Client.Abstractions
@@ -16,6 +17,14 @@ namespace FileFS.Client.Abstractions
         void Create(string fileName, byte[] data);
 
         /// <summary>
+        /// Creates new file with given data.
+        /// </summary>
+        /// <param name="fileName">Name of a file to create.</param>
+        /// <param name="sourceStream">Source stream of bytes.</param>
+        /// <param name="length">Length of data to be read in bytes.</param>
+        void Create(string fileName, Stream sourceStream, int length);
+
+        /// <summary>
         /// Updates existing file using new data.
         /// </summary>
         /// <param name="fileName">Name of a file to update.</param>
@@ -23,11 +32,26 @@ namespace FileFS.Client.Abstractions
         void Update(string fileName, byte[] newData);
 
         /// <summary>
+        /// Updates existing file using new data.
+        /// </summary>
+        /// <param name="fileName">Name of a file to update.</param>
+        /// <param name="sourceStream">Source stream of bytes.</param>
+        /// <param name="length">Length of data to be read in bytes.</param>
+        void Update(string fileName, Stream sourceStream, int length);
+
+        /// <summary>
         /// Reads data of existing file.
         /// </summary>
         /// <param name="fileName">Name of a file to read.</param>
         /// <returns>File's data bytes.</returns>
         byte[] Read(string fileName);
+
+        /// <summary>
+        /// Reads data of existing file.
+        /// </summary>
+        /// <param name="fileName">Name of a file to read.</param>
+        /// <param name="destinationStream">Destination stream of bytes.</param>
+        void Read(string fileName, Stream destinationStream);
 
         /// <summary>
         /// Change name of existing file.
