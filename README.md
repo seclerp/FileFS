@@ -4,20 +4,23 @@
 
 Simple single file-based filesystem.
 
-### Overview
+## Overview
+
+**FileFS** stores file files information inside single file, called **storage**.
 
 Features:
-- Basic file operations: create, read, update, delete, rename, list all files
+- Basic file operations: create, read, update, delete, rename, exists, list all files
 - Import and export of external files (with buffering)
 - Defragmentation of storage space (manually or automatically when there is not enough space)
-- Well documented client library
+- Well documented .NET client library
 - Ready-to-use CLI application for standalone storage manipulation
+- Debugging using verbose logging
 
 You could find latest library and CLI release in Releases section.
 
-### How to use
+## How to use
 
-#### Command Line Interface
+### Command Line Interface
 
 CLI exposes full set of features included in FileFS client library.
 
@@ -100,7 +103,7 @@ hello-world                13B  08.02.2021 00:40:08  08.02.2021 00:40:08
 my-avatar.jpg            5.7MB  08.02.2021 00:40:21  08.02.2021 00:40:21
 ```
 
-#### Library
+### Library
 
 First of all you need to add reference to `FileFS.Client` library to your project.
 
@@ -163,7 +166,7 @@ This is the most customizable option, use it if your want to provide custom impl
 
 For more examples of library usage see `FileFS.Cli` project.
 
-### Build
+## Build
 
 CLI project is an **.NET Core 3.1** and library project is **.NET Standard 2.1** compliant library.
 
@@ -175,7 +178,7 @@ To build whole solution use:
 
 From root repository folder.
 
-### Tests
+## Tests
 
 There are 3 test projects:
 - `FileFS.DataAccess.Tests`: contains tests for low level part of a library
@@ -186,14 +189,14 @@ To run all tests from solution use:
 
 `> dotnet test`
 
-### Architecture
-
-TODO
-
-### Dependencies
+## Dependencies
 
 - `CommandLineParser` (CLI)
 - `Serilog` (DataAccess, Client, CLI)
 - `xUnit` (Tests)
 - `Moq` (Tests)
 - `StyleCop.Analysers` (All projects)
+
+## Architecture
+
+TODO
