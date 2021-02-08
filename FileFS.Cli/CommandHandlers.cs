@@ -22,9 +22,10 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(initOptions, options =>
             {
                 var logger = CommandHandlerHelper.CreateLogger(options.IsDebug);
+                var storageStreamProvider = new StorageStreamProvider(options.Instance, logger);
                 var serializer = new FilesystemDescriptorSerializer(logger);
-                var manager = new StorageInitializer(serializer, logger);
-                manager.Initialize(options.Instance, options.Size, options.FileNameLength);
+                var manager = new StorageInitializer(storageStreamProvider, serializer, logger);
+                manager.Initialize(options.Size, options.FileNameLength);
             });
         }
 

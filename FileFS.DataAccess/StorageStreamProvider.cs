@@ -28,7 +28,7 @@ namespace FileFS.DataAccess
         {
             _logger.Information($"Trying to open stream for filename {_fileFsStoragePath}");
 
-            var stream = new FileStream(_fileFsStoragePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
+            var stream = File.OpenWrite(_fileFsStoragePath);
 
             _logger.Information($"Stream for filename {_fileFsStoragePath} opened");
 

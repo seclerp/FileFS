@@ -17,7 +17,7 @@ namespace FileFS.Extensions.DependencyInjection.Tests
     public class DependencyInjectionTests
     {
         [Fact]
-        public void ServiceCollection_AddFileFsClient_ShouldSuccessfullyResolveClient()
+        public void AddFileFsClient_ShouldSuccessfullyResolveClient()
         {
             // Arrange
             var logger = new LoggerConfiguration().CreateLogger();

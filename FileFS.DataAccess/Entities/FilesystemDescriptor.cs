@@ -1,4 +1,6 @@
-﻿namespace FileFS.DataAccess.Entities
+﻿using System;
+
+namespace FileFS.DataAccess.Entities
 {
     /// <summary>
     /// Type that represents filesystem descriptor in FileFS storage.
