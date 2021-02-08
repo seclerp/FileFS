@@ -197,6 +197,7 @@ To run all tests from solution use:
 - `Moq` (Tests)
 - `StyleCop.Analysers` (All projects)
 
-## Architecture
+## See also
 
-TODO
+- **Client library API documentation**
+- **FileFS architecture**
