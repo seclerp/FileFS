@@ -196,3 +196,4 @@ TODO
 - `Serilog` (DataAccess, Client, CLI)
 - `xUnit` (Tests)
 - `Moq` (Tests)
+- `StyleCop.Analysers` (All projects)
