@@ -26,16 +26,16 @@ namespace FileFS.DataAccess.Extensions
         /// <param name="bufferSize">Size of intermediate buffer.</param>
         public static void WriteBuffered(this Stream source, Stream destination, int length, int bufferSize)
         {
-            var buffer = new byte[bufferSize];
+            var buffer = new byte[bufferSize >= length ? length : bufferSize];
             var bytesProcessed = 0;
 
             while (bytesProcessed < length)
             {
-                var bytesRead = source.Read(buffer, 0, bufferSize);
+                var bytesRead = source.Read(buffer, 0, buffer.Length);
                 destination.Write(buffer, 0, bytesRead);
 
                 // End of stream
-                if (bytesRead < bufferSize)
+                if (bytesRead < buffer.Length)
                 {
                     break;
                 }

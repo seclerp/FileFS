@@ -20,7 +20,8 @@ namespace FileFS.Client
         /// <returns>Instance of <see cref="IFileFsClient"/>.</returns>
         public static IFileFsClient Create(string fileFsStoragePath, ILogger logger)
         {
-            var connection = new StorageConnection(fileFsStoragePath, logger);
+            var storageStreamProvider = new StorageStreamProvider(fileFsStoragePath, logger);
+            var connection = new StorageConnection(storageStreamProvider, logger);
 
             var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer(logger);
             var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(connection, filesystemDescriptorSerializer, logger);

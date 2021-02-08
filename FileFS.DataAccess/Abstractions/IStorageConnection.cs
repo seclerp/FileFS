@@ -51,12 +51,5 @@ namespace FileFS.DataAccess.Abstractions
         /// </summary>
         /// <returns>Reserved size of a FileFS storage.</returns>
         long GetSize();
-
-        /// <summary>
-        /// Opens new fixed-sized stream that represents FileFS storage.
-        /// Lifetime of this stream instance should be managed by the caller.
-        /// </summary>
-        /// <returns>Stream instance.</returns>
-        Stream OpenStream();
     }
 }

@@ -10,19 +10,19 @@ namespace FileFS.DataAccess
     /// </summary>
     public class StorageConnection : IStorageConnection
     {
-        private readonly string _fileFsStoragePath;
+        private readonly IStorageStreamProvider _storageStreamProvider;
         private readonly ILogger _logger;
         private readonly int _bufferSize;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StorageConnection"/> class.
         /// </summary>
-        /// <param name="fileFsStoragePath">Path to a existing file that is used as FileFS storage.</param>
+        /// <param name="storageStreamProvider">Storage stream provider instance.</param>
         /// <param name="logger">Logger instance.</param>
         /// <param name="bufferSize">Buffer size to use in buffered operations.</param>
-        public StorageConnection(string fileFsStoragePath, ILogger logger, int bufferSize = 4096)
+        public StorageConnection(IStorageStreamProvider storageStreamProvider, ILogger logger, int bufferSize = 4096)
         {
-            _fileFsStoragePath = fileFsStoragePath;
+            _storageStreamProvider = storageStreamProvider;
             _logger = logger;
             _bufferSize = bufferSize;
         }
@@ -32,7 +32,7 @@ namespace FileFS.DataAccess
         {
             _logger.Information($"Start write operation at offset {cursor.Offset} for {data.Length} bytes");
 
-            using var stream = OpenStream();
+            using var stream = _storageStreamProvider.OpenStream();
             using var writer = CreateWriter(stream);
 
             stream.Seek(cursor);
@@ -46,7 +46,7 @@ namespace FileFS.DataAccess
         {
             _logger.Information($"Start buffered write operation at offset {cursor.Offset} for {length} bytes");
 
-            using var stream = OpenStream();
+            using var stream = _storageStreamProvider.OpenStream();
 
             stream.Seek(cursor);
             sourceStream.WriteBuffered(stream, length, _bufferSize);
@@ -59,7 +59,7 @@ namespace FileFS.DataAccess
         {
             _logger.Information($"Start read operation at offset {cursor.Offset} for {length} bytes");
 
-            using var stream = OpenStream();
+            using var stream = _storageStreamProvider.OpenStream();
             using var reader = CreateReader(stream);
 
             stream.Seek(cursor);
@@ -75,7 +75,7 @@ namespace FileFS.DataAccess
         {
             _logger.Information($"Start buffered read operation at offset {cursor.Offset} for {length} bytes");
 
-            using var stream = OpenStream();
+            using var stream = _storageStreamProvider.OpenStream();
 
             stream.Seek(cursor);
             stream.WriteBuffered(destinationStream, length, _bufferSize);
@@ -92,7 +92,7 @@ namespace FileFS.DataAccess
             using var tempStreamReader = CreateReader(tempStream);
             using var tempStreamWriter = CreateWriter(tempStream);
 
-            using var stream = OpenStream();
+            using var stream = _storageStreamProvider.OpenStream();
             using var reader = CreateReader(stream);
             using var writer = CreateWriter(stream);
 
@@ -108,20 +108,8 @@ namespace FileFS.DataAccess
         /// <inheritdoc />
         public long GetSize()
         {
-            using var stream = OpenStream();
+            using var stream = _storageStreamProvider.OpenStream();
             return stream.Length;
-        }
-
-        /// <inheritdoc />
-        public Stream OpenStream()
-        {
-            _logger.Information($"Trying to open stream for filename {_fileFsStoragePath}");
-
-            var stream = new FileStream(_fileFsStoragePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
-
-            _logger.Information($"Stream for filename {_fileFsStoragePath} opened");
-
-            return stream;
         }
 
         private static BinaryReader CreateReader(Stream stream)

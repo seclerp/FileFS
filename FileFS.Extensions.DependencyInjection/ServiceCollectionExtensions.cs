@@ -27,8 +27,10 @@ namespace FileFS.Extensions.DependencyInjection
         /// <returns>Configured instance of <see cref="IServiceCollection"/>.</returns>
         public static IServiceCollection AddFileFsClient(this IServiceCollection services, string fileFsStoragePath)
         {
-            services.AddSingleton<IStorageConnection, StorageConnection>(provider =>
-                new StorageConnection(fileFsStoragePath, provider.GetService<ILogger>()));
+            services.AddSingleton<IStorageStreamProvider, StorageStreamProvider>(provider =>
+                new StorageStreamProvider(fileFsStoragePath, provider.GetService<ILogger>()));
+
+            services.AddSingleton<IStorageConnection, StorageConnection>();
 
             services.AddSingleton<ISerializer<FilesystemDescriptor>, FilesystemDescriptorSerializer>();
             services.AddSingleton<IFilesystemDescriptorAccessor, FilesystemDescriptorAccessor>();
