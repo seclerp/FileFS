@@ -38,22 +38,18 @@ namespace FileFS.DataAccess.Repositories
         }
 
         /// <inheritdoc />
-        public StorageItem<FileDescriptor> Read(int offset)
+        public StorageItem<FileDescriptor> Read(Cursor cursor)
         {
             _logger.Information("Start file descriptor data reading process");
-
-            const SeekOrigin origin = SeekOrigin.End;
 
             _logger.Information("Retrieving info about file descriptor length");
 
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var length = filesystemDescriptor.FileDescriptorLength;
 
-            var cursor = new Cursor(offset, origin);
-
             _logger.Information("Reading file descriptor data");
 
-            var data = _connection.PerformRead(new Cursor(offset, origin), length);
+            var data = _connection.PerformRead(cursor, length);
             var descriptor = _serializer.FromBytes(data);
 
             _logger.Information("Done reading file descriptor data");

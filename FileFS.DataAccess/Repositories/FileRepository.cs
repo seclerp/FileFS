@@ -115,11 +115,12 @@ namespace FileFS.DataAccess.Repositories
         {
             // 1. Find last descriptor
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var lastDescriptorOffset =
+            var lastDescriptorCursor = new Cursor(
                 -FilesystemDescriptor.BytesTotal -
                 (filesystemDescriptor.FileDescriptorsCount *
-                 filesystemDescriptor.FileDescriptorLength);
-            var lastDescriptor = _fileDescriptorRepository.Read(lastDescriptorOffset).Value;
+                 filesystemDescriptor.FileDescriptorLength),
+                SeekOrigin.End);
+            var lastDescriptor = _fileDescriptorRepository.Read(lastDescriptorCursor).Value;
 
             // 2. Find current descriptor
             var descriptorItem = _fileDescriptorRepository.Find(fileName);

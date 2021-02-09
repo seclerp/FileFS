@@ -11,9 +11,9 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         /// <summary>
         /// Reads file descriptor from FileFS storage.
         /// </summary>
-        /// <param name="offset">Offset in memory in bytes.</param>
+        /// <param name="cursor">Cursor in memory.</param>
         /// <returns>Storage item that represents file descriptor with its cursor in memory.</returns>
-        StorageItem<FileDescriptor> Read(int offset);
+        StorageItem<FileDescriptor> Read(Cursor cursor);
 
         /// <summary>
         /// Returns all file descriptors stored in FileFS storage.
