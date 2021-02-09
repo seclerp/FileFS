@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using FileFS.DataAccess.Exceptions;
 
 namespace FileFS.DataAccess.Abstractions
 {
@@ -10,7 +11,8 @@ namespace FileFS.DataAccess.Abstractions
         /// <summary>
         /// Opens stream to work with FileFS storage.
         /// </summary>
+        /// <param name="checkExistence">If true, exception of type <see cref="StorageNotFoundException"/> will be thrown if stream target not exists.</param>
         /// <returns>Ready to use stream to work with FileFS storage.</returns>
-        Stream OpenStream();
+        Stream OpenStream(bool checkExistence = true);
     }
 }

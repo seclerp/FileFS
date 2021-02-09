@@ -28,7 +28,7 @@ namespace FileFS.DataAccess.Tests
             var serializer = new FilesystemDescriptorSerializer(logger);
 
             // Act
-            var buffer = serializer.ToBuffer(filesystemDescriptor);
+            var buffer = serializer.ToBytes(filesystemDescriptor);
 
             // Assert
             using var memoryStream = new MemoryStream(buffer);
@@ -62,7 +62,7 @@ namespace FileFS.DataAccess.Tests
             writer.Write(fileDescriptorLength);
 
             // Act
-            var filesystemDescriptor = serializer.FromBuffer(buffer);
+            var filesystemDescriptor = serializer.FromBytes(buffer);
 
             // Assert
             Assert.Equal(filesystemDescriptor.FilesDataLength, filesDataLength);

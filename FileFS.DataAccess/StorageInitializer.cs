@@ -1,7 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
+using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Serializers.Abstractions;
 using Serilog;
 
@@ -30,24 +30,26 @@ namespace FileFS.DataAccess
         }
 
         /// <inheritdoc />
+        /// <exception cref="ArgumentNonValidException">Throws when fileSize less than reserved bytes for filesystem descriptor.</exception>
+        /// <exception cref="ArgumentNonValidException">Throws when fileNameLength less or equals to 0.</exception>
         public void Initialize(int fileSize, int fileNameLength)
         {
             if (fileSize <= 0)
             {
-                throw new ArgumentException($"Value cannot be less than reserved bytes for filesystem descriptor ({FilesystemDescriptor.BytesTotal})", nameof(fileSize));
+                throw new ArgumentNonValidException($"Value '{nameof(fileSize)}' cannot be less than reserved bytes for filesystem descriptor ({FilesystemDescriptor.BytesTotal})");
             }
 
             if (fileNameLength <= 0)
             {
-                throw new ArgumentException("Value cannot be less or equals to 0", nameof(fileNameLength));
+                throw new ArgumentNonValidException($"Value '{nameof(fileNameLength)}'cannot be less or equals to 0");
             }
 
             _logger.Information($"Start storage initialization process, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
 
             var fileSystemDescriptor = new FilesystemDescriptor(0, 0, fileNameLength + FileDescriptor.BytesWithoutFilename);
-            var buffer = _serializer.ToBuffer(fileSystemDescriptor);
+            var buffer = _serializer.ToBytes(fileSystemDescriptor);
 
-            using var stream = _storageStreamProvider.OpenStream();
+            using var stream = _storageStreamProvider.OpenStream(false);
             stream.SetLength(fileSize);
             stream.Seek(-FilesystemDescriptor.BytesTotal, SeekOrigin.End);
             stream.Write(buffer);

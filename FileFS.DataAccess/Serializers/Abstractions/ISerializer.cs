@@ -11,13 +11,13 @@
         /// </summary>
         /// <param name="buffer">Bytes buffer.</param>
         /// <returns>Model representation constructed from given byte array.</returns>
-        TModel FromBuffer(byte[] buffer);
+        TModel FromBytes(byte[] buffer);
 
         /// <summary>
         /// Returns bytes representation of given model instance.
         /// </summary>
         /// <param name="model">Model instance.</param>
         /// <returns>Bytes representation of given model instance.</returns>
-        byte[] ToBuffer(TModel model);
+        byte[] ToBytes(TModel model);
     }
 }

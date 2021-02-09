@@ -1,6 +1,6 @@
 ﻿using FileFS.DataAccess.Entities;
 
-namespace FileFS.DataAccess.Repositories.Abstractions
+namespace FileFS.DataAccess.Abstractions
 {
     /// <summary>
     /// Abstraction that represent accessor for filesystem descriptor.

@@ -18,8 +18,12 @@ namespace FileFS.DataAccess.Tests
         {
             var storageStreamProviderMock = new Mock<IStorageStreamProvider>();
             storageStreamProviderMock
-                .Setup(provider => provider.OpenStream())
-                .Returns(new MemoryStream(storageBuffer));
+                .Setup(provider => provider.OpenStream(true))
+                .Returns(() => new MemoryStream(storageBuffer));
+
+            storageStreamProviderMock
+                .Setup(provider => provider.OpenStream(false))
+                .Returns(() => new MemoryStream(storageBuffer));
 
             return storageStreamProviderMock.Object;
         }
@@ -33,7 +37,11 @@ namespace FileFS.DataAccess.Tests
         {
             var storageStreamProviderMock = new Mock<IStorageStreamProvider>();
             storageStreamProviderMock
-                .Setup(provider => provider.OpenStream())
+                .Setup(provider => provider.OpenStream(true))
+                .Returns(expandableStream);
+
+            storageStreamProviderMock
+                .Setup(provider => provider.OpenStream(false))
                 .Returns(expandableStream);
 
             return storageStreamProviderMock.Object;

@@ -1,11 +1,10 @@
 ﻿using System.IO;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
-using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Serializers.Abstractions;
 using Serilog;
 
-namespace FileFS.DataAccess.Repositories
+namespace FileFS.DataAccess
 {
     /// <summary>
     /// Filesystem descriptor access implementation.
@@ -42,7 +41,7 @@ namespace FileFS.DataAccess.Repositories
 
             var offset = -FilesystemDescriptor.BytesTotal;
             var origin = SeekOrigin.End;
-            var data = _serializer.ToBuffer(descriptor);
+            var data = _serializer.ToBytes(descriptor);
 
             _connection.PerformWrite(new Cursor(offset, origin), data);
 
@@ -58,7 +57,7 @@ namespace FileFS.DataAccess.Repositories
             var offset = -FilesystemDescriptor.BytesTotal;
             var length = FilesystemDescriptor.BytesTotal;
             var data = _connection.PerformRead(new Cursor(offset, origin), length);
-            var descriptor = _serializer.FromBuffer(data);
+            var descriptor = _serializer.FromBytes(data);
 
             _logger.Information("Filesystem descriptor retrieved");
 

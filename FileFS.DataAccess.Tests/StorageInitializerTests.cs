@@ -1,8 +1,8 @@
 ﻿// Missing XML comment for publicly visible type or member...
 
-using System;
 using System.IO;
 using FileFS.DataAccess.Entities;
+using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Serializers;
 using Serilog;
 using Xunit;
@@ -40,7 +40,7 @@ namespace FileFS.DataAccess.Tests
             newStorageStream.Seek(size - FilesystemDescriptor.BytesTotal, SeekOrigin.Begin);
             var filesystemDescriptorBuffer = new byte[FilesystemDescriptor.BytesTotal];
             newStorageStream.Read(filesystemDescriptorBuffer);
-            var filesystemDescriptor = filesystemDescriptorSerializer.FromBuffer(filesystemDescriptorBuffer);
+            var filesystemDescriptor = filesystemDescriptorSerializer.FromBytes(filesystemDescriptorBuffer);
             Assert.Equal(size, newStorageStream.Length);
             Assert.Equal(expectedFilesystemDescriptor, filesystemDescriptor);
         }
@@ -65,7 +65,7 @@ namespace FileFS.DataAccess.Tests
             void Act() => storageInitializer.Initialize(size, fileNameLength);
 
             // Arrange
-            Assert.Throws<ArgumentException>(Act);
+            Assert.Throws<ArgumentNonValidException>(Act);
         }
     }
 }

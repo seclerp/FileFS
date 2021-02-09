@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using FileFS.DataAccess.Abstractions;
+using FileFS.DataAccess.Exceptions;
 using Serilog;
 
 namespace FileFS.DataAccess
@@ -24,9 +25,15 @@ namespace FileFS.DataAccess
         }
 
         /// <inheritdoc />
-        public Stream OpenStream()
+        /// <exception cref="StorageNotFoundException">Throws when checkExistence is true and storage not exists.</exception>
+        public Stream OpenStream(bool checkExistence = true)
         {
             _logger.Information($"Trying to open stream for filename {_fileFsStoragePath}");
+
+            if (checkExistence && !File.Exists(_fileFsStoragePath))
+            {
+                throw new StorageNotFoundException($"Storage located at file '{_fileFsStoragePath}' not found.");
+            }
 
             var stream = File.OpenWrite(_fileFsStoragePath);
 

@@ -23,7 +23,7 @@ namespace FileFS.DataAccess.Serializers
         }
 
         /// <inheritdoc />
-        public FilesystemDescriptor FromBuffer(byte[] buffer)
+        public FilesystemDescriptor FromBytes(byte[] buffer)
         {
             _logger.Information("Creating memory stream to read filesystem descriptor from buffer");
 
@@ -42,7 +42,7 @@ namespace FileFS.DataAccess.Serializers
         }
 
         /// <inheritdoc />
-        public byte[] ToBuffer(FilesystemDescriptor model)
+        public byte[] ToBytes(FilesystemDescriptor model)
         {
             _logger.Information("Creating new buffer and memory stream to write filesystem descriptor to buffer");
 

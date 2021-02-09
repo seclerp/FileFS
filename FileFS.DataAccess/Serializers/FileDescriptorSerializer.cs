@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text;
+using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
-using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Serializers.Abstractions;
 using Serilog;
 
@@ -29,7 +29,7 @@ namespace FileFS.DataAccess.Serializers
         }
 
         /// <inheritdoc />
-        public FileDescriptor FromBuffer(byte[] buffer)
+        public FileDescriptor FromBytes(byte[] buffer)
         {
             _logger.Information("Creating memory stream to read file descriptor from buffer");
 
@@ -54,7 +54,7 @@ namespace FileFS.DataAccess.Serializers
         }
 
         /// <inheritdoc />
-        public byte[] ToBuffer(FileDescriptor model)
+        public byte[] ToBytes(FileDescriptor model)
         {
             _logger.Information("Creating new buffer and memory stream to write file descriptor to buffer");
 

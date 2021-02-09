@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -7,6 +6,7 @@ using FileFS.Client.Abstractions;
 using FileFS.Client.Constants;
 using FileFS.Client.Exceptions;
 using FileFS.DataAccess.Entities;
+using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Memory.Abstractions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using FileNotFoundException = FileFS.Client.Exceptions.FileNotFoundException;
@@ -148,6 +148,7 @@ namespace FileFS.Client
 
         /// <inheritdoc />
         /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
+        /// <exception cref="ArgumentNonValidException">Throws when destinationStream is null.</exception>
         public void Read(string fileName, Stream destinationStream)
         {
             if (!IsValidFilename(fileName))
@@ -157,7 +158,7 @@ namespace FileFS.Client
 
             if (destinationStream is null)
             {
-                throw new ArgumentException("Argument cannot be null", nameof(destinationStream));
+                throw new ArgumentNonValidException($"Argument cannot be null: {nameof(destinationStream)}");
             }
 
             _fileRepository.Read(fileName, destinationStream);

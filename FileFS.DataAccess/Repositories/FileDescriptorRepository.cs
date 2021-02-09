@@ -54,7 +54,7 @@ namespace FileFS.DataAccess.Repositories
             _logger.Information("Reading file descriptor data");
 
             var data = _connection.PerformRead(new Cursor(offset, origin), length);
-            var descriptor = _serializer.FromBuffer(data);
+            var descriptor = _serializer.FromBytes(data);
 
             _logger.Information("Done reading file descriptor data");
 
@@ -81,7 +81,7 @@ namespace FileFS.DataAccess.Repositories
 
                 var length = filesystemDescriptor.FileDescriptorLength;
                 var data = _connection.PerformRead(cursor, length);
-                var descriptor = _serializer.FromBuffer(data);
+                var descriptor = _serializer.FromBytes(data);
 
                 allDescriptors[index] = new StorageItem<FileDescriptor>(descriptor, cursor);
                 index++;
@@ -97,7 +97,7 @@ namespace FileFS.DataAccess.Repositories
         {
             _logger.Information("Start file descriptor data writing process");
 
-            var data = _serializer.ToBuffer(item.Value);
+            var data = _serializer.ToBytes(item.Value);
 
             _connection.PerformWrite(item.Cursor, data);
 
@@ -120,7 +120,7 @@ namespace FileFS.DataAccess.Repositories
             {
                 var cursor = new Cursor(offset, SeekOrigin.End);
                 var data = _connection.PerformRead(cursor, filesystemDescriptor.FileDescriptorLength);
-                var currentDescriptor = _serializer.FromBuffer(data);
+                var currentDescriptor = _serializer.FromBytes(data);
 
                 if (currentDescriptor.FileName == fileName)
                 {
@@ -151,7 +151,7 @@ namespace FileFS.DataAccess.Repositories
             {
                 var cursor = new Cursor(offset, SeekOrigin.End);
                 var data = _connection.PerformRead(cursor, filesystemDescriptor.FileDescriptorLength);
-                var currentDescriptor = _serializer.FromBuffer(data);
+                var currentDescriptor = _serializer.FromBytes(data);
 
                 if (currentDescriptor.FileName == fileName)
                 {

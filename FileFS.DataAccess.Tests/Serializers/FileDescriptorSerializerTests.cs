@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Text;
+using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
-using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Serializers;
 using Moq;
 using Serilog;
@@ -30,7 +30,7 @@ namespace FileFS.DataAccess.Tests
             var serializer = new FileDescriptorSerializer(filesystemDescriptorAccessor, logger);
 
             // Act
-            var buffer = serializer.ToBuffer(fileDescriptor);
+            var buffer = serializer.ToBytes(fileDescriptor);
 
             // Assert
             using var memoryStream = new MemoryStream(buffer);
@@ -78,7 +78,7 @@ namespace FileFS.DataAccess.Tests
             writer.Write(dataLength);
 
             // Act
-            var fileDescriptor = serializer.FromBuffer(buffer);
+            var fileDescriptor = serializer.FromBytes(buffer);
 
             // Assert
             Assert.Equal(fileDescriptor.FileNameLength, fileNameBytes.Length);
