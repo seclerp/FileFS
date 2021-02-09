@@ -1,0 +1,105 @@
+name: Deploy
+
+on:
+  push:
+    tags: 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Publish CLI Windows x64
+      run: dotnet publish FileFS.Cli -c Release -o cli_publish_win64 -r win-x64 -p:PublishSingleFile=true --self-contained
+
+    - name: Publish CLI Linux x64
+      run: dotnet publish FileFS.Cli -c Release -o cli_publish_linux64 -r linux-x64 -p:PublishSingleFile=true --self-contained
+
+    - name: Publish CLI MacOS X x64
+      run: dotnet publish FileFS.Cli -c Release -o cli_publish_osx64 -r osx-x64 -p:PublishSingleFile=true --self-contained
+
+    - name: Publish Client Library
+      run: dotnet publish FileFS.Client -c Release -o library_publish
+
+    - name: Zip CLI Windows x64
+      run: zip -r FileFS.Cli_win64.zip cli_publish_win64
+
+    - name: Zip CLI Linux x64
+      run: zip -r FileFS.Cli_linux64.zip cli_publish_linux64
+
+    - name: Zip CLI MacOS X x64
+      run: zip -r FileFS.Cli_osx64.zip cli_publish_osx64
+
+    - name: Zip Client Library
+      run: zip -r FileFS.Client.zip library_publish
+
+    - name: Create Release
+      id: create-release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload CLI Windows x64
+      id: upload-cli-windows-64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: FileFS.Cli_win64.zip
+        asset_name: FileFS.Cli_win64.zip
+        asset_content_type: application/zip
+
+    - name: Upload CLI Linux x64
+      id: upload-cli-linux-64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: FileFS.Cli_linux64.zip
+        asset_name: FileFS.Cli_linux64.zip
+        asset_content_type: application/zip
+
+    - name: Upload CLI MacOS X x64
+      id: upload-cli-osx-64
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: FileFS.Cli_osx64.zip
+        asset_name: FileFS.Cli_osx64.zip
+        asset_content_type: application/zip
+
+    - name: Upload Client Library
+      id: upload-client-library
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create-release.outputs.upload_url }}
+        asset_path: FileFS.Client.zip
+        asset_name: FileFS.Client.zip
+        asset_content_type: application/zip
+

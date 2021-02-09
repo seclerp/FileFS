@@ -7,7 +7,6 @@
         <PackageId>FileFS.Cli</PackageId>
         <Product>FileFS CLI</Product>
         <PublishTrimmed>true</PublishTrimmed>
-        <PublishReadyToRun>true</PublishReadyToRun>
     </PropertyGroup>
 
     <ItemGroup>

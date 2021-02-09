@@ -1,6 +1,6 @@
 # FileFS
 
-[Build status here]
+![Build and Test](https://github.com/seclerp/FileFS/workflows/Build%20and%20Test/badge.svg)
 
 Simple single file-based filesystem.
 
