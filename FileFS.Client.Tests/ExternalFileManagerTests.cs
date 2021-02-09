@@ -14,11 +14,11 @@ namespace FileFS.Client.Tests
 {
     public class ExternalFileManagerTests
     {
-        private readonly string _testFileName;
+        private readonly string _testStorageFileName;
 
         public ExternalFileManagerTests()
         {
-            _testFileName = $"{Guid.NewGuid()}.txt";
+            _testStorageFileName = $"{Guid.NewGuid()}.txt";
         }
 
         [Theory]
@@ -34,10 +34,10 @@ namespace FileFS.Client.Tests
                 var textBytes = Encoding.UTF8.GetBytes(text);
 
                 // Act
-                externalFileManager.Write(_testFileName, textBytes);
+                externalFileManager.Write(_testStorageFileName, textBytes);
 
                 // Assert
-                var writtenText = File.ReadAllText(_testFileName);
+                var writtenText = File.ReadAllText(_testStorageFileName);
                 Assert.Equal(text, writtenText);
             }
             finally
@@ -56,10 +56,10 @@ namespace FileFS.Client.Tests
                 // Arrange
                 var logger = new LoggerConfiguration().CreateLogger();
                 var externalFileManager = new ExternalFileManager(logger);
-                File.WriteAllText(_testFileName, text);
+                File.WriteAllText(_testStorageFileName, text);
 
                 // Act
-                var writtenTextBytes = externalFileManager.Read(_testFileName);
+                var writtenTextBytes = externalFileManager.Read(_testStorageFileName);
 
                 // Assert
                 var writtenText = Encoding.UTF8.GetString(writtenTextBytes);
@@ -83,13 +83,13 @@ namespace FileFS.Client.Tests
                 var externalFileManager = new ExternalFileManager(logger);
 
                 // Act
-                var writeStream = externalFileManager.OpenWriteStream(_testFileName);
+                var writeStream = externalFileManager.OpenWriteStream(_testStorageFileName);
 
                 // Assert
                 using var writer = new StreamWriter(writeStream);
                 writer.Write(text);
                 writer.Dispose();
-                var writtenText = File.ReadAllText(_testFileName);
+                var writtenText = File.ReadAllText(_testStorageFileName);
 
                 Assert.Equal(text, writtenText);
             }
@@ -109,10 +109,10 @@ namespace FileFS.Client.Tests
                 // Arrange
                 var logger = new LoggerConfiguration().CreateLogger();
                 var externalFileManager = new ExternalFileManager(logger);
-                File.WriteAllText(_testFileName, text);
+                File.WriteAllText(_testStorageFileName, text);
 
                 // Act
-                var readStream = externalFileManager.OpenReadStream(_testFileName);
+                var readStream = externalFileManager.OpenReadStream(_testStorageFileName);
 
                 // Assert
                 using var reader = new StreamReader(readStream);
@@ -128,9 +128,9 @@ namespace FileFS.Client.Tests
 
         private void ClearSideEffects()
         {
-            if (File.Exists(_testFileName))
+            if (File.Exists(_testStorageFileName))
             {
-                File.Delete(_testFileName);
+                File.Delete(_testStorageFileName);
             }
         }
     }
