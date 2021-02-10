@@ -49,8 +49,11 @@ namespace FileFS.DataAccess.Memory
 
             _logger.Information($"There is {descriptors.Count} descriptors found");
 
-            // 2. Sort by offset
-            var orderedDescriptors = descriptors.OrderBy(descriptor => descriptor.Value.DataOffset).ToArray();
+            // 2. Sort by offset, filter zero-sized data because it is not necessary to move empty data
+            var orderedDescriptors = descriptors
+                .Where(descriptor => descriptor.Value.DataLength > 0)
+                .OrderBy(descriptor => descriptor.Value.DataOffset)
+                .ToArray();
 
             // 3a. Move first
             if (orderedDescriptors.Length > 0 && orderedDescriptors[0].Value.DataOffset != 0)
@@ -62,7 +65,7 @@ namespace FileFS.DataAccess.Memory
             }
 
             // 3b. Iterate over all descriptors to find gaps
-            for (var i = 0; i < descriptors.Count - 1; i++)
+            for (var i = 0; i < orderedDescriptors.Length - 1; i++)
             {
                 var current = orderedDescriptors[i];
                 var next = orderedDescriptors[i + 1];

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using FileFS.Client.Abstractions;
 using FileFS.Client.Constants;
 using FileFS.Client.Exceptions;
@@ -41,7 +42,7 @@ namespace FileFS.Client
         /// <inheritdoc />
         /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
         /// <exception cref="FileAlreadyExistsException">Throws if file already exists.</exception>
-        /// <exception cref="EmptyDataException">Throws if data is empty.</exception>
+        /// <exception cref="DataIsNullException">Throws if data is empty.</exception>
         public void Create(string fileName, byte[] data)
         {
             if (!IsValidFilename(fileName))
@@ -54,9 +55,9 @@ namespace FileFS.Client
                 throw new FileAlreadyExistsException(fileName);
             }
 
-            if (data is null || data.Length is 0)
+            if (data is null)
             {
-                throw new EmptyDataException(fileName);
+                throw new DataIsNullException(fileName);
             }
 
             _fileRepository.Create(new FileEntry(fileName, data));
@@ -65,7 +66,7 @@ namespace FileFS.Client
         /// <inheritdoc />
         /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
         /// <exception cref="FileAlreadyExistsException">Throws if file already exists.</exception>
-        /// <exception cref="EmptyDataException">Throws if data is empty.</exception>
+        /// <exception cref="DataIsNullException">Throws if data is empty.</exception>
         public void Create(string fileName, Stream sourceStream, int length)
         {
             if (!IsValidFilename(fileName))
@@ -78,9 +79,9 @@ namespace FileFS.Client
                 throw new FileAlreadyExistsException(fileName);
             }
 
-            if (sourceStream is null || sourceStream.Length is 0)
+            if (sourceStream is null)
             {
-                throw new EmptyDataException(fileName);
+                throw new DataIsNullException(fileName);
             }
 
             _fileRepository.Create(new StreamedFileEntry(fileName, sourceStream, length));
@@ -89,7 +90,7 @@ namespace FileFS.Client
         /// <inheritdoc />
         /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
         /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
-        /// <exception cref="EmptyDataException">Throws if data is empty.</exception>
+        /// <exception cref="DataIsNullException">Throws if data is empty.</exception>
         public void Update(string fileName, byte[] newData)
         {
             if (!IsValidFilename(fileName))
@@ -102,9 +103,9 @@ namespace FileFS.Client
                 throw new FileNotFoundException(fileName);
             }
 
-            if (newData is null || newData.Length is 0)
+            if (newData is null)
             {
-                throw new EmptyDataException(fileName);
+                throw new DataIsNullException(fileName);
             }
 
             _fileRepository.Update(new FileEntry(fileName, newData));
@@ -113,7 +114,7 @@ namespace FileFS.Client
         /// <inheritdoc />
         /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
         /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
-        /// <exception cref="EmptyDataException">Throws if data is empty.</exception>
+        /// <exception cref="DataIsNullException">Throws if data is empty.</exception>
         public void Update(string fileName, Stream sourceStream, int length)
         {
             if (!IsValidFilename(fileName))
@@ -126,9 +127,9 @@ namespace FileFS.Client
                 throw new FileNotFoundException(fileName);
             }
 
-            if (sourceStream is null || sourceStream.Length is 0)
+            if (sourceStream is null)
             {
-                throw new EmptyDataException(fileName);
+                throw new DataIsNullException(fileName);
             }
 
             _fileRepository.Update(new StreamedFileEntry(fileName, sourceStream, length));

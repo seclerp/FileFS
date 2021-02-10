@@ -18,7 +18,7 @@ namespace FileFS.Cli.Options
         /// <summary>
         /// Gets or sets new content of a existing file.
         /// </summary>
-        [Value(1, Required = true, HelpText = "New content of a existing file.")]
+        [Value(1, Default = "", Required = false, HelpText = "New content of a existing file.")]
         public string Content { get; set; }
 
         /// <summary>

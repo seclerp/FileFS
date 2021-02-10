@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Extensions;
 using Serilog;
@@ -59,11 +60,17 @@ namespace FileFS.DataAccess
         {
             _logger.Information($"Start read operation at offset {cursor.Offset} for {length} bytes");
 
-            using var stream = _storageStreamProvider.OpenStream();
-            using var reader = CreateReader(stream);
+            var bytes = Array.Empty<byte>();
 
-            stream.Seek(cursor);
-            var bytes = reader.ReadBytes(length);
+            // Do not read anything if size is zero, not necessary
+            if (length > 0)
+            {
+                using var stream = _storageStreamProvider.OpenStream();
+                using var reader = CreateReader(stream);
+
+                stream.Seek(cursor);
+                bytes = reader.ReadBytes(length);
+            }
 
             _logger.Information($"Done read operation at offset {cursor.Offset} for {length} bytes");
 
@@ -75,10 +82,14 @@ namespace FileFS.DataAccess
         {
             _logger.Information($"Start buffered read operation at offset {cursor.Offset} for {length} bytes");
 
-            using var stream = _storageStreamProvider.OpenStream();
+            // Do not read anything if size is zero, not necessary
+            if (length > 0)
+            {
+                using var stream = _storageStreamProvider.OpenStream();
 
-            stream.Seek(cursor);
-            stream.WriteBuffered(destinationStream, length, _bufferSize);
+                stream.Seek(cursor);
+                stream.WriteBuffered(destinationStream, length, _bufferSize);
+            }
 
             _logger.Information($"Done buffered read operation at offset {cursor.Offset} for {length} bytes");
         }
@@ -88,19 +99,23 @@ namespace FileFS.DataAccess
         {
             _logger.Information($"Start copy operation from offset {sourceCursor.Offset} to offset {destinationCursor.Offset}, {length} bytes length");
 
-            using var tempStream = new MemoryStream(length);
-            using var tempStreamReader = CreateReader(tempStream);
-            using var tempStreamWriter = CreateWriter(tempStream);
+            // Do not copy anything if size is zero, not necessary
+            if (length > 0)
+            {
+                using var tempStream = new MemoryStream(length);
+                using var tempStreamReader = CreateReader(tempStream);
+                using var tempStreamWriter = CreateWriter(tempStream);
 
-            using var stream = _storageStreamProvider.OpenStream();
-            using var reader = CreateReader(stream);
-            using var writer = CreateWriter(stream);
+                using var stream = _storageStreamProvider.OpenStream();
+                using var reader = CreateReader(stream);
+                using var writer = CreateWriter(stream);
 
-            stream.Seek(sourceCursor);
-            tempStreamWriter.Write(reader.ReadBytes(length));
-            stream.Seek(destinationCursor);
-            tempStream.Seek(0, SeekOrigin.Begin);
-            writer.Write(tempStreamReader.ReadBytes(length));
+                stream.Seek(sourceCursor);
+                tempStreamWriter.Write(reader.ReadBytes(length));
+                stream.Seek(destinationCursor);
+                tempStream.Seek(0, SeekOrigin.Begin);
+                writer.Write(tempStreamReader.ReadBytes(length));
+            }
 
             _logger.Information($"Done copy operation from offset {sourceCursor.Offset} to offset {destinationCursor.Offset}, {length} bytes length");
         }

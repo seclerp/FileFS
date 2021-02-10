@@ -18,7 +18,7 @@ namespace FileFS.Cli.Options
         /// <summary>
         /// Gets or sets content of a newly created file.
         /// </summary>
-        [Value(1, Required = true, HelpText = "Content of a newly created file.")]
+        [Value(1, Default = "", Required = false, HelpText = "Content of a newly created file.")]
         public string Content { get; set; }
     }
 }

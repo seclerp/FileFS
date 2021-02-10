@@ -48,6 +48,14 @@ namespace FileFS.DataAccess.Memory
         {
             _logger.Information($"Start memory allocation flow for {dataSize} bytes");
 
+            // 0. If file data size is 0 - always return zero-pointed cursor
+            if (dataSize is 0)
+            {
+                _logger.Information($"Skipping allocation due to 0-sized data");
+
+                return new Cursor(0, SeekOrigin.Begin);
+            }
+
             // 1. Try find existing gap of given size
             if (TryFindGap(dataSize, out var cursor))
             {
