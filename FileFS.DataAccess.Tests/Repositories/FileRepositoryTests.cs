@@ -1,6 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using FileFS.DataAccess.Entities;
+using FileFS.DataAccess.Entities.Abstractions;
 using FileFS.DataAccess.Memory;
 using FileFS.DataAccess.Repositories;
 using FileFS.DataAccess.Repositories.Abstractions;
@@ -63,27 +66,214 @@ namespace FileFS.DataAccess.Tests.Repositories
             Assert.True(dataStream.StreamEquals(createdFileDataStream));
         }
 
-        public void Update_FileEntry_ShouldUpdateFileEntry() {}
+        [Theory]
+        [InlineData("file.name", "olddata", "newdata")]
+        public void Update_FileEntry_ShouldUpdateFileEntry(string fileName, string oldData, string newData)
+        {
+            // Arrange
+            var storageBuffer = new byte[10000];
 
-        public void Update_StreamedFileEntry_ShouldUpdateFileEntry() {}
+            var oldFataBytes = Encoding.UTF8.GetBytes(oldData);
+            var oldFileEntry = new FileEntry(fileName, oldFataBytes);
 
-        public void Read_FileEntry_ShouldReturnValidItem() {}
+            var newDataBytes = Encoding.UTF8.GetBytes(newData);
+            var newFileEntry = new FileEntry(fileName, newDataBytes);
 
-        public void Read_StreamedFileEntry_ShouldReturnValidItemAndWriteDataToStream() {}
+            var repository = CreateRepository(storageBuffer, true, oldFileEntry);
 
-        public void Rename_ShouldRenameSuccessfully() {}
+            // Act
+            repository.Update(newFileEntry);
 
-        public void Delete_ShouldDeleteSuccessfully() {}
+            // Assert
+            var updatedFileEntry = repository.Read(fileName);
+            Assert.Equal(newFileEntry.FileName, updatedFileEntry.FileName);
+            Assert.Equal(newFileEntry.DataLength, updatedFileEntry.DataLength);
+            Assert.Equal(newFileEntry.Data, updatedFileEntry.Data);
+        }
 
-        public void Exists_WhenItemExists_ShouldReturnTrue() {}
+        [Theory]
+        [InlineData("file.name", "olddata", 10_000_000)]
+        public void Update_StreamedFileEntry_WithLongData_ShouldUpdateFileEntry(string fileName, string oldData, int newDataLength)
+        {
+            // Arrange
+            var storageBuffer = new byte[11_000_000];
 
-        public void Exists_WhenItemNotExists_ShouldReturnFalse() {}
+            var oldDataBytes = Encoding.UTF8.GetBytes(oldData);
+            var oldFileEntry = new FileEntry(fileName, oldDataBytes);
 
-        public void GetAllFilesInfo_WhenThereAreNoData_ShouldReturnEmptyCollection() {}
+            var newDataBuffer = new byte[newDataLength];
+            using var newDataStream = new MemoryStream(newDataBuffer);
+            var newFileEntry = new StreamedFileEntry(fileName, newDataStream, (int)newDataStream.Length);
 
-        public void GetAllFilesInfo_WhenThereAreData_ShouldReturnValidCollection() {}
+            var repository = CreateRepository(storageBuffer, true, oldFileEntry);
 
-        private static IFileRepository CreateRepository(byte[] storageBuffer, bool initializeStorage)
+            // Act
+            repository.Update(newFileEntry);
+
+            // Assert
+            var updatedFileBuffer = new byte[newDataLength];
+            using var updatedFileDataStream = new MemoryStream(updatedFileBuffer);
+            repository.Read(fileName, updatedFileDataStream);
+            Assert.Equal(newFileEntry.DataLength, updatedFileDataStream.Length);
+            Assert.True(newDataStream.StreamEquals(updatedFileDataStream));
+        }
+
+        [Theory]
+        [InlineData("file.name", "data")]
+        public void Read_FileEntry_ShouldReturnValidItem(string fileName, string data)
+        {
+            // Arrange
+            var storageBuffer = new byte[10000];
+            var dataBytes = Encoding.UTF8.GetBytes(data);
+            var expectedFileEntry = new FileEntry(fileName, dataBytes);
+            var repository = CreateRepository(storageBuffer, true, expectedFileEntry);
+
+            // Act
+            var writtenFileEntry = repository.Read(fileName);
+
+            // Assert
+            Assert.Equal(expectedFileEntry.FileName, writtenFileEntry.FileName);
+            Assert.Equal(expectedFileEntry.DataLength, writtenFileEntry.DataLength);
+            Assert.Equal(expectedFileEntry.Data, writtenFileEntry.Data);
+        }
+
+        [Theory]
+        [InlineData("file.name", 10_000_000)]
+        public void Read_StreamedFileEntry_WithLargeData_ShouldReturnValidItemAndWriteDataToStream(string fileName, int streamLength)
+        {
+            // Arrange
+            var storageBuffer = new byte[11_000_000];
+            var dataBuffer = new byte[streamLength];
+            using var dataStream = new MemoryStream(dataBuffer);
+            var streamedFileEntry = new StreamedFileEntry(fileName, dataStream, (int)dataStream.Length);
+            var repository = CreateRepository(storageBuffer, true, streamedFileEntry);
+            var createdFileBuffer = new byte[streamLength];
+            using var createdFileDataStream = new MemoryStream(createdFileBuffer);
+
+            // Act
+            repository.Read(fileName, createdFileDataStream);
+
+            // Assert
+            Assert.Equal(dataStream.Length, createdFileDataStream.Length);
+            Assert.True(dataStream.StreamEquals(createdFileDataStream));
+        }
+
+        [Theory]
+        [InlineData("old.file.name", "new.file.name", "data")]
+        public void Rename_ShouldRenameSuccessfully(string oldFileName, string newFileName, string data)
+        {
+            // Arrange
+            var storageBuffer = new byte[10000];
+            var dataBytes = Encoding.UTF8.GetBytes(data);
+            var fileEntry = new FileEntry(oldFileName, dataBytes);
+            var repository = CreateRepository(storageBuffer, true, fileEntry);
+
+            // Act
+            repository.Rename(oldFileName, newFileName);
+
+            // Assert
+            var renamedFile = repository.Read(newFileName);
+            Assert.Equal(newFileName, renamedFile.FileName);
+            Assert.Equal(fileEntry.DataLength, renamedFile.DataLength);
+            Assert.Equal(fileEntry.Data, renamedFile.Data);
+        }
+
+        [Theory]
+        [InlineData("file.name", "data")]
+        public void Delete_ShouldDeleteSuccessfully(string fileName, string data)
+        {
+            // Arrange
+            var storageBuffer = new byte[10000];
+            var dataBytes = Encoding.UTF8.GetBytes(data);
+            var fileEntry = new FileEntry(fileName, dataBytes);
+            var repository = CreateRepository(storageBuffer, true, fileEntry);
+            var existsBeforeDeletion = repository.Exists(fileName);
+
+            // Act
+            repository.Delete(fileName);
+
+            // Assert
+            var existsAfterDeletion = repository.Exists(fileName);
+            Assert.True(existsBeforeDeletion);
+            Assert.False(existsAfterDeletion);
+        }
+
+        [Theory]
+        [InlineData("file.name", "data")]
+        public void Exists_WhenItemExists_ShouldReturnTrue(string fileName, string data)
+        {
+            // Arrange
+            var storageBuffer = new byte[10000];
+            var dataBytes = Encoding.UTF8.GetBytes(data);
+            var fileEntry = new FileEntry(fileName, dataBytes);
+            var repository = CreateRepository(storageBuffer, true, fileEntry);
+
+            // Act
+            var exists = repository.Exists(fileName);
+
+            // Assert
+            Assert.True(exists);
+        }
+
+        [Theory]
+        [InlineData("file.name")]
+        public void Exists_WhenItemNotExists_ShouldReturnFalse(string fileName)
+        {
+            // Arrange
+            var storageBuffer = new byte[10000];
+            var repository = CreateRepository(storageBuffer, true);
+
+            // Act
+            var exists = repository.Exists(fileName);
+
+            // Assert
+            Assert.False(exists);
+        }
+
+        [Fact]
+        public void GetAllFilesInfo_WhenThereAreNoData_ShouldReturnEmptyCollection()
+        {
+            // Arrange
+            var storageBuffer = new byte[10000];
+            var repository = CreateRepository(storageBuffer, true);
+
+            // Act
+            var allFilesInfo = repository.GetAllFilesInfo();
+
+            // Assert
+            Assert.Empty(allFilesInfo);
+        }
+
+        [Fact]
+        public void GetAllFilesInfo_WhenThereAreData_ShouldReturnValidCollection()
+        {
+            // Arrange
+            var storageBuffer = new byte[10000];
+            var dataBytes = Encoding.UTF8.GetBytes("exampleData");
+            var expectedFileEntries = new IFileEntry[]
+            {
+                new FileEntry("test1.file", dataBytes),
+                new FileEntry("test2.file", dataBytes),
+                new FileEntry("test3.file", dataBytes),
+                new FileEntry("test4.file", dataBytes),
+            };
+            var expectedFileEntryInfos = new[]
+            {
+                new FileEntryInfo("test1.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileEntryInfo("test2.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileEntryInfo("test3.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileEntryInfo("test4.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
+            };
+            var repository = CreateRepository(storageBuffer, true, expectedFileEntries);
+
+            // Act
+            var allFilesInfo = repository.GetAllFilesInfo();
+
+            // Assert
+            Assert.Equal(expectedFileEntryInfos, allFilesInfo, new FileEntryInfoEqualityComparer());
+        }
+
+        private static IFileRepository CreateRepository(byte[] storageBuffer, bool initializeStorage, params IFileEntry[] itemsToCreate)
         {
             var logger = new LoggerConfiguration().CreateLogger();
 
@@ -98,17 +288,43 @@ namespace FileFS.DataAccess.Tests.Repositories
 
             var optimizer = new StorageOptimizer(storageConnection, fileDescriptorRepository, logger);
             var allocator = new FileAllocator(storageConnection, filesystemDescriptorAccessor, fileDescriptorRepository, optimizer, logger);
+            var fileRepository = new FileRepository(storageConnection, allocator, filesystemDescriptorAccessor, fileDescriptorRepository, logger);
 
             if (initializeStorage)
             {
                 var storageInitializer =
                     new StorageInitializer(storageStreamProvider, filesystemDescriptorSerializer, logger);
                 storageInitializer.Initialize(storageBuffer.Length, FileNameLength);
+
+                foreach (var itemToCreate in itemsToCreate)
+                {
+                    switch (itemToCreate)
+                    {
+                        case FileEntry fileEntry:
+                            fileRepository.Create(fileEntry);
+                            break;
+                        case StreamedFileEntry streamedFileEntry:
+                            fileRepository.Create(streamedFileEntry);
+                            break;
+                    }
+                }
             }
 
-            var fileRepository = new FileRepository(storageConnection, allocator, filesystemDescriptorAccessor, fileDescriptorRepository, logger);
-
             return fileRepository;
+        }
+
+        private class FileEntryInfoEqualityComparer : IEqualityComparer<FileEntryInfo>
+        {
+            public bool Equals(FileEntryInfo x, FileEntryInfo y)
+            {
+                // We dont check for created and updated time here because it is tricky to mock it in the right way
+                return x.FileName == y.FileName && x.Size == y.Size;
+            }
+
+            public int GetHashCode(FileEntryInfo obj)
+            {
+                return HashCode.Combine(obj.FileName, obj.Size, obj.CreatedOn, obj.UpdatedOn);
+            }
         }
     }
 }
