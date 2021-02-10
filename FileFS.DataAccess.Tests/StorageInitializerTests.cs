@@ -4,6 +4,7 @@ using System.IO;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Serializers;
+using FileFS.DataAccess.Tests.Factories;
 using Serilog;
 using Xunit;
 

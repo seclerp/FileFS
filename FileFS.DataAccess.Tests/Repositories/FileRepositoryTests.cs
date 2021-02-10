@@ -9,6 +9,7 @@ using FileFS.DataAccess.Repositories;
 using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Serializers;
 using FileFS.DataAccess.Tests.Comparers;
+using FileFS.DataAccess.Tests.Factories;
 using Serilog;
 using Xunit;
 

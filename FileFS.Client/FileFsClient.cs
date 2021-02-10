@@ -190,6 +190,11 @@ namespace FileFS.Client
                 throw new InvalidFilenameException(fileName);
             }
 
+            if (!Exists(fileName))
+            {
+                throw new FileNotFoundException(fileName);
+            }
+
             _fileRepository.Delete(fileName);
         }
 
