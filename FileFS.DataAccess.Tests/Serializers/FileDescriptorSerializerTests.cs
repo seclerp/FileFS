@@ -13,7 +13,7 @@ using Xunit;
 // Elements should be documented
 #pragma warning disable SA1600
 
-namespace FileFS.DataAccess.Tests
+namespace FileFS.DataAccess.Tests.Serializers
 {
     public class FileDescriptorSerializerTests
     {

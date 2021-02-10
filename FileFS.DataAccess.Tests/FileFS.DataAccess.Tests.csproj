@@ -18,4 +18,8 @@
       <ProjectReference Include="..\FileFS.DataAccess\FileFS.DataAccess.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Extensions" />
+    </ItemGroup>
+
 </Project>

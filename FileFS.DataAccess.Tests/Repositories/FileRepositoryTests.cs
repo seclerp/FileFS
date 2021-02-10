@@ -8,7 +8,7 @@ using FileFS.DataAccess.Memory;
 using FileFS.DataAccess.Repositories;
 using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Serializers;
-using FileFS.DataAccess.Tests.Repositories.Extensions;
+using FileFS.DataAccess.Tests.Comparers;
 using Serilog;
 using Xunit;
 
@@ -63,7 +63,7 @@ namespace FileFS.DataAccess.Tests.Repositories
             using var createdFileDataStream = new MemoryStream(createdFileBuffer);
             repository.Read(fileName, createdFileDataStream);
             Assert.Equal(dataStream.Length, createdFileDataStream.Length);
-            Assert.True(dataStream.StreamEquals(createdFileDataStream));
+            Assert.Equal(dataStream, createdFileDataStream, new StreamComparer());
         }
 
         [Theory]
@@ -115,7 +115,7 @@ namespace FileFS.DataAccess.Tests.Repositories
             using var updatedFileDataStream = new MemoryStream(updatedFileBuffer);
             repository.Read(fileName, updatedFileDataStream);
             Assert.Equal(newFileEntry.DataLength, updatedFileDataStream.Length);
-            Assert.True(newDataStream.StreamEquals(updatedFileDataStream));
+            Assert.Equal(newDataStream, updatedFileDataStream, new StreamComparer());
         }
 
         [Theory]
@@ -155,7 +155,7 @@ namespace FileFS.DataAccess.Tests.Repositories
 
             // Assert
             Assert.Equal(dataStream.Length, createdFileDataStream.Length);
-            Assert.True(dataStream.StreamEquals(createdFileDataStream));
+            Assert.Equal(dataStream, createdFileDataStream, new StreamComparer());
         }
 
         [Theory]
@@ -311,20 +311,6 @@ namespace FileFS.DataAccess.Tests.Repositories
             }
 
             return fileRepository;
-        }
-
-        private class FileEntryInfoEqualityComparer : IEqualityComparer<FileEntryInfo>
-        {
-            public bool Equals(FileEntryInfo x, FileEntryInfo y)
-            {
-                // We dont check for created and updated time here because it is tricky to mock it in the right way
-                return x.FileName == y.FileName && x.Size == y.Size;
-            }
-
-            public int GetHashCode(FileEntryInfo obj)
-            {
-                return HashCode.Combine(obj.FileName, obj.Size, obj.CreatedOn, obj.UpdatedOn);
-            }
         }
     }
 }
