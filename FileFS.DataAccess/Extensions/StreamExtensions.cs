@@ -31,7 +31,7 @@ namespace FileFS.DataAccess.Extensions
 
             while (bytesProcessed < length)
             {
-                var bytesRead = source.Read(buffer, 0, buffer.Length);
+                var bytesRead = source.Read(buffer, 0, length - bytesProcessed >= buffer.Length ? buffer.Length : length - bytesProcessed);
                 destination.Write(buffer, 0, bytesRead);
 
                 // End of stream

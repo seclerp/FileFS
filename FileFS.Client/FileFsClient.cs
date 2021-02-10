@@ -177,6 +177,8 @@ namespace FileFS.Client
             {
                 throw new InvalidFilenameException(newFilename);
             }
+
+            _fileRepository.Rename(currentFilename, newFilename);
         }
 
         /// <inheritdoc />
