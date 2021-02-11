@@ -15,7 +15,7 @@ Features:
 - Exclusive access support across multiple client instances
 - Debugging using verbose logging
 
-You could find latest library and CLI release in Releases section.
+You could find latest library and CLI release in **[Releases](https://github.com/seclerp/FileFS/releases)** section.
 
 ## How to use
 
