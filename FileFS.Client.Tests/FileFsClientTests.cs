@@ -37,18 +37,13 @@ namespace FileFS.Client.Tests
             var dataBytes = Encoding.UTF8.GetBytes(data);
             var fileRepositoryMock = new Mock<IFileRepository>();
 
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Create(It.IsAny<FileEntry>()))
-                .Callback(() => called = true);
-
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
             client.Create(fileName, dataBytes);
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Create(It.IsAny<FileEntry>()));
         }
 
         [Theory]
@@ -125,18 +120,13 @@ namespace FileFS.Client.Tests
 
             var fileRepositoryMock = new Mock<IFileRepository>();
 
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Create(It.IsAny<StreamedFileEntry>()))
-                .Callback(() => called = true);
-
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
             client.Create(fileName, stream, dataBytes.Length);
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Create(It.IsAny<StreamedFileEntry>()));
         }
 
         [Theory]
@@ -215,10 +205,6 @@ namespace FileFS.Client.Tests
             var dataBytes = Encoding.UTF8.GetBytes(newData);
 
             var fileRepositoryMock = new Mock<IFileRepository>();
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Update(It.IsAny<FileEntry>()))
-                .Callback(() => called = true);
             fileRepositoryMock
                 .Setup(r => r.Exists(fileName))
                 .Returns(() => true);
@@ -229,7 +215,7 @@ namespace FileFS.Client.Tests
             client.Update(fileName, dataBytes);
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Update(It.IsAny<FileEntry>()));
         }
 
         [Theory]
@@ -307,10 +293,6 @@ namespace FileFS.Client.Tests
             using var stream = new MemoryStream(dataBytes);
 
             var fileRepositoryMock = new Mock<IFileRepository>();
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Update(It.IsAny<StreamedFileEntry>()))
-                .Callback(() => called = true);
             fileRepositoryMock
                 .Setup(r => r.Exists(fileName))
                 .Returns(() => true);
@@ -321,7 +303,7 @@ namespace FileFS.Client.Tests
             client.Update(fileName, stream, dataBytes.Length);
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Update(It.IsAny<StreamedFileEntry>()));
         }
 
         [Theory]
@@ -399,10 +381,6 @@ namespace FileFS.Client.Tests
         {
             // Arrange
             var fileRepositoryMock = new Mock<IFileRepository>();
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Read(fileName))
-                .Callback(() => called = true);
 
             var client = CreateClient(fileRepositoryMock.Object);
 
@@ -410,7 +388,7 @@ namespace FileFS.Client.Tests
             client.Read(fileName);
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Read(fileName));
         }
 
         [Theory]
@@ -449,18 +427,13 @@ namespace FileFS.Client.Tests
         {
             // Arrange
             var fileRepositoryMock = new Mock<IFileRepository>();
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Read(fileName, It.IsAny<Stream>()))
-                .Callback(() => called = true);
-
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
             client.Read(fileName, new MemoryStream());
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Read(fileName, It.IsAny<Stream>()));
         }
 
         [Theory]
@@ -507,18 +480,13 @@ namespace FileFS.Client.Tests
         {
             // Arrange
             var fileRepositoryMock = new Mock<IFileRepository>();
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Rename(oldFileName, newFileName))
-                .Callback(() => called = true);
-
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
             client.Rename(oldFileName, newFileName);
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Rename(oldFileName, newFileName));
         }
 
         [Theory]
@@ -569,10 +537,6 @@ namespace FileFS.Client.Tests
         {
             // Arrange
             var fileRepositoryMock = new Mock<IFileRepository>();
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Delete(fileName))
-                .Callback(() => called = true);
             fileRepositoryMock
                 .Setup(r => r.Exists(fileName))
                 .Returns(() => true);
@@ -583,7 +547,7 @@ namespace FileFS.Client.Tests
             client.Delete(fileName);
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Delete(fileName));
         }
 
         [Theory]
@@ -641,10 +605,6 @@ namespace FileFS.Client.Tests
         {
             // Arrange
             var fileRepositoryMock = new Mock<IFileRepository>();
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Create(It.Is<StreamedFileEntry>(fileEntry => fileEntry.FileName == fileName)))
-                .Callback(() => called = true);
             fileRepositoryMock
                 .Setup(r => r.Exists(fileName))
                 .Returns(false);
@@ -663,7 +623,7 @@ namespace FileFS.Client.Tests
             client.Import(externalPath, fileName);
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Create(It.Is<StreamedFileEntry>(fileEntry => fileEntry.FileName == fileName)));
         }
 
         [Theory]
@@ -744,10 +704,6 @@ namespace FileFS.Client.Tests
         {
             // Arrange
             var fileRepositoryMock = new Mock<IFileRepository>();
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Read(fileName, It.IsAny<Stream>()))
-                .Callback(() => called = true);
             fileRepositoryMock
                 .Setup(r => r.Exists(fileName))
                 .Returns(true);
@@ -766,7 +722,7 @@ namespace FileFS.Client.Tests
             client.Export(fileName, externalPath);
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Read(fileName, It.IsAny<Stream>()));
         }
 
         [Theory]
@@ -847,18 +803,13 @@ namespace FileFS.Client.Tests
         {
             // Arrange
             var fileRepositoryMock = new Mock<IFileRepository>();
-            var called = false;
-            fileRepositoryMock
-                .Setup(r => r.Exists(It.IsAny<string>()))
-                .Callback(() => called = true);
-
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
             client.Exists(fileName);
 
             // Assert
-            Assert.True(called);
+            fileRepositoryMock.Verify(r => r.Exists(fileName));
         }
 
         [Theory]
