@@ -19,9 +19,9 @@ namespace FileFS.DataAccess
         /// Initializes a new instance of the <see cref="StorageConnection"/> class.
         /// </summary>
         /// <param name="storageStreamProvider">Storage stream provider instance.</param>
-        /// <param name="logger">Logger instance.</param>
         /// <param name="bufferSize">Buffer size to use in buffered operations.</param>
-        public StorageConnection(IStorageStreamProvider storageStreamProvider, ILogger logger, int bufferSize = 4096)
+        /// <param name="logger">Logger instance.</param>
+        public StorageConnection(IStorageStreamProvider storageStreamProvider, int bufferSize, ILogger logger)
         {
             _storageStreamProvider = storageStreamProvider;
             _logger = logger;

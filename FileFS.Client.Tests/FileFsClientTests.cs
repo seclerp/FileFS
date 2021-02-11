@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using FileFS.Client.Abstractions;
 using FileFS.Client.Exceptions;
+using FileFS.Client.Transactions.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Memory.Abstractions;

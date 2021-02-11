@@ -2,11 +2,11 @@
 using System.IO;
 using System.Text;
 using System.Threading;
-using FileFS.Client.Abstractions;
 using FileFS.Client.Constants;
+using FileFS.Client.Transactions.Abstractions;
 using Serilog;
 
-namespace FileFS.Client
+namespace FileFS.Client.Transactions
 {
     /// <summary>
     /// Service which guaranties that all operations between <see cref="BeginTransaction"/> and <see cref="EndTransaction"/> would have exclusive

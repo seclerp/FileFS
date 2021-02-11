@@ -19,5 +19,17 @@ namespace FileFS.Cli.Options
         /// </summary>
         [Option("debug", Default = false, Required = false, HelpText = "Enable detailed logging during execution of the command.")]
         public bool IsDebug { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether transaction mode should be enabled.
+        /// </summary>
+        [Option('t', "transacted", Default = false, Required = false, HelpText = "Enable transaction mode that blocks other CLI instances to work with same storage when current is performing actions.")]
+        public bool EnableTransactions { get; set; }
+
+        /// <summary>
+        /// Gets or sets a buffer size for streamed read and write.
+        /// </summary>
+        [Option('b', "buffer-size", Default = 4096, Required = false, HelpText = "Sets a value that will be used as buffer size (in bytes) for streamed read-write operations, such as import and export.")]
+        public int ByteBufferSize { get; set; }
     }
 }

@@ -23,7 +23,7 @@ namespace FileFS.DataAccess.Tests
             var buffer = new byte[bufferSize];
             var storageStreamProvider = StorageStreamProviderMockFactory.Create(buffer);
             var logger = new LoggerConfiguration().CreateLogger();
-            var storageConnection = new StorageConnection(storageStreamProvider, logger, buffer.Length);
+            var storageConnection = new StorageConnection(storageStreamProvider, 4096, logger);
             var filesystemSerializer = new FilesystemDescriptorSerializer(logger);
 
             var expectedDescriptor = new FilesystemDescriptor(0, 0, fileDescriptorLength);
@@ -48,7 +48,7 @@ namespace FileFS.DataAccess.Tests
             var buffer = new byte[bufferSize];
             var storageStreamProvider = StorageStreamProviderMockFactory.Create(buffer);
             var logger = new LoggerConfiguration().CreateLogger();
-            var storageConnection = new StorageConnection(storageStreamProvider, logger, buffer.Length);
+            var storageConnection = new StorageConnection(storageStreamProvider, 4096, logger);
             var filesystemSerializer = new FilesystemDescriptorSerializer(logger);
 
             var expectedDescriptor = new FilesystemDescriptor(0, 0, fileDescriptorLength);

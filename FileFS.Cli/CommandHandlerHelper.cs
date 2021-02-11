@@ -2,6 +2,7 @@
 using FileFS.Cli.Options;
 using FileFS.Client;
 using FileFS.Client.Abstractions;
+using FileFS.Client.Configuration;
 using FileFS.DataAccess.Exceptions;
 using Serilog;
 
@@ -41,7 +42,13 @@ namespace FileFS.Cli
         /// <returns>Ready to use <see cref="IFileFsClient"/> instance.</returns>
         internal static IFileFsClient CreateClient(BaseOptions options)
         {
-            return FileFsClientFactory.Create(options.Instance, CreateLogger(options.IsDebug));
+            var clientOptions = new FileFsClientOptions
+            {
+                ByteBufferSize = options.ByteBufferSize,
+                EnableTransactions = options.EnableTransactions,
+            };
+
+            return FileFsClientFactory.Create(options.Instance, clientOptions, CreateLogger(options.IsDebug));
         }
 
         /// <summary>

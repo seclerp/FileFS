@@ -8,6 +8,7 @@ using FileFS.DataAccess.Serializers;
 using FileFS.DataAccess.Serializers.Abstractions;
 using FileFS.Tests.Shared.Factories;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace FileFS.DataAccess.Tests.Extensions
 {
@@ -27,7 +28,11 @@ namespace FileFS.DataAccess.Tests.Extensions
             services.AddSingleton<IStorageStreamProvider>(provider =>
                 StorageStreamProviderMockFactory.Create(storageBuffer));
 
-            services.AddSingleton<IStorageConnection, StorageConnection>();
+            services.AddSingleton<IStorageConnection, StorageConnection>(provider =>
+                new StorageConnection(
+                    provider.GetRequiredService<IStorageStreamProvider>(),
+                    4096,
+                    provider.GetRequiredService<ILogger>()));
 
             services.AddSingleton<ISerializer<FilesystemDescriptor>, FilesystemDescriptorSerializer>();
             services.AddSingleton<IFilesystemDescriptorAccessor, FilesystemDescriptorAccessor>();

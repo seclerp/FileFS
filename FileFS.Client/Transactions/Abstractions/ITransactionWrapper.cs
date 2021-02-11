@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace FileFS.Client.Abstractions
+namespace FileFS.Client.Transactions.Abstractions
 {
     /// <summary>
     /// Abstraction for transaction wrapper, service, which guaranties that all operations between <see cref="BeginTransaction"/> and <see cref="EndTransaction"/> would have exclusive

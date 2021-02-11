@@ -120,7 +120,7 @@ namespace FileFS.DataAccess.Tests
             var logger = new LoggerConfiguration().CreateLogger();
             var storageStreamProvider = StorageStreamProviderMockFactory.Create(storageBytes);
 
-            return new StorageConnection(storageStreamProvider, logger);
+            return new StorageConnection(storageStreamProvider, 4096, logger);
         }
 
         private static byte[] PrepareBufferWithData(byte[] data, int offset, int bufferSize)

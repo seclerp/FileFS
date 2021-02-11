@@ -1,4 +1,8 @@
-﻿using FileFS.Client.Abstractions;
+﻿using System.Net.WebSockets;
+using FileFS.Client.Abstractions;
+using FileFS.Client.Configuration;
+using FileFS.Client.Transactions;
+using FileFS.Client.Transactions.Abstractions;
 using FileFS.DataAccess;
 using FileFS.DataAccess.Memory;
 using FileFS.DataAccess.Repositories;
@@ -16,12 +20,20 @@ namespace FileFS.Client
         /// Creates instance of <see cref="IFileFsClient"/>.
         /// </summary>
         /// <param name="fileFsStoragePath">Path to FileFS storage file.</param>
+        /// <param name="options">Options for FileFS client.</param>
         /// <param name="logger">Logger instance.</param>
         /// <returns>Instance of <see cref="IFileFsClient"/>.</returns>
-        public static IFileFsClient Create(string fileFsStoragePath, ILogger logger)
+        public static IFileFsClient Create(string fileFsStoragePath, FileFsClientOptions options, ILogger logger)
         {
+            ITransactionWrapper CreateTransactionWrapper(bool enableTransactions) =>
+                enableTransactions
+                    ? (ITransactionWrapper)new TransactionWrapper(fileFsStoragePath, logger)
+                    : (ITransactionWrapper)new NullTransactionWrapper();
+
+            FileFsClientOptionsValidator.Validate(options);
+
             var storageStreamProvider = new StorageStreamProvider(fileFsStoragePath, logger);
-            var connection = new StorageConnection(storageStreamProvider, logger);
+            var connection = new StorageConnection(storageStreamProvider, options.ByteBufferSize, logger);
 
             var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer(logger);
             var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(connection, filesystemDescriptorSerializer, logger);
@@ -34,11 +46,22 @@ namespace FileFS.Client
 
             var fileRepository = new FileRepository(connection, allocator, filesystemDescriptorAccessor, fileDescriptorRepository, logger);
             var externalFileManager = new ExternalFileManager(logger);
-            var transactionWrapper = new TransactionWrapper(fileFsStoragePath, logger);
+            var transactionWrapper = CreateTransactionWrapper(options.EnableTransactions);
 
             var client = new FileFsClient(fileRepository, externalFileManager, optimizer, transactionWrapper);
 
             return client;
+        }
+
+        /// <summary>
+        /// Creates instance of <see cref="IFileFsClient"/> with default options.
+        /// </summary>
+        /// <param name="fileFsStoragePath">Path to FileFS storage file.</param>
+        /// <param name="logger">Logger instance.</param>
+        /// <returns>Instance of <see cref="IFileFsClient"/>.</returns>
+        public static IFileFsClient Create(string fileFsStoragePath, ILogger logger)
+        {
+            return Create(fileFsStoragePath, new FileFsClientOptions(), logger);
         }
     }
 }
