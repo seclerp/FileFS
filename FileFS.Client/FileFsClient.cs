@@ -17,11 +17,12 @@ namespace FileFS.Client
     /// <summary>
     /// Implementation of client for working with FileFS storage.
     /// </summary>
-    public class FileFsClient : IFileFsClient
+    public class FileFsClient : IFileFsClient, IDisposable
     {
         private readonly IFileRepository _fileRepository;
         private readonly IExternalFileManager _externalFileManager;
         private readonly IStorageOptimizer _optimizer;
+        private readonly ITransactionWrapper _transactionWrapper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileFsClient"/> class.
@@ -29,14 +30,17 @@ namespace FileFS.Client
         /// <param name="fileRepository">File repository instance.</param>
         /// <param name="externalFileManager">External file manager instance.</param>
         /// <param name="optimizer">Optimizer instance.</param>
+        /// <param name="transactionWrapper">Transaction wrapper instance.</param>
         public FileFsClient(
             IFileRepository fileRepository,
             IExternalFileManager externalFileManager,
-            IStorageOptimizer optimizer)
+            IStorageOptimizer optimizer,
+            ITransactionWrapper transactionWrapper)
         {
             _fileRepository = fileRepository;
             _externalFileManager = externalFileManager;
             _optimizer = optimizer;
+            _transactionWrapper = transactionWrapper;
         }
 
         /// <inheritdoc />
@@ -67,7 +71,9 @@ namespace FileFS.Client
                 throw new DataIsNullException(fileName);
             }
 
+            _transactionWrapper.BeginTransaction();
             _fileRepository.Create(new FileEntry(fileName, data));
+            _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
@@ -81,7 +87,7 @@ namespace FileFS.Client
                 throw new InvalidFilenameException(fileName);
             }
 
-            if (Exists(fileName))
+            if (_fileRepository.Exists(fileName))
             {
                 throw new FileAlreadyExistsException(fileName);
             }
@@ -91,7 +97,9 @@ namespace FileFS.Client
                 throw new DataIsNullException(fileName);
             }
 
+            _transactionWrapper.BeginTransaction();
             _fileRepository.Create(new StreamedFileEntry(fileName, sourceStream, length));
+            _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
@@ -105,7 +113,7 @@ namespace FileFS.Client
                 throw new InvalidFilenameException(fileName);
             }
 
-            if (!Exists(fileName))
+            if (!_fileRepository.Exists(fileName))
             {
                 throw new FileNotFoundException(fileName);
             }
@@ -115,7 +123,9 @@ namespace FileFS.Client
                 throw new DataIsNullException(fileName);
             }
 
+            _transactionWrapper.BeginTransaction();
             _fileRepository.Update(new FileEntry(fileName, newData));
+            _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
@@ -129,7 +139,7 @@ namespace FileFS.Client
                 throw new InvalidFilenameException(fileName);
             }
 
-            if (!Exists(fileName))
+            if (!_fileRepository.Exists(fileName))
             {
                 throw new FileNotFoundException(fileName);
             }
@@ -139,7 +149,9 @@ namespace FileFS.Client
                 throw new DataIsNullException(fileName);
             }
 
+            _transactionWrapper.BeginTransaction();
             _fileRepository.Update(new StreamedFileEntry(fileName, sourceStream, length));
+            _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
@@ -169,7 +181,9 @@ namespace FileFS.Client
                 throw new ArgumentNonValidException($"Argument cannot be null: {nameof(destinationStream)}");
             }
 
+            _transactionWrapper.BeginTransaction();
             _fileRepository.Read(fileName, destinationStream);
+            _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
@@ -186,7 +200,9 @@ namespace FileFS.Client
                 throw new InvalidFilenameException(newFilename);
             }
 
+            _transactionWrapper.BeginTransaction();
             _fileRepository.Rename(currentFilename, newFilename);
+            _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
@@ -198,12 +214,14 @@ namespace FileFS.Client
                 throw new InvalidFilenameException(fileName);
             }
 
-            if (!Exists(fileName))
+            if (!_fileRepository.Exists(fileName))
             {
                 throw new FileNotFoundException(fileName);
             }
 
+            _transactionWrapper.BeginTransaction();
             _fileRepository.Delete(fileName);
+            _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
@@ -217,7 +235,7 @@ namespace FileFS.Client
                 throw new InvalidFilenameException(fileName);
             }
 
-            if (Exists(fileName))
+            if (_fileRepository.Exists(fileName))
             {
                 throw new FileAlreadyExistsException(fileName);
             }
@@ -227,9 +245,10 @@ namespace FileFS.Client
                 throw new ExternalFileNotFoundException(externalPath);
             }
 
+            _transactionWrapper.BeginTransaction();
             using var externalFileStream = _externalFileManager.OpenReadStream(externalPath);
-
             Create(fileName, externalFileStream, (int)externalFileStream.Length);
+            _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
@@ -253,9 +272,10 @@ namespace FileFS.Client
                 throw new ExternalFileAlreadyExistsException(externalPath);
             }
 
+            _transactionWrapper.BeginTransaction();
             using var externalFileStream = _externalFileManager.OpenWriteStream(externalPath);
-
             Read(fileName, externalFileStream);
+            _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
@@ -267,7 +287,11 @@ namespace FileFS.Client
                 throw new InvalidFilenameException(fileName);
             }
 
-            return _fileRepository.Exists(fileName);
+            _transactionWrapper.BeginTransaction();
+            var exists = _fileRepository.Exists(fileName);
+            _transactionWrapper.EndTransaction();
+
+            return exists;
         }
 
         /// <inheritdoc />
@@ -281,7 +305,17 @@ namespace FileFS.Client
         /// <inheritdoc />
         public int ForceOptimize()
         {
-            return _optimizer.Optimize();
+            _transactionWrapper.BeginTransaction();
+            var bytesOptimized = _optimizer.Optimize();
+            _transactionWrapper.EndTransaction();
+
+            return bytesOptimized;
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            _transactionWrapper?.Dispose();
         }
 
         private static bool IsValidFilename(string fileName)

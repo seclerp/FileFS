@@ -41,11 +41,14 @@ namespace FileFS.Extensions.DependencyInjection
             services.AddSingleton<IStorageOptimizer, StorageOptimizer>();
             services.AddSingleton<IFileAllocator, FileAllocator>();
 
+            services.AddSingleton<IStorageInitializer, StorageInitializer>();
+
             services.AddSingleton<IFileRepository, FileRepository>();
             services.AddSingleton<IExternalFileManager, ExternalFileManager>();
-            services.AddSingleton<IFileFsClient, FileFsClient>();
+            services.AddSingleton<ITransactionWrapper>(provider =>
+                new TransactionWrapper(fileFsStoragePath, provider.GetService<ILogger>()));
 
-            services.AddSingleton<IStorageInitializer, StorageInitializer>();
+            services.AddSingleton<IFileFsClient, FileFsClient>();
 
             return services;
         }

@@ -940,7 +940,11 @@ namespace FileFS.Client.Tests
             externalFileManager ??= new Mock<IExternalFileManager>().Object;
             storageOptimizer ??= new Mock<IStorageOptimizer>().Object;
 
-            var client = new FileFsClient(repository, externalFileManager, storageOptimizer);
+            var transactionWrapper = new Mock<ITransactionWrapper>();
+            transactionWrapper.Setup(t => t.BeginTransaction());
+            transactionWrapper.Setup(t => t.EndTransaction());
+
+            var client = new FileFsClient(repository, externalFileManager, storageOptimizer, transactionWrapper.Object);
             return client;
         }
     }

@@ -33,10 +33,10 @@ namespace FileFS.Client
             var allocator = new FileAllocator(connection, filesystemDescriptorAccessor, fileDescriptorRepository, optimizer, logger);
 
             var fileRepository = new FileRepository(connection, allocator, filesystemDescriptorAccessor, fileDescriptorRepository, logger);
-
             var externalFileManager = new ExternalFileManager(logger);
+            var transactionWrapper = new TransactionWrapper(fileFsStoragePath, logger);
 
-            var client = new FileFsClient(fileRepository, externalFileManager, optimizer);
+            var client = new FileFsClient(fileRepository, externalFileManager, optimizer, transactionWrapper);
 
             return client;
         }
