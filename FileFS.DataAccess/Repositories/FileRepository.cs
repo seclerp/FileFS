@@ -159,25 +159,23 @@ namespace FileFS.DataAccess.Repositories
         {
             _logger.Information($"Start file create process, filename {file.FileName}, bytes count {file.DataLength}");
 
-            // 1. Allocate space
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+            // 1. Allocate space and write new file descriptor
+            var allocatedDataCursor = WriteFileDescriptor(file);
 
-            // 2. Write new file descriptor
-            var allocatedDataCursor = WriteFileDescriptor(file, filesystemDescriptor);
+            // 2. Update filesystem descriptor
+            IncrementFilesCount();
 
-            // 3. Update filesystem descriptor
-            UpdateFilesystemDescriptor(filesystemDescriptor);
-
-            // 4. Write data
+            // 3. Write data
             writeAction(allocatedDataCursor);
 
             _logger.Information($"File {file.FileName} was created");
         }
 
-        private void UpdateFilesystemDescriptor(FilesystemDescriptor filesystemDescriptor)
+        private void IncrementFilesCount()
         {
             _logger.Information("Start updating filesystem descriptor");
 
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var updatedFilesystemDescriptor =
                 filesystemDescriptor.WithFileDescriptorsCount(filesystemDescriptor.FileDescriptorsCount + 1);
 
@@ -186,12 +184,13 @@ namespace FileFS.DataAccess.Repositories
             _logger.Information("Done updating filesystem descriptor");
         }
 
-        private Cursor WriteFileDescriptor(IFileEntry file, FilesystemDescriptor filesystemDescriptor)
+        private Cursor WriteFileDescriptor(IFileEntry file)
         {
             _logger.Information($"Start writing file descriptor for filename {file.FileName}");
 
             var allocatedCursor = _allocator.AllocateFile(file.DataLength);
 
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var createdOn = DateTime.UtcNow.ToUnixTime();
             var updatedOn = createdOn;
             var fileDescriptor = new FileDescriptor(file.FileName, createdOn, updatedOn, allocatedCursor.Offset, file.DataLength);

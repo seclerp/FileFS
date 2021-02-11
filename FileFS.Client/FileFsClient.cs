@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using FileFS.Client.Abstractions;
 using FileFS.Client.Constants;
 using FileFS.Client.Exceptions;
@@ -37,6 +37,13 @@ namespace FileFS.Client
             _fileRepository = fileRepository;
             _externalFileManager = externalFileManager;
             _optimizer = optimizer;
+        }
+
+        /// <inheritdoc />
+        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
+        public void Create(string fileName)
+        {
+            Create(fileName, Array.Empty<byte>());
         }
 
         /// <inheritdoc />
@@ -272,14 +279,14 @@ namespace FileFS.Client
         }
 
         /// <inheritdoc />
-        public void ForceOptimize()
+        public int ForceOptimize()
         {
-            _optimizer.Optimize();
+            return _optimizer.Optimize();
         }
 
         private static bool IsValidFilename(string fileName)
         {
-            return Regex.IsMatch(fileName, PatternMatching.ValidFilename);
+            return fileName is { } && Regex.IsMatch(fileName, PatternMatchingConstants.ValidFilename);
         }
     }
 }

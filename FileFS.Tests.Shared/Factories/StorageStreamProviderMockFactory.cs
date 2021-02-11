@@ -2,7 +2,7 @@
 using FileFS.DataAccess.Abstractions;
 using Moq;
 
-namespace FileFS.DataAccess.Tests.Factories
+namespace FileFS.Tests.Shared.Factories
 {
     /// <summary>
     /// Helper factory that creates mocked <see cref="IStorageStreamProvider"/> implementation that uses memory stream as a provided stream.

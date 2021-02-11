@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Entities.Abstractions;
-using FileFS.DataAccess.Memory;
-using FileFS.DataAccess.Repositories;
 using FileFS.DataAccess.Repositories.Abstractions;
-using FileFS.DataAccess.Serializers;
 using FileFS.DataAccess.Tests.Comparers;
-using FileFS.DataAccess.Tests.Factories;
+using FileFS.DataAccess.Tests.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Xunit;
 
@@ -276,25 +274,15 @@ namespace FileFS.DataAccess.Tests.Repositories
 
         private static IFileRepository CreateRepository(byte[] storageBuffer, bool initializeStorage, params IFileEntry[] itemsToCreate)
         {
-            var logger = new LoggerConfiguration().CreateLogger();
-
-            var storageStreamProvider = StorageStreamProviderMockFactory.Create(storageBuffer);
-            var storageConnection = new StorageConnection(storageStreamProvider, logger);
-
-            var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer(logger);
-            var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(storageConnection, filesystemDescriptorSerializer, logger);
-
-            var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemDescriptorAccessor, logger);
-            var fileDescriptorRepository = new FileDescriptorRepository(storageConnection, filesystemDescriptorAccessor, fileDescriptorSerializer, logger);
-
-            var optimizer = new StorageOptimizer(storageConnection, fileDescriptorRepository, logger);
-            var allocator = new FileAllocator(storageConnection, filesystemDescriptorAccessor, fileDescriptorRepository, optimizer, logger);
-            var fileRepository = new FileRepository(storageConnection, allocator, filesystemDescriptorAccessor, fileDescriptorRepository, logger);
+            var services = new ServiceCollection();
+            services.AddSingleton<ILogger>(new LoggerConfiguration().CreateLogger());
+            services.AddFileFsDataAccessInMemory(storageBuffer);
+            var serviceProvider = services.BuildServiceProvider();
+            var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
 
             if (initializeStorage)
             {
-                var storageInitializer =
-                    new StorageInitializer(storageStreamProvider, filesystemDescriptorSerializer, logger);
+                var storageInitializer = serviceProvider.GetRequiredService<IStorageInitializer>();
                 storageInitializer.Initialize(storageBuffer.Length, FileNameLength);
 
                 foreach (var itemToCreate in itemsToCreate)

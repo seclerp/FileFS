@@ -13,7 +13,7 @@ namespace FileFS.Client.Exceptions
         /// </summary>
         /// <param name="fileName">Name of a file.</param>
         public InvalidFilenameException(string fileName)
-            : base($"'{fileName}' is invalid. Filename must match pattern {PatternMatching.ValidFilename}.")
+            : base($"'{fileName}' is invalid. Filename must match pattern {PatternMatchingConstants.ValidFilename}.")
         {
         }
     }

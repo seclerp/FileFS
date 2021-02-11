@@ -1,4 +1,5 @@
 using FileFS.Client.Abstractions;
+using FileFS.DataAccess.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Xunit;
@@ -26,7 +27,11 @@ namespace FileFS.Extensions.DependencyInjection.Tests
                 .AddFileFsClient("stub.storage");
 
             // Act
-            void Act() => services.BuildServiceProvider().GetRequiredService<IFileFsClient>();
+            void Act()
+            {
+                services.BuildServiceProvider().GetRequiredService<IFileFsClient>();
+                services.BuildServiceProvider().GetRequiredService<IStorageInitializer>();
+            }
 
             // Assert
             Assert.Null(Record.Exception(Act));

@@ -3,7 +3,7 @@
     /// <summary>
     /// Class containing pattern matching constants.
     /// </summary>
-    public class PatternMatching
+    public class PatternMatchingConstants
     {
         /// <summary>
         /// Pattern that represents valid filename for FileFS storage.

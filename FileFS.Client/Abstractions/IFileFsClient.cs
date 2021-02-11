@@ -10,6 +10,12 @@ namespace FileFS.Client.Abstractions
     public interface IFileFsClient
     {
         /// <summary>
+        /// Creates new file with empty data.
+        /// </summary>
+        /// <param name="fileName">Name of a file to create.</param>
+        void Create(string fileName);
+
+        /// <summary>
         /// Creates new file with given data.
         /// </summary>
         /// <param name="fileName">Name of a file to create.</param>
@@ -96,6 +102,7 @@ namespace FileFS.Client.Abstractions
         /// <summary>
         /// Manually calls optimizer to optimize FileFS storage space.
         /// </summary>
-        void ForceOptimize();
+        /// <returns>Count of bytes that was optimized.</returns>
+        int ForceOptimize();
     }
 }

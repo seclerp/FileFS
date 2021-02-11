@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using FileFS.DataAccess.Abstractions;
-using FileFS.DataAccess.Tests.Factories;
+using FileFS.Tests.Shared.Factories;
 using Serilog;
 using Xunit;
 

@@ -1,11 +1,12 @@
 ﻿using System.IO;
 using System.Linq;
+using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Extensions;
-using FileFS.DataAccess.Repositories;
 using FileFS.DataAccess.Repositories.Abstractions;
-using FileFS.DataAccess.Serializers;
-using FileFS.DataAccess.Tests.Factories;
+using FileFS.DataAccess.Serializers.Abstractions;
+using FileFS.DataAccess.Tests.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Xunit;
 
@@ -173,19 +174,19 @@ namespace FileFS.DataAccess.Tests.Repositories
 
         private static IFileDescriptorRepository CreateRepository(byte[] storageBuffer, bool initializeStorage, params FileDescriptor[] itemsToAdd)
         {
-            var logger = new LoggerConfiguration().CreateLogger();
-
-            var storageStreamProvider = StorageStreamProviderMockFactory.Create(storageBuffer);
-            var storageConnection = new StorageConnection(storageStreamProvider, logger);
-
-            var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer(logger);
-            var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(storageConnection, filesystemDescriptorSerializer, logger);
-
-            var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemDescriptorAccessor, logger);
-            var repository = new FileDescriptorRepository(storageConnection, filesystemDescriptorAccessor, fileDescriptorSerializer, logger);
+            var services = new ServiceCollection();
+            services.AddSingleton<ILogger>(new LoggerConfiguration().CreateLogger());
+            services.AddFileFsDataAccessInMemory(storageBuffer);
+            var serviceProvider = services.BuildServiceProvider();
+            var fileDescriptorRepository = serviceProvider.GetRequiredService<IFileDescriptorRepository>();
 
             if (initializeStorage)
             {
+                var filesystemDescriptorAccessor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>();
+                var storageStreamProvider = serviceProvider.GetRequiredService<IStorageStreamProvider>();
+                var filesystemDescriptorSerializer = serviceProvider.GetRequiredService<ISerializer<FilesystemDescriptor>>();
+                var logger = serviceProvider.GetRequiredService<ILogger>();
+
                 var storageInitializer =
                     new StorageInitializer(storageStreamProvider, filesystemDescriptorSerializer, logger);
                 storageInitializer.Initialize(storageBuffer.Length, FileNameLength);
@@ -194,7 +195,7 @@ namespace FileFS.DataAccess.Tests.Repositories
                 var offset = -FilesystemDescriptor.BytesTotal - FileDescriptor.BytesWithoutFilename - fileNameLength;
                 foreach (var itemToAdd in itemsToAdd)
                 {
-                    repository.Write(new StorageItem<FileDescriptor>(itemToAdd, new Cursor(offset, SeekOrigin.End)));
+                    fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(itemToAdd, new Cursor(offset, SeekOrigin.End)));
                     var currentFilesystemDescriptor = filesystemDescriptorAccessor.Value;
                     var updatedFilesystemDescriptor = currentFilesystemDescriptor
                         .WithFileDescriptorsCount(currentFilesystemDescriptor.FileDescriptorsCount + 1);
@@ -203,7 +204,7 @@ namespace FileFS.DataAccess.Tests.Repositories
                 }
             }
 
-            return repository;
+            return fileDescriptorRepository;
         }
     }
 }

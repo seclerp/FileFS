@@ -37,7 +37,7 @@ namespace FileFS.DataAccess.Memory
         }
 
         /// <inheritdoc />
-        public void Optimize()
+        public int Optimize()
         {
             _logger.Information("Start optimization process");
 
@@ -58,7 +58,7 @@ namespace FileFS.DataAccess.Memory
             // 3a. Move first
             if (orderedDescriptors.Length > 0 && orderedDescriptors[0].Value.DataOffset != 0)
             {
-                var gapSize = orderedDescriptors[0].Value.DataOffset - 1;
+                var gapSize = orderedDescriptors[0].Value.DataOffset;
                 ProcessGap(orderedDescriptors, 0, 0);
                 dataItemsMoved++;
                 bytesOptimized += gapSize;
@@ -83,6 +83,8 @@ namespace FileFS.DataAccess.Memory
             }
 
             _logger.Information($"Optimization process completed, {dataItemsMoved} items moved, {bytesOptimized} bytes optimized");
+
+            return bytesOptimized;
         }
 
         private void ProcessGap(IList<StorageItem<FileDescriptor>> orderedDescriptors, int descriptorIndex, int gapOffset)

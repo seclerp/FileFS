@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Exceptions;
 using Serilog;
@@ -35,11 +36,32 @@ namespace FileFS.DataAccess
                 throw new StorageNotFoundException($"Storage located at file '{_fileFsStoragePath}' not found.");
             }
 
-            var stream = File.Open(_fileFsStoragePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
+            var stream = WaitForFileStream(_fileFsStoragePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
 
             _logger.Information($"Stream for filename {_fileFsStoragePath} opened");
 
             return stream;
+        }
+
+        private Stream WaitForFileStream(string fileName, FileMode mode, FileAccess access, FileShare share, int numberOfAttempts = 10)
+        {
+            int attemptIndex;
+            for (attemptIndex = 0; attemptIndex < numberOfAttempts; attemptIndex++)
+            {
+                FileStream fileStream = null;
+                try
+                {
+                    fileStream = File.Open(_fileFsStoragePath, mode, access, share);
+                    return fileStream;
+                }
+                catch (IOException)
+                {
+                    fileStream?.Dispose();
+                    Thread.Sleep(50);
+                }
+            }
+
+            throw new StorageNotAvailableException(fileName, attemptIndex + 1);
         }
     }
 }

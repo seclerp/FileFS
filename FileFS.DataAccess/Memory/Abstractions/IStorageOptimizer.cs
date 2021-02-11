@@ -8,6 +8,7 @@
         /// <summary>
         /// Performs optimization process.
         /// </summary>
-        void Optimize();
+        /// <returns>Optimized bytes count.</returns>
+        int Optimize();
     }
 }
