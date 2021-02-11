@@ -12,8 +12,7 @@ Features:
 - Basic file operations: create, read, update, delete, rename, exists, list all files
 - Import and export of external files (with buffering)
 - Defragmentation of storage space (manually or automatically when there is not enough space)
-- Well documented .NET client library
-- Ready-to-use CLI application for standalone storage manipulation
+- Exclusive access support across multiple client instances
 - Debugging using verbose logging
 
 You could find latest library and CLI release in Releases section.
