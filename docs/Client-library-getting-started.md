@@ -62,4 +62,4 @@ services.AddFileFsClient("path-to.storage", options);
 
 After such configuration you could receive `IFileFsClient` instance (and of course other dependencies if you wish) via `IServiceProvider` or using ASP.NET Core constructor injection.
 
-For example usage of client library look into CLI source code. There is also **[client library API documentation](Client-library-API)**.
+For example usage of client library look into CLI source code. There is also **[client library API documentation](Client-library-API.md)**.
