@@ -1,4 +1,5 @@
-﻿using FileFS.Client.Abstractions;
+﻿using System.Diagnostics.CodeAnalysis;
+using FileFS.Client.Abstractions;
 using FileFS.Client.Configuration;
 using FileFS.Client.Transactions;
 using FileFS.Client.Transactions.Abstractions;
@@ -13,6 +14,7 @@ namespace FileFS.Client
     /// <summary>
     /// Class that allows to create configured <see cref="IFileFsClient"/> instances.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public static class FileFsClientFactory
     {
         /// <summary>
@@ -40,7 +42,7 @@ namespace FileFS.Client
             var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemDescriptorAccessor, logger);
             var fileDescriptorRepository = new FileDescriptorRepository(connection, filesystemDescriptorAccessor, fileDescriptorSerializer, logger);
 
-            var optimizer = new StorageOptimizer(connection, fileDescriptorRepository, logger);
+            var optimizer = new StorageOptimizer(connection, fileDescriptorRepository, filesystemDescriptorAccessor, logger);
             var allocator = new FileAllocator(connection, filesystemDescriptorAccessor, fileDescriptorRepository, optimizer, logger);
 
             var fileRepository = new FileRepository(connection, allocator, filesystemDescriptorAccessor, fileDescriptorRepository, logger);

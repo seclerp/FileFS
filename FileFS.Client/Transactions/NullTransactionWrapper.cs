@@ -1,10 +1,12 @@
-﻿using FileFS.Client.Transactions.Abstractions;
+﻿using System.Diagnostics.CodeAnalysis;
+using FileFS.Client.Transactions.Abstractions;
 
 namespace FileFS.Client.Transactions
 {
     /// <summary>
     /// Null-object implementation of <see cref="ITransactionWrapper"/>.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class NullTransactionWrapper : ITransactionWrapper
     {
         /// <inheritdoc />

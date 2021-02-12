@@ -18,6 +18,7 @@ namespace FileFS.DataAccess.Allocation
     {
         private readonly IStorageConnection _connection;
         private readonly IFileDescriptorRepository _fileDescriptorRepository;
+        private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -25,14 +26,17 @@ namespace FileFS.DataAccess.Allocation
         /// </summary>
         /// <param name="connection">Storage connection instance.</param>
         /// <param name="fileDescriptorRepository">File descriptor repository instance.</param>
+        /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
         /// <param name="logger">Logger instance.</param>
         public StorageOptimizer(
             IStorageConnection connection,
             IFileDescriptorRepository fileDescriptorRepository,
+            IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             ILogger logger)
         {
             _connection = connection;
             _fileDescriptorRepository = fileDescriptorRepository;
+            _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _logger = logger;
         }
 
@@ -42,7 +46,7 @@ namespace FileFS.DataAccess.Allocation
             _logger.Information("Start optimization process");
 
             var dataItemsMoved = 0;
-            var bytesOptimized = 0;
+            var initialDataSize = _filesystemDescriptorAccessor.Value.FilesDataLength;
 
             // 1. Get all descriptors
             var descriptors = _fileDescriptorRepository.ReadAll();
@@ -58,10 +62,8 @@ namespace FileFS.DataAccess.Allocation
             // 3a. Move first
             if (orderedDescriptors.Length > 0 && orderedDescriptors[0].Value.DataOffset != 0)
             {
-                var gapSize = orderedDescriptors[0].Value.DataOffset;
                 ProcessGap(orderedDescriptors, 0, 0);
                 dataItemsMoved++;
-                bytesOptimized += gapSize;
             }
 
             // 3b. Iterate over all descriptors to find gaps
@@ -75,12 +77,20 @@ namespace FileFS.DataAccess.Allocation
                 // 4. Found a gap, write data of second right after first
                 if (nextStart - currentEnd > 0)
                 {
-                    var gapSize = nextStart - currentEnd;
                     ProcessGap(orderedDescriptors, i + 1, currentEnd);
                     dataItemsMoved++;
-                    bytesOptimized += gapSize;
                 }
             }
+
+            // 4. Update new size of file data in descriptor.
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+            var updatedFilesystemDescriptor =
+                filesystemDescriptor
+                    .WithFileDataLength(orderedDescriptors.Select(descriptor => descriptor.Value.DataLength).Sum());
+
+            _filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
+
+            var bytesOptimized = initialDataSize - updatedFilesystemDescriptor.FilesDataLength;
 
             _logger.Information($"Optimization process completed, {dataItemsMoved} items moved, {bytesOptimized} bytes optimized");
 

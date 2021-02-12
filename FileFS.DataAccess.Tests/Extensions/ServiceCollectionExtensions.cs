@@ -1,4 +1,5 @@
-﻿using FileFS.DataAccess.Abstractions;
+﻿using System;
+using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Allocation;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
@@ -48,6 +49,18 @@ namespace FileFS.DataAccess.Tests.Extensions
             services.AddSingleton<IStorageInitializer, StorageInitializer>();
 
             return services;
+        }
+
+        /// <summary>
+        /// Initializes FileFS storage, using <see cref="IStorageInitializer"/> given from DI container.
+        /// </summary>
+        /// <param name="serviceProvider">Instance of <see cref="IServiceProvider"/>.</param>
+        /// <param name="storageSize">Size of a storage in bytes.</param>
+        /// <param name="fileNameLength">Maximum length of filename in bytes.</param>
+        public static void InitializeStorage(this IServiceProvider serviceProvider, int storageSize, int fileNameLength)
+        {
+            var storageInitializer = serviceProvider.GetRequiredService<IStorageInitializer>();
+            storageInitializer.Initialize(storageSize, fileNameLength);
         }
     }
 }

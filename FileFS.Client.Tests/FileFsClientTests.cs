@@ -24,6 +24,70 @@ namespace FileFS.Client.Tests
     public class FileFsClientTests
     {
         [Theory]
+        [InlineData("some filename")]
+        [InlineData("some-filename")]
+        [InlineData("some-filename123")]
+        [InlineData("1.2.3")]
+        [InlineData("123_123")]
+        [InlineData("_")]
+        [InlineData("a")]
+        public void CreateEmpty_WithValidParameters_ShouldCallCreate(string fileName)
+        {
+            // Arrange
+            var fileRepositoryMock = new Mock<IFileRepository>();
+
+            var client = CreateClient(fileRepositoryMock.Object);
+
+            // Act
+            client.Create(fileName);
+
+            // Assert
+            fileRepositoryMock.Verify(r => r.Create(It.IsAny<FileEntry>()));
+        }
+
+        [Theory]
+        [InlineData("file$name")]
+        [InlineData("")]
+        [InlineData(null)]
+        [InlineData("()9")]
+        [InlineData("+++")]
+        [InlineData("#sdfd")]
+        [InlineData("\\/\\/asdasd")]
+        [InlineData("!!!asdasd!!!")]
+        [InlineData("[dapk_xantep]")]
+        [InlineData("&lol&")]
+        [InlineData("%%")]
+        public void CreateEmpty_WithInvalidFileName_ShouldThrowException(string fileName)
+        {
+            // Arrange
+            var client = CreateClient();
+
+            // Act
+            void Act() => client.Create(fileName);
+
+            // Assert
+            Assert.Throws<InvalidFilenameException>(Act);
+        }
+
+        [Theory]
+        [InlineData("filename")]
+        public void CreateEmpty_WhenFileAlreadyExists_ShouldThrowException(string fileName)
+        {
+            // Arrange
+            var fileRepositoryMock = new Mock<IFileRepository>();
+            fileRepositoryMock
+                .Setup(r => r.Exists(fileName))
+                .Returns(() => true);
+            var client = CreateClient(fileRepositoryMock.Object);
+
+            // Act
+            void Act() => client.Create(fileName);
+
+            // Assert
+            Assert.Throws<FileAlreadyExistsException>(Act);
+        }
+
+        [Theory]
         [InlineData("some filename", "")]
         [InlineData("some-filename", "123123123")]
         [InlineData("some-filename123", "123123123")]

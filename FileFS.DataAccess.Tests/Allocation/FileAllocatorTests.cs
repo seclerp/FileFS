@@ -34,7 +34,7 @@ namespace FileFS.DataAccess.Tests.Allocation
             // Arrange
             var buffer = new byte[10000];
             var serviceProvider = CreateServiceProvider(buffer);
-            InitializeStorage(serviceProvider, buffer.Length);
+            serviceProvider.InitializeStorage(buffer.Length, FileNameLength);
             var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
             var expectedCursor = new Cursor(dataSize * 2, SeekOrigin.Begin);
 
@@ -53,7 +53,7 @@ namespace FileFS.DataAccess.Tests.Allocation
             // Arrange
             var buffer = new byte[10000];
             var serviceProvider = CreateServiceProvider(buffer);
-            InitializeStorage(serviceProvider, buffer.Length);
+            serviceProvider.InitializeStorage(buffer.Length, FileNameLength);
             var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
             var expectedCursor = new Cursor(0, SeekOrigin.Begin);
 
@@ -76,7 +76,7 @@ namespace FileFS.DataAccess.Tests.Allocation
             // Arrange
             var buffer = new byte[10000];
             var serviceProvider = CreateServiceProvider(buffer);
-            InitializeStorage(serviceProvider, buffer.Length);
+            serviceProvider.InitializeStorage(buffer.Length, FileNameLength);
             var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
             var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
             var dataBytes = Encoding.UTF8.GetBytes("data");
@@ -101,7 +101,7 @@ namespace FileFS.DataAccess.Tests.Allocation
             // Arrange
             var buffer = new byte[10000];
             var serviceProvider = CreateServiceProvider(buffer);
-            InitializeStorage(serviceProvider, buffer.Length);
+            serviceProvider.InitializeStorage(buffer.Length, FileNameLength);
             var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
             var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
             var dataBytes = Encoding.UTF8.GetBytes("data");
@@ -128,7 +128,7 @@ namespace FileFS.DataAccess.Tests.Allocation
             var buffer = new byte[storageSize];
             var storageOptimizerMock = new Mock<IStorageOptimizer>();
             var serviceProvider = CreateServiceProvider(buffer, storageOptimizerMock.Object);
-            InitializeStorage(serviceProvider, buffer.Length);
+            serviceProvider.InitializeStorage(buffer.Length, FileNameLength);
             var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
 
             // Ac
@@ -150,12 +150,6 @@ namespace FileFS.DataAccess.Tests.Allocation
 
             var serviceProvider = services.BuildServiceProvider();
             return serviceProvider;
-        }
-
-        private static void InitializeStorage(IServiceProvider serviceProvider, int storageSize)
-        {
-            var storageInitializer = serviceProvider.GetRequiredService<IStorageInitializer>();
-            storageInitializer.Initialize(storageSize, FileNameLength);
         }
     }
 }

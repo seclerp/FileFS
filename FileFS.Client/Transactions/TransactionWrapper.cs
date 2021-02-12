@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -12,6 +13,7 @@ namespace FileFS.Client.Transactions
     /// Service which guaranties that all operations between <see cref="BeginTransaction"/> and <see cref="EndTransaction"/> would have exclusive
     /// access to FileFS storage.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class TransactionWrapper : ITransactionWrapper
     {
         private readonly ILogger _logger;
