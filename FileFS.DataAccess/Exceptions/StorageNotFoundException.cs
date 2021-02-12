@@ -5,7 +5,7 @@ namespace FileFS.DataAccess.Exceptions
     /// <summary>
     /// Exception that should be thrown when storage not exists.
     /// </summary>
-    public class StorageNotFoundException : Exception
+    public class StorageNotFoundException : FileFsException
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="StorageNotFoundException"/> class.

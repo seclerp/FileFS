@@ -36,7 +36,7 @@ namespace FileFS.DataAccess
                 throw new StorageNotFoundException($"Storage located at file '{_fileFsStoragePath}' not found.");
             }
 
-            var stream = WaitForFileStream(_fileFsStoragePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            var stream = WaitForFileStream(_fileFsStoragePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
 
             _logger.Information($"Stream for filename {_fileFsStoragePath} opened");
 
