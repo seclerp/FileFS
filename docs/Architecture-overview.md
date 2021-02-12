@@ -27,13 +27,13 @@ Each FileFS storage file has such memory structure:
 - **File descriptor**: describes metadata of the file
 - **File data**: data actually
 
-Main point here - file data starts and **grows from beginning** of the file, filesystem descriptor, file descriptors - **from the end**. That allows easly distinguish those 2 memory types very easily.
+Main point here - file data starts and **grows from beginning** of the file, filesystem descriptor, file descriptors - **from the end**. That allows distinguish those 2 memory types very easily.
 
 ## Allocation
 
 For file data allocation - custom linear allocator is used. It allows to easily allocate any amount of bytes without blocks, but also easily leads to defragmentation.
 But implementation of linear allocator in FileFS has some custom logic - before allocation data at the end it tries to find gap of matched size between actual data.
-Such method decrease degree of defragmentation.
+Such method decrease degree of fragmentation.
 
 ## Memory optimization
 
