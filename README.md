@@ -19,7 +19,7 @@ You could find latest library and CLI release in **[Releases](https://github.com
 
 ## Documentation
 
-- **[Client library getting started](docs/Client-library-getting-started)**
+- **[Client library getting started](docs/Client-library-getting-started.md)**
 - **[Client library API](docs/Client-library-API.md)**
 - **[CLI usage guide](docs/CLI-usage-guide.md)**
 - **[Architecture overview](docs/Architecture-overview.md)**
