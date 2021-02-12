@@ -62,7 +62,7 @@ namespace FileFS.Client.Abstractions
         /// <summary>
         /// Change name of existing file.
         /// </summary>
-        /// <param name="currentFilename">Current name of file..</param>
+        /// <param name="currentFilename">Current name of file.</param>
         /// <param name="newFilename">New name of a file.</param>
         void Rename(string currentFilename, string newFilename);
 
