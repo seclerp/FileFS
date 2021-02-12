@@ -1,4 +1,4 @@
-### Command Line Interface
+## CLI usage guide
 
 CLI exposes full set of features included in FileFS client library.
 
