@@ -1,10 +1,9 @@
-﻿using System.Net.WebSockets;
-using FileFS.Client.Abstractions;
+﻿using FileFS.Client.Abstractions;
 using FileFS.Client.Configuration;
 using FileFS.Client.Transactions;
 using FileFS.Client.Transactions.Abstractions;
 using FileFS.DataAccess;
-using FileFS.DataAccess.Memory;
+using FileFS.DataAccess.Allocation;
 using FileFS.DataAccess.Repositories;
 using FileFS.DataAccess.Serializers;
 using Serilog;

@@ -34,7 +34,7 @@ namespace FileFS.DataAccess
         /// <exception cref="ArgumentNonValidException">Throws when fileNameLength less or equals to 0.</exception>
         public void Initialize(int fileSize, int fileNameLength)
         {
-            if (fileSize <= 0)
+            if (fileSize < FilesystemDescriptor.BytesTotal)
             {
                 throw new ArgumentNonValidException($"Value '{nameof(fileSize)}' cannot be less than reserved bytes for filesystem descriptor ({FilesystemDescriptor.BytesTotal})");
             }

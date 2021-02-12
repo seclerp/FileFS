@@ -1,4 +1,4 @@
-﻿namespace FileFS.DataAccess.Memory.Abstractions
+﻿namespace FileFS.DataAccess.Allocation.Abstractions
 {
     /// <summary>
     /// Abstraction that represents allocator for memory space used to contain file data.

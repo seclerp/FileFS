@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FileFS.DataAccess.Abstractions;
+using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Extensions;
-using FileFS.DataAccess.Memory.Abstractions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
 
-namespace FileFS.DataAccess.Memory
+namespace FileFS.DataAccess.Allocation
 {
     /// <summary>
     /// Storage optimizer implementation.

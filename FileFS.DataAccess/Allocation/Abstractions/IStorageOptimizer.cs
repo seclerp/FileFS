@@ -1,4 +1,4 @@
-﻿namespace FileFS.DataAccess.Memory.Abstractions
+﻿namespace FileFS.DataAccess.Allocation.Abstractions
 {
     /// <summary>
     /// Abstraction responsible for optimizing of used space in FileFS storage.

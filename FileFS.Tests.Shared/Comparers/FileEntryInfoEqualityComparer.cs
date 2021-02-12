@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using FileFS.DataAccess.Entities;
 
-namespace FileFS.DataAccess.Tests.Comparers
+namespace FileFS.Tests.Shared.Comparers
 {
     /// <summary>
     /// Comparer implementation for <see cref="FileEntryInfo"/>.

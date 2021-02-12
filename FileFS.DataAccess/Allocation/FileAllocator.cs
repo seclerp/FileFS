@@ -1,14 +1,14 @@
 ﻿using System.IO;
 using System.Linq;
 using FileFS.DataAccess.Abstractions;
+using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Extensions;
-using FileFS.DataAccess.Memory.Abstractions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
 
-namespace FileFS.DataAccess.Memory
+namespace FileFS.DataAccess.Allocation
 {
     /// <summary>
     /// Linear file allocator implementation.
@@ -135,7 +135,9 @@ namespace FileFS.DataAccess.Memory
             var descriptors = _fileDescriptorRepository.ReadAll();
 
             // 2. Sort by offset
-            var orderedDescriptors = descriptors.OrderBy(descriptor => descriptor.Value.DataOffset).ToArray();
+            var orderedDescriptors = descriptors
+                .Where(descriptor => descriptor.Value.DataLength > 0)
+                .OrderBy(descriptor => descriptor.Value.DataOffset).ToArray();
 
             // 3. Check first gap
             if (orderedDescriptors.Length > 0 && orderedDescriptors[0].Value.DataOffset >= size)
@@ -165,7 +167,7 @@ namespace FileFS.DataAccess.Memory
                 if (currentGapSize >= size && currentGapSize < minimalGapSize)
                 {
                     minimalGapSize = currentGapSize;
-                    minimalGapCursor = new Cursor(currentEnd, current.Cursor.Origin);
+                    minimalGapCursor = new Cursor(currentEnd, SeekOrigin.Begin);
 
                     // We should know that we found at least one correct gap
                     found = true;

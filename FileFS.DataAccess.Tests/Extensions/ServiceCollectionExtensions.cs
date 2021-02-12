@@ -1,7 +1,7 @@
 ﻿using FileFS.DataAccess.Abstractions;
+using FileFS.DataAccess.Allocation;
+using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
-using FileFS.DataAccess.Memory;
-using FileFS.DataAccess.Memory.Abstractions;
 using FileFS.DataAccess.Repositories;
 using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Serializers;
