@@ -1,4 +1,4 @@
-# Client library gettings started
+# Client library getting started
 
 First of all you need to add reference to `FileFS.Client` library to your project.
 
