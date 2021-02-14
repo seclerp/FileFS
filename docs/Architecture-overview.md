@@ -2,7 +2,7 @@
 
 ## Code structure
 
-FileFS client library consits of 2 main projects:
+FileFS client library consists of 2 main projects:
 - `FileFS.DataAccess`: low-level services
 - `FileFS.Client`: high-level ready-to-use client API
 
@@ -17,7 +17,7 @@ FileFS client library consits of 2 main projects:
 - `ExternalFileManager`, `IExternalFileManager`: implementation and abstractino for external file (file in you filesystem) management
 - other: such as factories and other boilerplate stuff
 
-## Memory oirganization
+## Memory organization
 
 Each FileFS storage file has such memory structure:
 
