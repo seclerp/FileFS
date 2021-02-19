@@ -23,6 +23,7 @@ namespace FileFS.Cli
                     ImportOptions,
                     ExportOptions,
                     RenameOptions,
+                    MoveOptions,
                     ExistsOptions,
                     ReadOptions,
                     ListOptions
@@ -35,6 +36,7 @@ namespace FileFS.Cli
                 .WithParsed<ImportOptions>(CommandHandlers.HandleImport)
                 .WithParsed<ExportOptions>(CommandHandlers.HandleExport)
                 .WithParsed<RenameOptions>(CommandHandlers.HandleRename)
+                .WithParsed<MoveOptions>(CommandHandlers.HandleMove)
                 .WithParsed<ExistsOptions>(CommandHandlers.HandleExists)
                 .WithParsed<ReadOptions>(CommandHandlers.HandleRead)
                 .WithParsed<ListOptions>(CommandHandlers.HandleList);

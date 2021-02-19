@@ -90,6 +90,7 @@ namespace FileFS.DataAccess.Repositories
             _entryDescriptorRepository.Write(new StorageItem<EntryDescriptor>(updatedDescriptor, cursor));
         }
 
+        /// <inheritdoc />
         public IReadOnlyCollection<FileFsEntryInfo> GetEntriesInfo(string directoryName)
         {
             return _entryDescriptorRepository
