@@ -39,17 +39,20 @@ namespace FileFS.Client
             var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer(logger);
             var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(connection, filesystemDescriptorSerializer, logger);
 
-            var fileDescriptorSerializer = new FileDescriptorSerializer(filesystemDescriptorAccessor, logger);
-            var fileDescriptorRepository = new FileDescriptorRepository(connection, filesystemDescriptorAccessor, fileDescriptorSerializer, logger);
+            var entryDescriptorSerializer = new EntryDescriptorSerializer(filesystemDescriptorAccessor, logger);
+            var entryDescriptorRepository = new EntryDescriptorRepository(connection, filesystemDescriptorAccessor, entryDescriptorSerializer, logger);
 
-            var optimizer = new StorageOptimizer(connection, fileDescriptorRepository, filesystemDescriptorAccessor, logger);
-            var allocator = new FileAllocator(connection, filesystemDescriptorAccessor, fileDescriptorRepository, optimizer, logger);
+            var optimizer = new StorageOptimizer(connection, entryDescriptorRepository, filesystemDescriptorAccessor, logger);
+            var allocator = new FileAllocator(connection, filesystemDescriptorAccessor, entryDescriptorRepository, optimizer, logger);
 
-            var fileRepository = new FileRepository(connection, allocator, filesystemDescriptorAccessor, fileDescriptorRepository, logger);
+            var entryRepository = new EntryRepository(filesystemDescriptorAccessor, entryDescriptorRepository, logger);
+            var fileRepository = new FileRepository(connection, allocator, filesystemDescriptorAccessor, entryDescriptorRepository, logger);
+            var directoryRepository = new DirectoryRepository(filesystemDescriptorAccessor, entryDescriptorRepository, logger);
+
             var externalFileManager = new ExternalFileManager(logger);
             var transactionWrapper = CreateTransactionWrapper(options.EnableTransactions);
 
-            var client = new FileFsClient(fileRepository, externalFileManager, optimizer, transactionWrapper);
+            var client = new FileFsClient(fileRepository, directoryRepository, entryRepository, externalFileManager, optimizer, transactionWrapper);
 
             return client;
         }

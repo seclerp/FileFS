@@ -39,7 +39,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            client.Create(fileName);
+            client.CreateFile(fileName);
 
             // Assert
             fileRepositoryMock.Verify(r => r.Create(It.IsAny<FileEntry>()));
@@ -63,10 +63,10 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Create(fileName);
+            void Act() => client.CreateFile(fileName);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -81,7 +81,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            void Act() => client.Create(fileName);
+            void Act() => client.CreateFile(fileName);
 
             // Assert
             Assert.Throws<FileAlreadyExistsException>(Act);
@@ -104,7 +104,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            client.Create(fileName, dataBytes);
+            client.CreateFile(fileName, dataBytes);
 
             // Assert
             fileRepositoryMock.Verify(r => r.Create(It.IsAny<FileEntry>()));
@@ -129,10 +129,10 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Create(fileName, dataBytes);
+            void Act() => client.CreateFile(fileName, dataBytes);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -148,7 +148,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            void Act() => client.Create(fileName, dataBytes);
+            void Act() => client.CreateFile(fileName, dataBytes);
 
             // Assert
             Assert.Throws<FileAlreadyExistsException>(Act);
@@ -162,7 +162,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Create(fileName, null);
+            void Act() => client.CreateFile(fileName, null);
 
             // Assert
             Assert.Throws<DataIsNullException>(Act);
@@ -187,7 +187,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            client.Create(fileName, stream, dataBytes.Length);
+            client.CreateFile(fileName, stream, dataBytes.Length);
 
             // Assert
             fileRepositoryMock.Verify(r => r.Create(It.IsAny<StreamedFileEntry>()));
@@ -214,10 +214,10 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Create(fileName, stream, dataBytes.Length);
+            void Act() => client.CreateFile(fileName, stream, dataBytes.Length);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -235,7 +235,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            void Act() => client.Create(fileName, stream, dataBytes.Length);
+            void Act() => client.CreateFile(fileName, stream, dataBytes.Length);
 
             // Assert
             Assert.Throws<FileAlreadyExistsException>(Act);
@@ -249,7 +249,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Create(fileName, null, 0);
+            void Act() => client.CreateFile(fileName, null, 0);
 
             // Assert
             Assert.Throws<DataIsNullException>(Act);
@@ -304,7 +304,7 @@ namespace FileFS.Client.Tests
             void Act() => client.Update(fileName, dataBytes);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -336,7 +336,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Create(fileName, null);
+            void Act() => client.CreateFile(fileName, null);
 
             // Assert
             Assert.Throws<DataIsNullException>(Act);
@@ -394,7 +394,7 @@ namespace FileFS.Client.Tests
             void Act() => client.Update(fileName, stream, dataBytes.Length);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -427,7 +427,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Create(fileName, null, 0);
+            void Act() => client.CreateFile(fileName, null, 0);
 
             // Assert
             Assert.Throws<DataIsNullException>(Act);
@@ -476,7 +476,7 @@ namespace FileFS.Client.Tests
             void Act() => client.Read(fileName);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -521,7 +521,7 @@ namespace FileFS.Client.Tests
             void Act() => client.Read(fileName, new MemoryStream());
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -586,7 +586,7 @@ namespace FileFS.Client.Tests
             void Act() => client.Rename(oldFileName, newFileName);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -608,7 +608,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            client.Delete(fileName);
+            client.DeleteFile(fileName);
 
             // Assert
             fileRepositoryMock.Verify(r => r.Delete(fileName));
@@ -632,10 +632,10 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Delete(fileName);
+            void Act() => client.DeleteFile(fileName);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -651,7 +651,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            void Act() => client.Delete(fileName);
+            void Act() => client.DeleteFile(fileName);
 
             // Assert
             Assert.Throws<FileNotFoundException>(Act);
@@ -684,10 +684,10 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object, externalFileManagerMock.Object);
 
             // Act
-            client.Import(externalPath, fileName);
+            client.ImportFile(externalPath, fileName);
 
             // Assert
-            fileRepositoryMock.Verify(r => r.Create(It.Is<StreamedFileEntry>(fileEntry => fileEntry.FileName == fileName)));
+            fileRepositoryMock.Verify(r => r.Create(It.Is<StreamedFileEntry>(fileEntry => fileEntry.EntryName == fileName)));
         }
 
         [Theory]
@@ -708,10 +708,10 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Import(externalPath, fileName);
+            void Act() => client.ImportFile(externalPath, fileName);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -726,7 +726,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            void Act() => client.Import(externalPath, fileName);
+            void Act() => client.ImportFile(externalPath, fileName);
 
             // Assert
             Assert.Throws<FileAlreadyExistsException>(Act);
@@ -750,7 +750,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object, externalFileManagerMock.Object);
 
             // Act
-            void Act() => client.Import(externalPath, fileName);
+            void Act() => client.ImportFile(externalPath, fileName);
 
             // Assert
             Assert.Throws<ExternalFileNotFoundException>(Act);
@@ -783,7 +783,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object, externalFileManagerMock.Object);
 
             // Act
-            client.Export(fileName, externalPath);
+            client.ExportFile(fileName, externalPath);
 
             // Assert
             fileRepositoryMock.Verify(r => r.Read(fileName, It.IsAny<Stream>()));
@@ -807,10 +807,10 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Export(fileName, externalPath);
+            void Act() => client.ExportFile(fileName, externalPath);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
@@ -825,7 +825,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            void Act() => client.Export(fileName, externalPath);
+            void Act() => client.ExportFile(fileName, externalPath);
 
             // Assert
             Assert.Throws<FileNotFoundException>(Act);
@@ -849,7 +849,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object, externalFileManagerMock.Object);
 
             // Act
-            void Act() => client.Export(fileName, externalPath);
+            void Act() => client.ExportFile(fileName, externalPath);
 
             // Assert
             Assert.Throws<ExternalFileAlreadyExistsException>(Act);
@@ -870,7 +870,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            client.Exists(fileName);
+            client.FileExists(fileName);
 
             // Assert
             fileRepositoryMock.Verify(r => r.Exists(fileName));
@@ -894,10 +894,10 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.Exists(fileName);
+            void Act() => client.FileExists(fileName);
 
             // Assert
-            Assert.Throws<InvalidFilenameException>(Act);
+            Assert.Throws<InvalidNameException>(Act);
         }
 
         [Fact]
@@ -912,8 +912,8 @@ namespace FileFS.Client.Tests
 
             var expectedListFiles = new[]
             {
-                new FileEntryInfo(firstFileName, firstFileData.Length, DateTime.UtcNow, DateTime.UtcNow),
-                new FileEntryInfo(secondFileName, secondFileData.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileFsEntryInfo(firstFileName, firstFileData.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileFsEntryInfo(secondFileName, secondFileData.Length, DateTime.UtcNow, DateTime.UtcNow),
             };
 
             var fileRepositoryMock = new Mock<IFileRepository>();
@@ -938,7 +938,7 @@ namespace FileFS.Client.Tests
             var fileRepositoryMock = new Mock<IFileRepository>();
             fileRepositoryMock
                 .Setup(r => r.GetAllFilesInfo())
-                .Returns(Array.Empty<FileEntryInfo>());
+                .Returns(Array.Empty<FileFsEntryInfo>());
 
             // Act
             var files = client.ListFiles();

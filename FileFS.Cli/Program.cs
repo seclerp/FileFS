@@ -16,6 +16,7 @@ namespace FileFS.Cli
         {
             Parser.Default.ParseArguments<
                     InitOptions,
+                    CreateDirectoryOptions,
                     CreateOptions,
                     UpdateOptions,
                     DeleteOptions,
@@ -27,6 +28,7 @@ namespace FileFS.Cli
                     ListOptions
                 >(args)
                 .WithParsed<InitOptions>(CommandHandlers.HandleInit)
+                .WithParsed<CreateDirectoryOptions>(CommandHandlers.HandleCreateDirectory)
                 .WithParsed<CreateOptions>(CommandHandlers.HandleCreate)
                 .WithParsed<UpdateOptions>(CommandHandlers.HandleUpdate)
                 .WithParsed<DeleteOptions>(CommandHandlers.HandleDelete)

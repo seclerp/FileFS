@@ -66,8 +66,8 @@ namespace FileFS.DataAccess.Tests.Serializers
 
             // Assert
             Assert.Equal(filesystemDescriptor.FilesDataLength, filesDataLength);
-            Assert.Equal(filesystemDescriptor.FileDescriptorsCount, fileDescriptorsCount);
-            Assert.Equal(filesystemDescriptor.FileDescriptorLength, fileDescriptorLength);
+            Assert.Equal(filesystemDescriptor.EntryDescriptorsCount, fileDescriptorsCount);
+            Assert.Equal(filesystemDescriptor.EntryDescriptorLength, fileDescriptorLength);
         }
     }
 }

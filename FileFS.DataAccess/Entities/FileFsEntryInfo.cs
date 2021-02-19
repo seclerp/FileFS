@@ -1,16 +1,22 @@
 ﻿using System;
+using FileFS.DataAccess.Entities.Enums;
 
 namespace FileFS.DataAccess.Entities
 {
     /// <summary>
-    /// Type that represents meta information about the file.
+    /// Type that represents meta information about the entry inside FileFS storage.
     /// </summary>
-    public readonly struct FileEntryInfo
+    public readonly struct FileFsEntryInfo
     {
         /// <summary>
-        /// Name of the file.
+        /// Name of the entry.
         /// </summary>
-        public readonly string FileName;
+        public readonly string EntryName;
+
+        /// <summary>
+        /// Type of the entry.
+        /// </summary>
+        public readonly EntryType EntryType;
 
         /// <summary>
         /// File size in bytes.
@@ -28,15 +34,17 @@ namespace FileFS.DataAccess.Entities
         public readonly DateTime UpdatedOn;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FileEntryInfo"/> struct.
+        /// Initializes a new instance of the <see cref="FileFsEntryInfo"/> struct.
         /// </summary>
-        /// <param name="fileName">Name of the file.</param>
+        /// <param name="entryName">Name of the file.</param>
+        /// <param name="entryType">Type of the entry.</param>
         /// <param name="size">File size in bytes.</param>
         /// <param name="createdOn">DateTime instance that represents time when file was created.</param>
         /// <param name="updatedOn">DateTime instance that represents time when file was updated last time.</param>
-        public FileEntryInfo(string fileName, int size, DateTime createdOn, DateTime updatedOn)
+        public FileFsEntryInfo(string entryName, EntryType entryType, int size, DateTime createdOn, DateTime updatedOn)
         {
-            FileName = fileName;
+            EntryName = entryName;
+            EntryType = entryType;
             Size = size;
             CreatedOn = createdOn;
             UpdatedOn = updatedOn;

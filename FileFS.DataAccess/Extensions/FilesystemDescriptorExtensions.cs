@@ -17,8 +17,8 @@ namespace FileFS.DataAccess.Extensions
         {
             return new FilesystemDescriptor(
                 filesDataLength,
-                descriptor.FileDescriptorsCount,
-                descriptor.FileDescriptorLength);
+                descriptor.EntryDescriptorsCount,
+                descriptor.EntryDescriptorLength);
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace FileFS.DataAccess.Extensions
             return new FilesystemDescriptor(
                 descriptor.FilesDataLength,
                 fileDescriptorsCount,
-                descriptor.FileDescriptorLength);
+                descriptor.EntryDescriptorLength);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace FileFS.DataAccess.Extensions
         {
             return new FilesystemDescriptor(
                 descriptor.FilesDataLength,
-                descriptor.FileDescriptorsCount,
+                descriptor.EntryDescriptorsCount,
                 fileDescriptorLength);
         }
     }

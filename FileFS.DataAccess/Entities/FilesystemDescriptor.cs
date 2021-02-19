@@ -19,24 +19,24 @@
         /// <summary>
         /// Amount of file descriptors in storage.
         /// </summary>
-        public readonly int FileDescriptorsCount;
+        public readonly int EntryDescriptorsCount;
 
         /// <summary>
         /// Overall amount of bytes used to store file descriptors data.
         /// </summary>
-        public readonly int FileDescriptorLength;
+        public readonly int EntryDescriptorLength;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FilesystemDescriptor"/> struct.
         /// </summary>
         /// <param name="filesDataLength">Overall amount of allocated bytes used to store files data.</param>
-        /// <param name="fileDescriptorsCount">Amount of file descriptors in storage.</param>
-        /// <param name="fileDescriptorLength">Overall amount of bytes used to store file descriptors data.</param>
-        public FilesystemDescriptor(int filesDataLength, int fileDescriptorsCount, int fileDescriptorLength)
+        /// <param name="entryDescriptorsCount">Amount of file descriptors in storage.</param>
+        /// <param name="entryDescriptorLength">Overall amount of bytes used to store file descriptors data.</param>
+        public FilesystemDescriptor(int filesDataLength, int entryDescriptorsCount, int entryDescriptorLength)
         {
             FilesDataLength = filesDataLength;
-            FileDescriptorsCount = fileDescriptorsCount;
-            FileDescriptorLength = fileDescriptorLength;
+            EntryDescriptorsCount = entryDescriptorsCount;
+            EntryDescriptorLength = entryDescriptorLength;
         }
     }
 }

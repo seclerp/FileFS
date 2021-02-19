@@ -38,8 +38,8 @@ namespace FileFS.DataAccess.Tests.Extensions
             services.AddSingleton<ISerializer<FilesystemDescriptor>, FilesystemDescriptorSerializer>();
             services.AddSingleton<IFilesystemDescriptorAccessor, FilesystemDescriptorAccessor>();
 
-            services.AddSingleton<ISerializer<FileDescriptor>, FileDescriptorSerializer>();
-            services.AddSingleton<IFileDescriptorRepository, FileDescriptorRepository>();
+            services.AddSingleton<ISerializer<EntryDescriptor>, EntryDescriptorSerializer>();
+            services.AddSingleton<IEntryDescriptorRepository, EntryDescriptorRepository>();
 
             services.AddSingleton<IStorageOptimizer, StorageOptimizer>();
             services.AddSingleton<IFileAllocator, FileAllocator>();

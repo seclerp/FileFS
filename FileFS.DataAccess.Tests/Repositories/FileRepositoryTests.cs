@@ -38,7 +38,7 @@ namespace FileFS.DataAccess.Tests.Repositories
 
             // Assert
             var createdFile = repository.Read(fileName);
-            Assert.Equal(fileEntry.FileName, createdFile.FileName);
+            Assert.Equal(fileEntry.EntryName, createdFile.EntryName);
             Assert.Equal(fileEntry.DataLength, createdFile.DataLength);
             Assert.Equal(fileEntry.Data, createdFile.Data);
         }
@@ -85,7 +85,7 @@ namespace FileFS.DataAccess.Tests.Repositories
 
             // Assert
             var updatedFileEntry = repository.Read(fileName);
-            Assert.Equal(newFileEntry.FileName, updatedFileEntry.FileName);
+            Assert.Equal(newFileEntry.EntryName, updatedFileEntry.EntryName);
             Assert.Equal(newFileEntry.DataLength, updatedFileEntry.DataLength);
             Assert.Equal(newFileEntry.Data, updatedFileEntry.Data);
         }
@@ -131,7 +131,7 @@ namespace FileFS.DataAccess.Tests.Repositories
             var writtenFileEntry = repository.Read(fileName);
 
             // Assert
-            Assert.Equal(expectedFileEntry.FileName, writtenFileEntry.FileName);
+            Assert.Equal(expectedFileEntry.EntryName, writtenFileEntry.EntryName);
             Assert.Equal(expectedFileEntry.DataLength, writtenFileEntry.DataLength);
             Assert.Equal(expectedFileEntry.Data, writtenFileEntry.Data);
         }
@@ -172,7 +172,7 @@ namespace FileFS.DataAccess.Tests.Repositories
 
             // Assert
             var renamedFile = repository.Read(newFileName);
-            Assert.Equal(newFileName, renamedFile.FileName);
+            Assert.Equal(newFileName, renamedFile.EntryName);
             Assert.Equal(fileEntry.DataLength, renamedFile.DataLength);
             Assert.Equal(fileEntry.Data, renamedFile.Data);
         }
@@ -249,7 +249,7 @@ namespace FileFS.DataAccess.Tests.Repositories
             // Arrange
             var storageBuffer = new byte[10000];
             var dataBytes = Encoding.UTF8.GetBytes("exampleData");
-            var expectedFileEntries = new IFileEntry[]
+            var expectedFileEntries = new IEntry[]
             {
                 new FileEntry("test1.file", dataBytes),
                 new FileEntry("test2.file", dataBytes),
@@ -258,10 +258,10 @@ namespace FileFS.DataAccess.Tests.Repositories
             };
             var expectedFileEntryInfos = new[]
             {
-                new FileEntryInfo("test1.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
-                new FileEntryInfo("test2.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
-                new FileEntryInfo("test3.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
-                new FileEntryInfo("test4.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileFsEntryInfo("test1.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileFsEntryInfo("test2.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileFsEntryInfo("test3.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileFsEntryInfo("test4.file", dataBytes.Length, DateTime.UtcNow, DateTime.UtcNow),
             };
             var repository = CreateRepository(storageBuffer, true, expectedFileEntries);
 
@@ -272,7 +272,7 @@ namespace FileFS.DataAccess.Tests.Repositories
             Assert.Equal(expectedFileEntryInfos, allFilesInfo, new FileEntryInfoEqualityComparer());
         }
 
-        private static IFileRepository CreateRepository(byte[] storageBuffer, bool initializeStorage, params IFileEntry[] itemsToCreate)
+        private static IFileRepository CreateRepository(byte[] storageBuffer, bool initializeStorage, params IEntry[] itemsToCreate)
         {
             var services = new ServiceCollection();
             services.AddSingleton<ILogger>(new LoggerConfiguration().CreateLogger());
