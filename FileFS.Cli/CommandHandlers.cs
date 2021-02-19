@@ -6,6 +6,7 @@ using FileFS.Cli.Extensions;
 using FileFS.Cli.Options;
 using FileFS.Client;
 using FileFS.DataAccess.Entities.Enums;
+using FileFS.DataAccess.Extensions;
 
 namespace FileFS.Cli
 {
@@ -169,12 +170,13 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(listOptions, options =>
             {
                 var client = CommandHandlerHelper.CreateClient(options);
-                var allEntries = client.ListFiles()
+                var allEntries = client.GetEntries(listOptions.DirectoryName)
                     .OrderByDescending(entryInfo => (byte)entryInfo.EntryType)
                     .ThenBy(entryInfo => entryInfo.EntryName);
 
                 if (options.IsDetailedView)
                 {
+                    Console.WriteLine($"Directory: {listOptions.DirectoryName}");
                     Console.WriteLine("{0, -21}{1, 9}{2, 21}{3, 21}", "NAME", "SIZE", "CREATED ON", "UPDATED ON");
                     foreach (var entryInfo in allEntries)
                     {
@@ -184,7 +186,7 @@ namespace FileFS.Cli
                             Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.WriteLine(
                                 "{0, -21}{1, 9}{2, 21}{3, 21}",
-                                entryInfo.EntryName.Clip(17),
+                                entryInfo.EntryName.GetShortName().Clip(17),
                                 string.Empty,
                                 entryInfo.CreatedOn.ToString(CliConstants.DateTimeFormat),
                                 entryInfo.UpdatedOn.ToString(CliConstants.DateTimeFormat));
@@ -194,7 +196,7 @@ namespace FileFS.Cli
                         {
                             Console.WriteLine(
                                 "{0, -21}{1, 9}{2, 21}{3, 21}",
-                                entryInfo.EntryName.Clip(17),
+                                entryInfo.EntryName.GetShortName().Clip(17),
                                 ((long)entryInfo.Size).FormatBytesSize(),
                                 entryInfo.CreatedOn.ToString(CliConstants.DateTimeFormat),
                                 entryInfo.UpdatedOn.ToString(CliConstants.DateTimeFormat));

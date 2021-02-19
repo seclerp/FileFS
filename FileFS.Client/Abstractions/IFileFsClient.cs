@@ -120,10 +120,11 @@ namespace FileFS.Client.Abstractions
         bool Exists(string name);
 
         /// <summary>
-        /// Returns all files and directories inside FileFS storage.
+        /// Returns files and directories within specified folder inside FileFS storage.
         /// </summary>
+        /// <param name="directoryName">Name of a directory to list.</param>
         /// <returns>Enumerable that represents all files inside FileFS storage.</returns>
-        IEnumerable<FileFsEntryInfo> ListFiles();
+        IEnumerable<FileFsEntryInfo> GetEntries(string directoryName = "/");
 
         /// <summary>
         /// Returns true if entry with specified name is a directory, otherwise false.

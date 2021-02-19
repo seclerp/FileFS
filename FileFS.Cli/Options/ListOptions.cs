@@ -14,5 +14,11 @@ namespace FileFS.Cli.Options
         /// </summary>
         [Option('d', "details", Default = false, Required = false, HelpText = "If true, additional details, such as size, created on and updated on will be displayed.")]
         public bool IsDetailedView { get; set; }
+
+        /// <summary>
+        /// Gets or sets name of a directory to list.
+        /// </summary>
+        [Value(0, Default = "/", Required = false, HelpText = "Name of a directory to list.")]
+        public string DirectoryName { get; set; }
     }
 }

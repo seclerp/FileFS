@@ -237,7 +237,7 @@ namespace FileFS.DataAccess.Tests.Repositories
             var repository = CreateRepository(storageBuffer, true);
 
             // Act
-            var allFilesInfo = repository.GetAllFilesInfo();
+            var allFilesInfo = repository.GetEntriesInfo();
 
             // Assert
             Assert.Empty(allFilesInfo);
@@ -266,7 +266,7 @@ namespace FileFS.DataAccess.Tests.Repositories
             var repository = CreateRepository(storageBuffer, true, expectedFileEntries);
 
             // Act
-            var allFilesInfo = repository.GetAllFilesInfo();
+            var allFilesInfo = repository.GetEntriesInfo();
 
             // Assert
             Assert.Equal(expectedFileEntryInfos, allFilesInfo, new FileEntryInfoEqualityComparer());

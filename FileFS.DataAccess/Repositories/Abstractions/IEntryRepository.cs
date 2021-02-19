@@ -1,4 +1,7 @@
-﻿namespace FileFS.DataAccess.Repositories.Abstractions
+﻿using System.Collections.Generic;
+using FileFS.DataAccess.Entities;
+
+namespace FileFS.DataAccess.Repositories.Abstractions
 {
     /// <summary>
     /// Abstraction for base entry repository.
@@ -31,5 +34,12 @@
         /// <param name="fromName">Initial name of the entry.</param>
         /// <param name="toName">Target name of the entry.</param>
         void Move(string fromName, string toName);
+
+        /// <summary>
+        /// Returns entries details inside specific directory.
+        /// </summary>
+        /// <param name="directoryName">Name of a directory.</param>
+        /// <returns>All files details.</returns>
+        IReadOnlyCollection<FileFsEntryInfo> GetEntriesInfo(string directoryName);
     }
 }

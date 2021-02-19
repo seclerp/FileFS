@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
@@ -91,20 +89,6 @@ namespace FileFS.DataAccess.Repositories
 
             // 2. Read data by given offset from descriptor
             ReadStreamedFileData(new Cursor(descriptorItem.Value.DataOffset, SeekOrigin.Begin), descriptorItem.Value.DataLength, destinationStream);
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<FileFsEntryInfo> GetAllFilesInfo()
-        {
-            return _entryDescriptorRepository
-                .ReadAll()
-                .Select(info => new FileFsEntryInfo(
-                    info.Value.EntryName,
-                    info.Value.Type,
-                    info.Value.DataLength,
-                    info.Value.CreatedOn.FromUnixTime(),
-                    info.Value.UpdatedOn.FromUnixTime()))
-                .ToArray();
         }
 
         /// <inheritdoc/>
