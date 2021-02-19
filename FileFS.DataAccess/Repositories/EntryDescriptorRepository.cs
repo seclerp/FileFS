@@ -89,6 +89,39 @@ namespace FileFS.DataAccess.Repositories
             return allDescriptors;
         }
 
+        public IReadOnlyCollection<StorageItem<EntryDescriptor>> ReadChildren(string entryName)
+        {
+            _logger.Information($"Start reading children for '{entryName}'");
+
+            _logger.Information("Retrieving info about file descriptors from filesystem descriptor");
+
+            var id = Find(entryName).Value.Id;
+
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+            var descriptorsCursorRange = GetDescriptorsRange(in filesystemDescriptor);
+
+            _logger.Information("Reading all file descriptors data");
+
+            var childrenDescriptors = new LinkedList<StorageItem<EntryDescriptor>>();
+            for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.EntryDescriptorLength)
+            {
+                var cursor = new Cursor(offset, SeekOrigin.End);
+
+                var length = filesystemDescriptor.EntryDescriptorLength;
+                var data = _connection.PerformRead(cursor, length);
+                var descriptor = _serializer.FromBytes(data);
+
+                if (descriptor.ParentId == id)
+                {
+                    childrenDescriptors.AddLast(new StorageItem<EntryDescriptor>(descriptor, cursor));
+                }
+            }
+
+            _logger.Information($"Done reading children for '{entryName}'");
+
+            return childrenDescriptors;
+        }
+
         /// <inheritdoc />
         public void Write(StorageItem<EntryDescriptor> item)
         {

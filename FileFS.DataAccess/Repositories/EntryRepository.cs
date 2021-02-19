@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Extensions;
@@ -86,6 +88,19 @@ namespace FileFS.DataAccess.Repositories
             var cursor = descriptorItem.Cursor;
 
             _entryDescriptorRepository.Write(new StorageItem<EntryDescriptor>(updatedDescriptor, cursor));
+        }
+
+        public IReadOnlyCollection<FileFsEntryInfo> GetEntriesInfo(string directoryName)
+        {
+            return _entryDescriptorRepository
+                .ReadChildren(directoryName)
+                .Select(info => new FileFsEntryInfo(
+                    info.Value.EntryName,
+                    info.Value.Type,
+                    info.Value.DataLength,
+                    info.Value.CreatedOn.FromUnixTime(),
+                    info.Value.UpdatedOn.FromUnixTime()))
+                .ToArray();
         }
 
         /// <summary>

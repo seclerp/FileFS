@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using FileFS.DataAccess.Entities;
 
 namespace FileFS.DataAccess.Repositories.Abstractions
@@ -47,10 +46,5 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         /// <param name="destinationStream">Destination stream of data.</param>
         void Read(string fileName, Stream destinationStream);
 
-        /// <summary>
-        /// Returns all files details.
-        /// </summary>
-        /// <returns>All files details.</returns>
-        IEnumerable<FileFsEntryInfo> GetAllFilesInfo();
     }
 }

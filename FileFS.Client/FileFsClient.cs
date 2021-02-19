@@ -8,6 +8,7 @@ using FileFS.Client.Constants;
 using FileFS.Client.Exceptions;
 using FileFS.Client.Transactions.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
+using FileFS.DataAccess.Constants;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Extensions;
@@ -476,11 +477,23 @@ namespace FileFS.Client
         }
 
         /// <inheritdoc />
-        public IEnumerable<FileFsEntryInfo> ListFiles()
+        /// <exception cref="InvalidNameException">Throws if name is invalid.</exception>
+        /// <exception cref="DirectoryNotFoundException">Throws if directory is not found.</exception>
+        public IEnumerable<FileFsEntryInfo> GetEntries(string directoryName)
         {
+            if (!NameValid(directoryName))
+            {
+                throw new InvalidNameException(directoryName);
+            }
+
+            if (!DirectoryExistsInternal(directoryName))
+            {
+                throw new DirectoryNotFoundException(directoryName);
+            }
+
             return _fileRepository
-                .GetAllFilesInfo()
-                .ToArray();
+                .GetEntriesInfo(directoryName)
+                .Where(entryInfo => entryInfo.EntryName != PathConstants.RootDirectoryName);
         }
 
         /// <inheritdoc />

@@ -22,6 +22,13 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         IReadOnlyCollection<StorageItem<EntryDescriptor>> ReadAll();
 
         /// <summary>
+        /// Returns children entry descriptors of given entry stored in FileFS storage.
+        /// </summary>
+        /// <param name="entryName">Name of an entry.</param>
+        /// <returns>All file descriptors storage items stored in FileFS storage.</returns>
+        IReadOnlyCollection<StorageItem<EntryDescriptor>> ReadChildren(string entryName);
+
+        /// <summary>
         /// Writes entry descriptor into FileFS storage.
         /// </summary>
         /// <param name="item">Storage item that represents file descriptor with its cursor in memory.</param>

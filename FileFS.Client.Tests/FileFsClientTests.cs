@@ -918,13 +918,13 @@ namespace FileFS.Client.Tests
 
             var fileRepositoryMock = new Mock<IFileRepository>();
             fileRepositoryMock
-                .Setup(r => r.GetAllFilesInfo())
+                .Setup(r => r.GetEntriesInfo())
                 .Returns(expectedListFiles);
 
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            var files = client.ListFiles();
+            var files = client.GetEntries();
 
             // Assert
             Assert.Equal(expectedListFiles, files, new FileEntryInfoEqualityComparer());
@@ -937,11 +937,11 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
             var fileRepositoryMock = new Mock<IFileRepository>();
             fileRepositoryMock
-                .Setup(r => r.GetAllFilesInfo())
+                .Setup(r => r.GetEntriesInfo())
                 .Returns(Array.Empty<FileFsEntryInfo>());
 
             // Act
-            var files = client.ListFiles();
+            var files = client.GetEntries();
 
             // Assert
             Assert.Empty(files);
