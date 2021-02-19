@@ -10,15 +10,15 @@ namespace FileFS.Cli.Options
     public class RenameOptions : BaseOptions
     {
         /// <summary>
-        /// Gets or sets old name of existing file to rename.
+        /// Gets or sets name of existing directory or file to rename.
         /// </summary>
-        [Value(0, Required = true, HelpText = "Old name of existing file to rename.")]
-        public string OldFileName { get; set; }
+        [Value(0, Required = true, HelpText = "Current name of existing directory or file to to rename.")]
+        public string CurrentName { get; set; }
 
         /// <summary>
-        /// Gets or sets new name of existing file to rename.
+        /// Gets or sets new name of existing directory or file to move.
         /// </summary>
-        [Value(0, Required = true, HelpText = "New name of existing file to rename.")]
-        public string NewFileName { get; set; }
+        [Value(1, Required = true, HelpText = "New name of existing directory or file to rename.")]
+        public string NewName { get; set; }
     }
 }

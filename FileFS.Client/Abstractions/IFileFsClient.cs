@@ -73,6 +73,13 @@ namespace FileFS.Client.Abstractions
         void Rename(string currentName, string newName);
 
         /// <summary>
+        /// Moves existing file or directory to a new destination.
+        /// </summary>
+        /// <param name="from">Current name of file or directory.</param>
+        /// <param name="to">New name of a file or directory.</param>
+        void Move(string from, string to);
+
+        /// <summary>
         /// Deletes existing directory.
         /// </summary>
         /// <param name="name">Name of a directory to delete.</param>

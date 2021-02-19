@@ -128,7 +128,20 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(renameOptions, options =>
             {
                 var client = CommandHandlerHelper.CreateClient(options);
-                client.Rename(options.OldFileName, options.NewFileName);
+                client.Rename(options.CurrentName, options.NewName);
+            });
+        }
+
+        /// <summary>
+        /// Method that handles "move" command.
+        /// </summary>
+        /// <param name="moveOptions">Options passed to the command.</param>
+        internal static void HandleMove(MoveOptions moveOptions)
+        {
+            CommandHandlerHelper.TryExecute(moveOptions, options =>
+            {
+                var client = CommandHandlerHelper.CreateClient(options);
+                client.Move(options.CurrentName, options.NewName);
             });
         }
 

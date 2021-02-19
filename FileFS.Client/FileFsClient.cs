@@ -270,12 +270,6 @@ namespace FileFS.Client
         }
 
         /// <inheritdoc />
-        public void MoveDirectory(string currentDirectoryName, string newDirectoryName)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
         /// <exception cref="InvalidNameException">Throws if current or new name is invalid.</exception>
         /// <exception cref="EntryNotFoundException">Throws if entry not found.</exception>
         public void Rename(string currentName, string newName)
@@ -297,11 +291,25 @@ namespace FileFS.Client
                 throw new EntryNotFoundException(currentName);
             }
 
-            _fileRepository.Rename(currentName, newName);
+            if (ExistsInternal(newName))
+            {
+                throw new EntryAlreadyExistsException(newName);
+            }
+
+            var currentParentName = currentName.GetParentFullName();
+            var newParentName = currentName.GetParentFullName();
+
+            if (currentParentName != newParentName)
+            {
+                throw new ArgumentNonValidException($"New name of an entry should be inside same directory as current name, expected '{currentParentName}', got '{newParentName}'");
+            }
+
+            _entryRepository.Rename(currentName, newName);
 
             _transactionWrapper.EndTransaction();
         }
 
+        /// <inheritdoc />
         public void DeleteDirectory(string name)
         {
             throw new NotImplementedException();
@@ -329,6 +337,7 @@ namespace FileFS.Client
             _transactionWrapper.EndTransaction();
         }
 
+        /// <inheritdoc />
         public void Move(string from, string to)
         {
             _transactionWrapper.BeginTransaction();
@@ -354,9 +363,9 @@ namespace FileFS.Client
             }
 
             var newParentName = to.GetParentFullName();
-            if (!ExistsInternal(newParentName))
+            if (!DirectoryExistsInternal(newParentName))
             {
-                throw new EntryNotFoundException(from);
+                throw new DirectoryNotFoundException(newParentName);
             }
 
             _entryRepository.Move(from, to);
