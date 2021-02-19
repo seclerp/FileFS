@@ -7,7 +7,7 @@ namespace FileFS.DataAccess.Repositories.Abstractions
     /// <summary>
     /// Abstraction that represents file repository.
     /// </summary>
-    public interface IFileRepository
+    public interface IFileRepository : IEntryRepository
     {
         /// <summary>
         /// Creates new file in FileFS storage.
@@ -48,29 +48,9 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         void Read(string fileName, Stream destinationStream);
 
         /// <summary>
-        /// Renames file with given filename.
-        /// </summary>
-        /// <param name="currentFilename">Current name of a file to rename.</param>
-        /// <param name="newFilename">New name of a file to rename.</param>
-        void Rename(string currentFilename, string newFilename);
-
-        /// <summary>
-        /// Deletes file with given filename.
-        /// </summary>
-        /// <param name="fileName">Name of a file to delete.</param>
-        void Delete(string fileName);
-
-        /// <summary>
-        /// Returns true if file with given filename exists, otherwise false.
-        /// </summary>
-        /// <param name="fileName">Name of a file to check.</param>
-        /// <returns>True if file with given filename exists, otherwise false.</returns>
-        bool Exists(string fileName);
-
-        /// <summary>
         /// Returns all files details.
         /// </summary>
         /// <returns>All files details.</returns>
-        IEnumerable<FileEntryInfo> GetAllFilesInfo();
+        IEnumerable<FileFsEntryInfo> GetAllFilesInfo();
     }
 }

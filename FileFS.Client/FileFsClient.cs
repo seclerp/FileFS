@@ -10,7 +10,9 @@ using FileFS.Client.Transactions.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Exceptions;
+using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Repositories.Abstractions;
+using DirectoryNotFoundException = FileFS.Client.Exceptions.DirectoryNotFoundException;
 using FileNotFoundException = FileFS.Client.Exceptions.FileNotFoundException;
 
 namespace FileFS.Client
@@ -21,6 +23,8 @@ namespace FileFS.Client
     public class FileFsClient : IFileFsClient, IDisposable
     {
         private readonly IFileRepository _fileRepository;
+        private readonly IDirectoryRepository _directoryRepository;
+        private readonly IEntryRepository _entryRepository;
         private readonly IExternalFileManager _externalFileManager;
         private readonly IStorageOptimizer _optimizer;
         private readonly ITransactionWrapper _transactionWrapper;
@@ -29,42 +33,86 @@ namespace FileFS.Client
         /// Initializes a new instance of the <see cref="FileFsClient"/> class.
         /// </summary>
         /// <param name="fileRepository">File repository instance.</param>
+        /// <param name="directoryRepository">Directory repository instance.</param>
         /// <param name="externalFileManager">External file manager instance.</param>
         /// <param name="optimizer">Optimizer instance.</param>
         /// <param name="transactionWrapper">Transaction wrapper instance.</param>
         public FileFsClient(
             IFileRepository fileRepository,
+            IDirectoryRepository directoryRepository,
+            IEntryRepository entryRepository,
             IExternalFileManager externalFileManager,
             IStorageOptimizer optimizer,
             ITransactionWrapper transactionWrapper)
         {
             _fileRepository = fileRepository;
+            _directoryRepository = directoryRepository;
+            _entryRepository = entryRepository;
             _externalFileManager = externalFileManager;
             _optimizer = optimizer;
             _transactionWrapper = transactionWrapper;
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
-        public void Create(string fileName)
+        /// <exception cref="InvalidNameException">Throws if name is invalid.</exception>
+        /// <exception cref="EntryAlreadyExistsException">Throws if file already exists.</exception>
+        public void CreateDirectory(string name)
         {
-            Create(fileName, Array.Empty<byte>());
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(name))
+            {
+                throw new InvalidNameException(name);
+            }
+
+            if (ExistsInternal(name))
+            {
+                throw new EntryAlreadyExistsException(name);
+            }
+
+            var parentDirectoryName = name.GetParentFullName();
+            if (!DirectoryExistsInternal(parentDirectoryName))
+            {
+                throw new DirectoryNotFoundException(name);
+            }
+
+            _directoryRepository.Create(name);
+
+            _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
-        /// <exception cref="FileAlreadyExistsException">Throws if file already exists.</exception>
-        /// <exception cref="DataIsNullException">Throws if data is empty.</exception>
-        public void Create(string fileName, byte[] data)
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
+        /// <exception cref="EntryAlreadyExistsException">Throws if file already exists.</exception>
+        /// <exception cref="DirectoryNotFoundException">Throws if parent directory is not found.</exception>
+        public void CreateFile(string fileName)
         {
-            if (!IsValidFilename(fileName))
+            CreateFile(fileName, Array.Empty<byte>());
+        }
+
+        /// <inheritdoc />
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
+        /// <exception cref="EntryAlreadyExistsException">Throws if file already exists.</exception>
+        /// <exception cref="DirectoryNotFoundException">Throws if parent directory is not found.</exception>
+        /// <exception cref="DataIsNullException">Throws if data is empty.</exception>
+        public void CreateFile(string fileName, byte[] data)
+        {
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(fileName))
             {
-                throw new InvalidFilenameException(fileName);
+                throw new InvalidNameException(fileName);
             }
 
-            if (Exists(fileName))
+            if (ExistsInternal(fileName))
             {
-                throw new FileAlreadyExistsException(fileName);
+                throw new EntryAlreadyExistsException(fileName);
+            }
+
+            var parentDirectoryName = fileName.GetParentFullName();
+            if (!DirectoryExistsInternal(parentDirectoryName))
+            {
+                throw new DirectoryNotFoundException(fileName);
             }
 
             if (data is null)
@@ -72,25 +120,35 @@ namespace FileFS.Client
                 throw new DataIsNullException(fileName);
             }
 
-            _transactionWrapper.BeginTransaction();
-            _fileRepository.Create(new FileEntry(fileName, data));
+            var parentDirectory = _directoryRepository.Find(parentDirectoryName);
+            _fileRepository.Create(new FileEntry(fileName, parentDirectory.Id, data));
+
             _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
-        /// <exception cref="FileAlreadyExistsException">Throws if file already exists.</exception>
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
+        /// <exception cref="EntryAlreadyExistsException">Throws if file already exists.</exception>
+        /// <exception cref="DirectoryNotFoundException">Throws if parent directory is not found.</exception>
         /// <exception cref="DataIsNullException">Throws if data is empty.</exception>
-        public void Create(string fileName, Stream sourceStream, int length)
+        public void CreateFile(string fileName, Stream sourceStream, int length)
         {
-            if (!IsValidFilename(fileName))
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(fileName))
             {
-                throw new InvalidFilenameException(fileName);
+                throw new InvalidNameException(fileName);
             }
 
-            if (_fileRepository.Exists(fileName))
+            if (ExistsInternal(fileName))
             {
-                throw new FileAlreadyExistsException(fileName);
+                throw new EntryAlreadyExistsException(fileName);
+            }
+
+            var parentDirectoryName = fileName.GetParentFullName();
+            if (!DirectoryExistsInternal(parentDirectoryName))
+            {
+                throw new DirectoryNotFoundException(fileName);
             }
 
             if (sourceStream is null)
@@ -98,23 +156,26 @@ namespace FileFS.Client
                 throw new DataIsNullException(fileName);
             }
 
-            _transactionWrapper.BeginTransaction();
-            _fileRepository.Create(new StreamedFileEntry(fileName, sourceStream, length));
+            var parentDirectory = _directoryRepository.Find(parentDirectoryName);
+            _fileRepository.Create(new StreamedFileEntry(fileName, parentDirectory.Id, sourceStream, length));
+
             _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
         /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
         /// <exception cref="DataIsNullException">Throws if data is empty.</exception>
         public void Update(string fileName, byte[] newData)
         {
-            if (!IsValidFilename(fileName))
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(fileName))
             {
-                throw new InvalidFilenameException(fileName);
+                throw new InvalidNameException(fileName);
             }
 
-            if (!_fileRepository.Exists(fileName))
+            if (!FileExistsInternal(fileName))
             {
                 throw new FileNotFoundException(fileName);
             }
@@ -124,23 +185,27 @@ namespace FileFS.Client
                 throw new DataIsNullException(fileName);
             }
 
-            _transactionWrapper.BeginTransaction();
-            _fileRepository.Update(new FileEntry(fileName, newData));
+            var parentDirectoryName = fileName.GetParentFullName();
+            var parentDirectory = _directoryRepository.Find(parentDirectoryName);
+            _fileRepository.Update(new FileEntry(fileName, parentDirectory.Id, newData));
+
             _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
         /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
         /// <exception cref="DataIsNullException">Throws if data is empty.</exception>
         public void Update(string fileName, Stream sourceStream, int length)
         {
-            if (!IsValidFilename(fileName))
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(fileName))
             {
-                throw new InvalidFilenameException(fileName);
+                throw new InvalidNameException(fileName);
             }
 
-            if (!_fileRepository.Exists(fileName))
+            if (!FileExistsInternal(fileName))
             {
                 throw new FileNotFoundException(fileName);
             }
@@ -150,31 +215,47 @@ namespace FileFS.Client
                 throw new DataIsNullException(fileName);
             }
 
-            _transactionWrapper.BeginTransaction();
-            _fileRepository.Update(new StreamedFileEntry(fileName, sourceStream, length));
+            var parentDirectoryName = fileName.GetParentFullName();
+            var parentDirectory = _directoryRepository.Find(parentDirectoryName);
+            _fileRepository.Update(new StreamedFileEntry(fileName, parentDirectory.Id, sourceStream, length));
+
             _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
+        /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
         public byte[] Read(string fileName)
         {
-            if (!IsValidFilename(fileName))
+            if (!NameValid(fileName))
             {
-                throw new InvalidFilenameException(fileName);
+                throw new InvalidNameException(fileName);
+            }
+
+            if (!FileExistsInternal(fileName))
+            {
+                throw new FileNotFoundException(fileName);
             }
 
             return _fileRepository.Read(fileName).Data;
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
         /// <exception cref="ArgumentNonValidException">Throws when destinationStream is null.</exception>
+        /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
         public void Read(string fileName, Stream destinationStream)
         {
-            if (!IsValidFilename(fileName))
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(fileName))
             {
-                throw new InvalidFilenameException(fileName);
+                throw new InvalidNameException(fileName);
+            }
+
+            if (!FileExistsInternal(fileName))
+            {
+                throw new FileNotFoundException(fileName);
             }
 
             if (destinationStream is null)
@@ -182,63 +263,122 @@ namespace FileFS.Client
                 throw new ArgumentNonValidException($"Argument cannot be null: {nameof(destinationStream)}");
             }
 
-            _transactionWrapper.BeginTransaction();
             _fileRepository.Read(fileName, destinationStream);
+
             _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if current or new filename is invalid.</exception>
-        public void Rename(string currentFilename, string newFilename)
+        public void MoveDirectory(string currentDirectoryName, string newDirectoryName)
         {
-            if (!IsValidFilename(currentFilename))
-            {
-                throw new InvalidFilenameException(currentFilename);
-            }
+            throw new NotImplementedException();
+        }
 
-            if (!IsValidFilename(newFilename))
-            {
-                throw new InvalidFilenameException(newFilename);
-            }
-
+        /// <inheritdoc />
+        /// <exception cref="InvalidNameException">Throws if current or new name is invalid.</exception>
+        /// <exception cref="EntryNotFoundException">Throws if entry not found.</exception>
+        public void Rename(string currentName, string newName)
+        {
             _transactionWrapper.BeginTransaction();
-            _fileRepository.Rename(currentFilename, newFilename);
+
+            if (!NameValid(currentName))
+            {
+                throw new InvalidNameException(currentName);
+            }
+
+            if (!NameValid(newName))
+            {
+                throw new InvalidNameException(newName);
+            }
+
+            if (!ExistsInternal(currentName))
+            {
+                throw new EntryNotFoundException(currentName);
+            }
+
+            _fileRepository.Rename(currentName, newName);
+
             _transactionWrapper.EndTransaction();
         }
 
-        /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
-        public void Delete(string fileName)
+        public void DeleteDirectory(string name)
         {
-            if (!IsValidFilename(fileName))
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
+        /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
+        public void DeleteFile(string fileName)
+        {
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(fileName))
             {
-                throw new InvalidFilenameException(fileName);
+                throw new InvalidNameException(fileName);
             }
 
-            if (!_fileRepository.Exists(fileName))
+            if (!FileExistsInternal(fileName))
             {
                 throw new FileNotFoundException(fileName);
             }
 
-            _transactionWrapper.BeginTransaction();
             _fileRepository.Delete(fileName);
+
+            _transactionWrapper.EndTransaction();
+        }
+
+        public void Move(string from, string to)
+        {
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(from))
+            {
+                throw new InvalidNameException(from);
+            }
+
+            if (!NameValid(to))
+            {
+                throw new InvalidNameException(to);
+            }
+
+            if (!ExistsInternal(from))
+            {
+                throw new EntryNotFoundException(from);
+            }
+
+            if (ExistsInternal(to))
+            {
+                throw new EntryAlreadyExistsException(to);
+            }
+
+            var newParentName = to.GetParentFullName();
+            if (!ExistsInternal(newParentName))
+            {
+                throw new EntryNotFoundException(from);
+            }
+
+            _entryRepository.Move(from, to);
+
             _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
-        /// <exception cref="FileAlreadyExistsException">Throws if file already exists.</exception>
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
+        /// <exception cref="EntryAlreadyExistsException">Throws if entry already exists.</exception>
         /// <exception cref="ExternalFileNotFoundException">Throws if external file was not found.</exception>
-        public void Import(string externalPath, string fileName)
+        public void ImportFile(string externalPath, string fileName)
         {
-            if (!IsValidFilename(fileName))
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(fileName))
             {
-                throw new InvalidFilenameException(fileName);
+                throw new InvalidNameException(fileName);
             }
 
-            if (_fileRepository.Exists(fileName))
+            if (ExistsInternal(fileName))
             {
-                throw new FileAlreadyExistsException(fileName);
+                throw new EntryAlreadyExistsException(fileName);
             }
 
             if (!_externalFileManager.Exists(externalPath))
@@ -246,24 +386,26 @@ namespace FileFS.Client
                 throw new ExternalFileNotFoundException(externalPath);
             }
 
-            _transactionWrapper.BeginTransaction();
             using var externalFileStream = _externalFileManager.OpenReadStream(externalPath);
-            Create(fileName, externalFileStream, (int)externalFileStream.Length);
+            CreateFileInternal(fileName, externalFileStream, (int)externalFileStream.Length);
+
             _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
         /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
         /// <exception cref="ExternalFileAlreadyExistsException">Throws if external file already exists.</exception>
-        public void Export(string fileName, string externalPath)
+        public void ExportFile(string fileName, string externalPath)
         {
-            if (!IsValidFilename(fileName))
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(fileName))
             {
-                throw new InvalidFilenameException(fileName);
+                throw new InvalidNameException(fileName);
             }
 
-            if (!Exists(fileName))
+            if (!FileExistsInternal(fileName))
             {
                 throw new FileNotFoundException(fileName);
             }
@@ -273,34 +415,89 @@ namespace FileFS.Client
                 throw new ExternalFileAlreadyExistsException(externalPath);
             }
 
-            _transactionWrapper.BeginTransaction();
             using var externalFileStream = _externalFileManager.OpenWriteStream(externalPath);
-            Read(fileName, externalFileStream);
+            ReadInternal(fileName, externalFileStream);
+
             _transactionWrapper.EndTransaction();
         }
 
         /// <inheritdoc />
-        /// <exception cref="InvalidFilenameException">Throws if filename is invalid.</exception>
-        public bool Exists(string fileName)
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
+        public bool FileExists(string fileName)
         {
-            if (!IsValidFilename(fileName))
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(fileName))
             {
-                throw new InvalidFilenameException(fileName);
+                throw new InvalidNameException(fileName);
             }
 
-            _transactionWrapper.BeginTransaction();
-            var exists = _fileRepository.Exists(fileName);
+            var exists = FileExistsInternal(fileName);
+
             _transactionWrapper.EndTransaction();
 
             return exists;
         }
 
         /// <inheritdoc />
-        public IEnumerable<FileEntryInfo> ListFiles()
+        /// <exception cref="InvalidNameException">Throws if name is invalid.</exception>
+        public bool DirectoryExists(string fileName)
+        {
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(fileName))
+            {
+                throw new InvalidNameException(fileName);
+            }
+
+            var exists = DirectoryExistsInternal(fileName);
+
+            _transactionWrapper.EndTransaction();
+
+            return exists;
+        }
+
+        /// <inheritdoc />
+        /// <exception cref="InvalidNameException">Throws if name is invalid.</exception>
+        public bool Exists(string name)
+        {
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(name))
+            {
+                throw new InvalidNameException(name);
+            }
+
+            var exists = ExistsInternal(name);
+
+            _transactionWrapper.EndTransaction();
+
+            return exists;
+        }
+
+        /// <inheritdoc />
+        public IEnumerable<FileFsEntryInfo> ListFiles()
         {
             return _fileRepository
                 .GetAllFilesInfo()
                 .ToArray();
+        }
+
+        /// <inheritdoc />
+        public bool IsDirectory(string name)
+        {
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(name))
+            {
+                throw new InvalidNameException(name);
+            }
+
+            var result = _directoryRepository.Exists(name);
+
+            _transactionWrapper.EndTransaction();
+
+            return result;
         }
 
         /// <inheritdoc />
@@ -319,9 +516,42 @@ namespace FileFS.Client
             _transactionWrapper?.Dispose();
         }
 
-        private static bool IsValidFilename(string fileName)
+        private static bool NameValid(string fileName)
         {
             return fileName is { } && Regex.IsMatch(fileName, PatternMatchingConstants.ValidFilename);
+        }
+
+        private void CreateFileInternal(string name, Stream sourceStream, int length)
+        {
+            var parentDirectoryName = name.GetParentFullName();
+            var parentDirectory = _directoryRepository.Find(parentDirectoryName);
+            _fileRepository.Create(new StreamedFileEntry(name, parentDirectory.Id, sourceStream, length));
+        }
+
+        private void ReadInternal(string name, Stream destinationStream)
+        {
+            _fileRepository.Read(name, destinationStream);
+        }
+
+        private bool FileExistsInternal(string name)
+        {
+            var exists = _fileRepository.Exists(name);
+
+            return exists;
+        }
+
+        private bool DirectoryExistsInternal(string name)
+        {
+            var exists = _directoryRepository.Exists(name);
+
+            return exists;
+        }
+
+        private bool ExistsInternal(string name)
+        {
+            var exists = _entryRepository.Exists(name);
+
+            return exists;
         }
     }
 }

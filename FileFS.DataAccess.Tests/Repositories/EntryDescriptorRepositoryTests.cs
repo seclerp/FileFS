@@ -1,7 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
+using FileFS.DataAccess.Entities.Enums;
 using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Serializers.Abstractions;
@@ -18,7 +20,7 @@ using Xunit;
 
 namespace FileFS.DataAccess.Tests.Repositories
 {
-    public class FileDescriptorRepositoryTests
+    public class EntryDescriptorRepositoryTests
     {
         private const int FileNameLength = 100;
 
@@ -30,10 +32,10 @@ namespace FileFS.DataAccess.Tests.Repositories
         {
             // Arrange
             var storageBuffer = new byte[10000];
-            var fileDescriptor = new FileDescriptor(fileName, createdOn, updatedOn, dataOffset, dataLength);
+            var fileDescriptor = new EntryDescriptor(Guid.NewGuid(), fileName, EntryType.File, createdOn, updatedOn, dataOffset, dataLength);
             var repository = CreateRepository(storageBuffer, true);
-            var cursor = new Cursor(-FilesystemDescriptor.BytesTotal - FileDescriptor.BytesWithoutFilename - FileNameLength, SeekOrigin.End);
-            repository.Write(new StorageItem<FileDescriptor>(fileDescriptor, cursor));
+            var cursor = new Cursor(-FilesystemDescriptor.BytesTotal - EntryDescriptor.BytesWithoutFilename - FileNameLength, SeekOrigin.End);
+            repository.Write(new StorageItem<EntryDescriptor>(fileDescriptor, cursor));
 
             // Act
             var writtenFileDescriptor = repository.Read(cursor);
@@ -65,10 +67,10 @@ namespace FileFS.DataAccess.Tests.Repositories
 
             var expectedDescriptors = new[]
             {
-                new FileDescriptor("test1.storage", 0, 0, 0, 0),
-                new FileDescriptor("test2.storage", 0, 0, 0, 0),
-                new FileDescriptor("test3.storage", 0, 0, 0, 0),
-                new FileDescriptor("test4.storage", 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test1.storage", EntryType.File, 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test2.storage", EntryType.File, 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test3.storage", EntryType.File, 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test4.storage", EntryType.File, 0, 0, 0, 0),
             };
 
             var repository = CreateRepository(storageBuffer, true, expectedDescriptors);
@@ -88,12 +90,12 @@ namespace FileFS.DataAccess.Tests.Repositories
         {
             // Arrange
             var storageBuffer = new byte[10000];
-            var fileDescriptor = new FileDescriptor(fileName, createdOn, updatedOn, dataOffset, dataLength);
+            var fileDescriptor = new EntryDescriptor(Guid.NewGuid(), fileName, EntryType.File, createdOn, updatedOn, dataOffset, dataLength);
             var repository = CreateRepository(storageBuffer, true);
-            var cursor = new Cursor(-FilesystemDescriptor.BytesTotal - FileDescriptor.BytesWithoutFilename - FileNameLength, SeekOrigin.End);
+            var cursor = new Cursor(-FilesystemDescriptor.BytesTotal - EntryDescriptor.BytesWithoutFilename - FileNameLength, SeekOrigin.End);
 
             // Act
-            repository.Write(new StorageItem<FileDescriptor>(fileDescriptor, cursor));
+            repository.Write(new StorageItem<EntryDescriptor>(fileDescriptor, cursor));
 
             // Assert
             var writtenFileDescriptor = repository.Read(cursor);
@@ -106,20 +108,20 @@ namespace FileFS.DataAccess.Tests.Repositories
         {
             // Arrange
             var storageBuffer = new byte[10000];
-            var expectedFoundDescriptor = new FileDescriptor("test3.storage", 0, 0, 0, 0);
+            var expectedFoundDescriptor = new EntryDescriptor(Guid.NewGuid(), "test3.storage", EntryType.File, 0, 0, 0, 0);
 
             var descriptors = new[]
             {
-                new FileDescriptor("test1.storage", 0, 0, 0, 0),
-                new FileDescriptor("test2.storage", 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test1.storage", EntryType.File, 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test2.storage", EntryType.File, 0, 0, 0, 0),
                 expectedFoundDescriptor,
-                new FileDescriptor("test4.storage", 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test4.storage", EntryType.File, 0, 0, 0, 0),
             };
 
             var repository = CreateRepository(storageBuffer, true, descriptors);
 
             // Act
-            var foundFileDescriptorItem = repository.Find(expectedFoundDescriptor.FileName);
+            var foundFileDescriptorItem = repository.Find(expectedFoundDescriptor.EntryName);
 
             // Assert
             Assert.Equal(expectedFoundDescriptor, foundFileDescriptorItem.Value);
@@ -131,20 +133,20 @@ namespace FileFS.DataAccess.Tests.Repositories
         {
             // Arrange
             var storageBuffer = new byte[10000];
-            var expectedFoundDescriptor = new FileDescriptor(fileName, createdOn, updatedOn, dataOffset, dataLength);
+            var expectedFoundDescriptor = new EntryDescriptor(Guid.NewGuid(), fileName, EntryType.File, createdOn, updatedOn, dataOffset, dataLength);
 
             var descriptors = new[]
             {
-                new FileDescriptor("test1.storage", 0, 0, 0, 0),
-                new FileDescriptor("test2.storage", 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test1.storage", EntryType.File, 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test2.storage", EntryType.File, 0, 0, 0, 0),
                 expectedFoundDescriptor,
-                new FileDescriptor("test4.storage", 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test4.storage", EntryType.File, 0, 0, 0, 0),
             };
 
             var repository = CreateRepository(storageBuffer, true, descriptors);
 
             // Act
-            var itemExists = repository.Exists(expectedFoundDescriptor.FileName);
+            var itemExists = repository.Exists(expectedFoundDescriptor.EntryName);
 
             // Assert
             Assert.True(itemExists);
@@ -158,27 +160,27 @@ namespace FileFS.DataAccess.Tests.Repositories
 
             var descriptors = new[]
             {
-                new FileDescriptor("test1.storage", 0, 0, 0, 0),
-                new FileDescriptor("test2.storage", 0, 0, 0, 0),
-                new FileDescriptor("test3.storage", 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test1.storage", string.Empty, EntryType.File, 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test2.storage", string.Empty, EntryType.File, 0, 0, 0, 0),
+                new EntryDescriptor(Guid.NewGuid(), "test3.storage", string.Empty, EntryType.File, 0, 0, 0, 0),
             };
 
             var repository = CreateRepository(storageBuffer, true, descriptors);
 
             // Act
-            var itemExists = repository.Exists("test4.storage");
+            var itemExists = repository.Exists("/test4.storage");
 
             // Assert
             Assert.False(itemExists);
         }
 
-        private static IFileDescriptorRepository CreateRepository(byte[] storageBuffer, bool initializeStorage, params FileDescriptor[] itemsToAdd)
+        private static IEntryDescriptorRepository CreateRepository(byte[] storageBuffer, bool initializeStorage, params EntryDescriptor[] itemsToAdd)
         {
             var services = new ServiceCollection();
             services.AddSingleton<ILogger>(new LoggerConfiguration().CreateLogger());
             services.AddFileFsDataAccessInMemory(storageBuffer);
             var serviceProvider = services.BuildServiceProvider();
-            var fileDescriptorRepository = serviceProvider.GetRequiredService<IFileDescriptorRepository>();
+            var entryDescriptorRepository = serviceProvider.GetRequiredService<IEntryDescriptorRepository>();
 
             if (initializeStorage)
             {
@@ -190,21 +192,21 @@ namespace FileFS.DataAccess.Tests.Repositories
                 var storageInitializer =
                     new StorageInitializer(storageStreamProvider, filesystemDescriptorSerializer, logger);
                 storageInitializer.Initialize(storageBuffer.Length, FileNameLength);
-                var fileNameLength = filesystemDescriptorAccessor.Value.FileDescriptorLength - FileDescriptor.BytesWithoutFilename;
+                var fileNameLength = filesystemDescriptorAccessor.Value.EntryDescriptorLength - EntryDescriptor.BytesWithoutFilename;
 
-                var offset = -FilesystemDescriptor.BytesTotal - FileDescriptor.BytesWithoutFilename - fileNameLength;
+                var offset = -FilesystemDescriptor.BytesTotal - EntryDescriptor.BytesWithoutFilename - fileNameLength;
                 foreach (var itemToAdd in itemsToAdd)
                 {
-                    fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(itemToAdd, new Cursor(offset, SeekOrigin.End)));
+                    entryDescriptorRepository.Write(new StorageItem<EntryDescriptor>(itemToAdd, new Cursor(offset, SeekOrigin.End)));
                     var currentFilesystemDescriptor = filesystemDescriptorAccessor.Value;
                     var updatedFilesystemDescriptor = currentFilesystemDescriptor
-                        .WithFileDescriptorsCount(currentFilesystemDescriptor.FileDescriptorsCount + 1);
+                        .WithFileDescriptorsCount(currentFilesystemDescriptor.EntryDescriptorsCount + 1);
                     filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
-                    offset -= FileDescriptor.BytesWithoutFilename + fileNameLength;
+                    offset -= EntryDescriptor.BytesWithoutFilename + fileNameLength;
                 }
             }
 
-            return fileDescriptorRepository;
+            return entryDescriptorRepository;
         }
     }
 }

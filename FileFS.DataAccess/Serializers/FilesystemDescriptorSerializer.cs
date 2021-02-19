@@ -53,8 +53,8 @@ namespace FileFS.DataAccess.Serializers
             _logger.Information("Writing filesystem descriptor data");
 
             writer.Write(model.FilesDataLength);
-            writer.Write(model.FileDescriptorsCount);
-            writer.Write(model.FileDescriptorLength);
+            writer.Write(model.EntryDescriptorsCount);
+            writer.Write(model.EntryDescriptorLength);
 
             _logger.Information("Done writing filesystem descriptor data");
 

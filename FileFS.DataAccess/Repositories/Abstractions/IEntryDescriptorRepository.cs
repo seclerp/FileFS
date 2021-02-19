@@ -6,39 +6,41 @@ namespace FileFS.DataAccess.Repositories.Abstractions
     /// <summary>
     /// Abstractions that represents file descriptor repository.
     /// </summary>
-    public interface IFileDescriptorRepository
+    public interface IEntryDescriptorRepository
     {
         /// <summary>
         /// Reads file descriptor from FileFS storage.
         /// </summary>
         /// <param name="cursor">Cursor in memory.</param>
         /// <returns>Storage item that represents file descriptor with its cursor in memory.</returns>
-        StorageItem<FileDescriptor> Read(Cursor cursor);
+        StorageItem<EntryDescriptor> Read(Cursor cursor);
 
         /// <summary>
-        /// Returns all file descriptors stored in FileFS storage.
+        /// Returns all entry descriptors stored in FileFS storage.
         /// </summary>
         /// <returns>All file descriptors storage items stored in FileFS storage.</returns>
-        IReadOnlyCollection<StorageItem<FileDescriptor>> ReadAll();
+        IReadOnlyCollection<StorageItem<EntryDescriptor>> ReadAll();
 
         /// <summary>
-        /// Writes file descriptor into FileFS storage.
+        /// Writes entry descriptor into FileFS storage.
         /// </summary>
         /// <param name="item">Storage item that represents file descriptor with its cursor in memory.</param>
-        void Write(StorageItem<FileDescriptor> item);
+        void Write(StorageItem<EntryDescriptor> item);
 
         /// <summary>
-        /// Finds file descriptor by file name.
+        /// Finds entry descriptor by file name.
         /// </summary>
-        /// <param name="fileName">Name of the file.</param>
+        /// <param name="entryName">Name of the file.</param>
         /// <returns>Storage item that represents file descriptor with its cursor in memory.</returns>
-        StorageItem<FileDescriptor> Find(string fileName);
+        StorageItem<EntryDescriptor> Find(string entryName);
 
         /// <summary>
         /// Returns true if file descriptor for given filename exists, otherwise false.
         /// </summary>
-        /// <param name="fileName">Name of a file to check.</param>
+        /// <param name="entryName">Name of a file to check.</param>
         /// <returns>True if file descriptor for given filename exists, otherwise false.</returns>
-        bool Exists(string fileName);
+        bool Exists(string entryName);
+
+        bool TryFind(string entryName, out StorageItem<EntryDescriptor> item);
     }
 }

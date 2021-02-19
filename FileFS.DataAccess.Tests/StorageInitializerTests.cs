@@ -31,7 +31,7 @@ namespace FileFS.DataAccess.Tests
             var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer(logger);
             var storageInitializer = new StorageInitializer(storageStreamProvider, filesystemDescriptorSerializer, logger);
             var expectedFilesystemDescriptor =
-                new FilesystemDescriptor(0, 0, fileNameLength + FileDescriptor.BytesWithoutFilename);
+                new FilesystemDescriptor(0, 0, fileNameLength + EntryDescriptor.BytesWithoutFilename);
 
             // Act
             storageInitializer.Initialize(size, fileNameLength);
