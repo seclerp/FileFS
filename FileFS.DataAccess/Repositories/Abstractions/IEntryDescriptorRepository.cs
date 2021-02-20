@@ -48,6 +48,12 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         /// <returns>True if file descriptor for given filename exists, otherwise false.</returns>
         bool Exists(string entryName);
 
+        /// <summary>
+        /// Tries to find entry descriptor with given name, passes result in item out param, returns true if it exists, otherwise false.
+        /// </summary>
+        /// <param name="entryName">Name of an entry to search.</param>
+        /// <param name="item">Out parameter that will represent found item on success.</param>
+        /// <returns>True if entry descriptor exists, otherwise false.</returns>
         bool TryFind(string entryName, out StorageItem<EntryDescriptor> item);
     }
 }

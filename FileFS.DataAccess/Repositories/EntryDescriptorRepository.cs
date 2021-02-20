@@ -89,6 +89,7 @@ namespace FileFS.DataAccess.Repositories
             return allDescriptors;
         }
 
+        /// <inheritdoc />
         public IReadOnlyCollection<StorageItem<EntryDescriptor>> ReadChildren(string entryName)
         {
             _logger.Information($"Start reading children for '{entryName}'");
@@ -139,12 +140,13 @@ namespace FileFS.DataAccess.Repositories
         {
             if (!TryFind(entryName, out var item))
             {
-                throw new EntryDescrisptorNotFound(entryName);
+                throw new EntryDescriptorNotFound(entryName);
             }
 
             return item;
         }
 
+        /// <inheritdoc />
         public bool TryFind(string entryName, out StorageItem<EntryDescriptor> item)
         {
             item = default;

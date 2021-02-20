@@ -39,7 +39,7 @@ namespace FileFS.DataAccess.Abstractions
         void PerformRead(Cursor cursor, int length, Stream destinationStream);
 
         /// <summary>
-        /// Perform copying of the data.
+        /// Perform buffered copying of the data.
         /// </summary>
         /// <param name="sourceCursor">Cursor that points to an existing data.</param>
         /// <param name="destinationCursor">Cursor that points to a new destination.</param>

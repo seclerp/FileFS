@@ -33,6 +33,13 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         void Update(StreamedFileEntry streamedFile);
 
         /// <summary>
+        /// Copies existing file to a new destination.
+        /// </summary>
+        /// <param name="fileNameFrom">Name of an existing file to copy.</param>
+        /// <param name="fileNameTo">Destination name of a file to copy to.</param>
+        void Copy(string fileNameFrom, string fileNameTo);
+
+        /// <summary>
         /// Reads file with given filename.
         /// </summary>
         /// <param name="fileName">Name of a file to read.</param>
@@ -45,6 +52,5 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         /// <param name="fileName">Name of a file to read.</param>
         /// <param name="destinationStream">Destination stream of data.</param>
         void Read(string fileName, Stream destinationStream);
-
     }
 }

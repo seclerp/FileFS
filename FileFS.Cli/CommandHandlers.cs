@@ -84,7 +84,7 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(deleteOptions, options =>
             {
                 var client = CommandHandlerHelper.CreateClient(options);
-                client.DeleteFile(options.FileName);
+                client.Delete(options.FileName);
 
                 if (options.ForceOptimize)
                 {
@@ -142,6 +142,19 @@ namespace FileFS.Cli
             {
                 var client = CommandHandlerHelper.CreateClient(options);
                 client.Move(options.CurrentName, options.NewName);
+            });
+        }
+
+        /// <summary>
+        /// Method that handles "copy" command.
+        /// </summary>
+        /// <param name="copyOptions">Options passed to the command.</param>
+        internal static void HandleCopy(CopyOptions copyOptions)
+        {
+            CommandHandlerHelper.TryExecute(copyOptions, options =>
+            {
+                var client = CommandHandlerHelper.CreateClient(options);
+                client.Copy(options.CurrentName, options.NewName);
             });
         }
 
