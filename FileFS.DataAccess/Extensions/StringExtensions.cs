@@ -60,5 +60,22 @@ namespace FileFS.DataAccess.Extensions
 
             return $"{first}{PathConstants.PathSeparator}{second}";
         }
+
+        /// <summary>
+        /// Returns true if entry with name firstName is a partial parent of an entry with secondName, otherwise false.
+        /// </summary>
+        /// <param name="firstName">Name of potential parent entry.</param>
+        /// <param name="secondName">Name of a potential child entry.</param>
+        /// <returns>True if entry with name firstName is a partial parent of an entry with secondName, otherwise false.</returns>
+        public static bool IsParentTo(this string firstName, string secondName)
+        {
+            if (firstName == PathConstants.RootDirectoryName)
+            {
+                return true;
+            }
+
+            return firstName != secondName
+                   && secondName.Contains($"{firstName}{PathConstants.PathSeparator}");
+        }
     }
 }

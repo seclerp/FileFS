@@ -13,7 +13,7 @@ namespace FileFS.DataAccess.Entities.Abstractions
         public string EntryName { get; }
 
         /// <summary>
-        /// Path to a directory where entry should be stored.
+        /// Gets path to a directory where entry should be stored.
         /// </summary>
         public Guid ParentEntryId { get; }
     }

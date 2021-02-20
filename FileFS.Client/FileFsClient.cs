@@ -10,6 +10,7 @@ using FileFS.Client.Transactions.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Constants;
 using FileFS.DataAccess.Entities;
+using FileFS.DataAccess.Entities.Enums;
 using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Repositories.Abstractions;
@@ -35,6 +36,7 @@ namespace FileFS.Client
         /// </summary>
         /// <param name="fileRepository">File repository instance.</param>
         /// <param name="directoryRepository">Directory repository instance.</param>
+        /// <param name="entryRepository">Entry repository instance.</param>
         /// <param name="externalFileManager">External file manager instance.</param>
         /// <param name="optimizer">Optimizer instance.</param>
         /// <param name="transactionWrapper">Transaction wrapper instance.</param>
@@ -304,35 +306,12 @@ namespace FileFS.Client
                 throw new ArgumentNonValidException($"New name of an entry should be inside same directory as current name, expected '{currentParentName}', got '{newParentName}'");
             }
 
+            if (currentName == PathConstants.RootDirectoryName)
+            {
+                throw new OperationIsInvalid("Rename of root directory is not allowed");
+            }
+
             _entryRepository.Rename(currentName, newName);
-
-            _transactionWrapper.EndTransaction();
-        }
-
-        /// <inheritdoc />
-        public void DeleteDirectory(string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
-        /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
-        public void DeleteFile(string fileName)
-        {
-            _transactionWrapper.BeginTransaction();
-
-            if (!NameValid(fileName))
-            {
-                throw new InvalidNameException(fileName);
-            }
-
-            if (!FileExistsInternal(fileName))
-            {
-                throw new FileNotFoundException(fileName);
-            }
-
-            _fileRepository.Delete(fileName);
 
             _transactionWrapper.EndTransaction();
         }
@@ -368,7 +347,86 @@ namespace FileFS.Client
                 throw new DirectoryNotFoundException(newParentName);
             }
 
+            if (from == PathConstants.RootDirectoryName)
+            {
+                throw new OperationIsInvalid("Move of root directory is not allowed");
+            }
+
+            if (from.IsParentTo(to))
+            {
+                throw new OperationIsInvalid("Move of parent entry inside it child is not allowed");
+            }
+
             _entryRepository.Move(from, to);
+
+            _transactionWrapper.EndTransaction();
+        }
+
+        /// <inheritdoc />
+        public void Copy(string from, string to)
+        {
+            if (!NameValid(from))
+            {
+                throw new InvalidNameException(from);
+            }
+
+            if (!NameValid(to))
+            {
+                throw new InvalidNameException(to);
+            }
+
+            if (!ExistsInternal(from))
+            {
+                throw new EntryNotFoundException(from);
+            }
+
+            if (ExistsInternal(to))
+            {
+                throw new EntryAlreadyExistsException(to);
+            }
+
+            var newParentName = to.GetParentFullName();
+            if (!DirectoryExistsInternal(newParentName))
+            {
+                throw new DirectoryNotFoundException(newParentName);
+            }
+
+            if (from == PathConstants.RootDirectoryName)
+            {
+                throw new OperationIsInvalid("Copy of root directory is not allowed");
+            }
+
+            if (from.IsParentTo(to))
+            {
+                throw new OperationIsInvalid("Copy of parent entry inside it child is not allowed");
+            }
+
+            CopyInternal(from, to);
+        }
+
+        /// <inheritdoc />
+        /// <exception cref="InvalidNameException">Throws if filename is invalid.</exception>
+        /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
+        public void Delete(string name)
+        {
+            _transactionWrapper.BeginTransaction();
+
+            if (!NameValid(name))
+            {
+                throw new InvalidNameException(name);
+            }
+
+            if (!ExistsInternal(name))
+            {
+                throw new EntryNotFoundException(name);
+            }
+
+            if (name == PathConstants.RootDirectoryName)
+            {
+                throw new ArgumentNonValidException("Delete of root directory is not allowed");
+            }
+
+            DeleteInternal(name);
 
             _transactionWrapper.EndTransaction();
         }
@@ -553,6 +611,89 @@ namespace FileFS.Client
         private void ReadInternal(string name, Stream destinationStream)
         {
             _fileRepository.Read(name, destinationStream);
+        }
+
+        private void CopyInternal(string from, string to)
+        {
+            if (DirectoryExistsInternal(from))
+            {
+                CopyDirectoryInternal(from, to);
+            }
+            else
+            {
+                CopyFileInternal(from, to);
+            }
+        }
+
+        private void CopyFileInternal(string from, string to)
+        {
+            _fileRepository.Copy(from, to);
+        }
+
+        private void CopyDirectoryInternal(string from, string to)
+        {
+            _directoryRepository.Create(to);
+
+            var entriesInfo = _entryRepository.GetEntriesInfo(from);
+            var directoriesInfo = entriesInfo.Where(entryInfo => entryInfo.EntryType is EntryType.Directory);
+            var filesInfo = entriesInfo.Where(entryInfo => entryInfo.EntryType is EntryType.File);
+
+            // Copy files firstly
+            foreach (var fileInfo in filesInfo)
+            {
+                var fileShortName = fileInfo.EntryName.GetShortName();
+                var newFileName = to.CombineWith(fileShortName);
+
+                CopyFileInternal(fileInfo.EntryName, newFileName);
+            }
+
+            // Then - directories using recursion
+            foreach (var directoryInfo in directoriesInfo)
+            {
+                var directoryShortName = directoryInfo.EntryName.GetShortName();
+                var newDirectoryName = to.CombineWith(directoryShortName);
+
+                CopyDirectoryInternal(directoryInfo.EntryName, newDirectoryName);
+            }
+        }
+
+        private void DeleteInternal(string name)
+        {
+            if (DirectoryExistsInternal(name))
+            {
+                DeleteDirectoryInternal(name);
+            }
+            else
+            {
+                DeleteFileInternal(name);
+            }
+        }
+
+        private void DeleteFileInternal(string name)
+        {
+            _fileRepository.Delete(name);
+        }
+
+        private void DeleteDirectoryInternal(string name)
+        {
+            var entriesInfo = _entryRepository.GetEntriesInfo(name);
+            var directoriesInfo = entriesInfo.Where(entryInfo => entryInfo.EntryType is EntryType.Directory);
+            var filesInfo = entriesInfo.Where(entryInfo => entryInfo.EntryType is EntryType.File);
+
+            // Delete files firstly
+            foreach (var fileInfo in filesInfo)
+            {
+                DeleteFileInternal(fileInfo.EntryName);
+            }
+
+            // Then - directories using recursion
+            foreach (var directoryInfo in directoriesInfo)
+            {
+                DeleteDirectoryInternal(directoryInfo.EntryName);
+            }
+
+            // We should delete directory itself only after all descriptors inside this directory recursively would be deleted
+            _directoryRepository.Delete(name);
         }
 
         private bool FileExistsInternal(string name)

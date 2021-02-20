@@ -80,16 +80,17 @@ namespace FileFS.Client.Abstractions
         void Move(string from, string to);
 
         /// <summary>
-        /// Deletes existing directory.
+        /// Copies existing file or directory to a new destination.
         /// </summary>
-        /// <param name="name">Name of a directory to delete.</param>
-        void DeleteDirectory(string name);
+        /// <param name="from">Current name of file or directory.</param>
+        /// <param name="to">New name of a file or directory.</param>
+        void Copy(string from, string to);
 
         /// <summary>
-        /// Deletes existing file.
+        /// Deletes existing file or directory.
         /// </summary>
-        /// <param name="fileName">Name of a file to delete.</param>
-        void DeleteFile(string fileName);
+        /// <param name="name">Name of a file or directory to delete.</param>
+        void Delete(string name);
 
         /// <summary>
         /// Imports external file into FileFS storage.

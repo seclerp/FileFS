@@ -70,6 +70,24 @@ namespace FileFS.DataAccess.Repositories
         }
 
         /// <inheritdoc />
+        public void Copy(string fileNameFrom, string fileNameTo)
+        {
+            var sourceFileDescriptor = _entryDescriptorRepository.Find(fileNameFrom).Value;
+            var sourceDataCursor = new Cursor(sourceFileDescriptor.DataOffset, SeekOrigin.Begin);
+
+            var destinationParentName = fileNameTo.GetParentFullName();
+            var destinationParentDescriptor = _entryDescriptorRepository.Find(destinationParentName).Value;
+            var destinationPlaceholder = new PlaceholderFileEntry(fileNameTo, destinationParentDescriptor.Id, sourceFileDescriptor.DataLength);
+
+            // Create empty file of given size with no data
+            CreateInternal(destinationPlaceholder, destinationDataCursor =>
+            {
+                // Copy data from source file data origin to destination
+                _connection.PerformCopy(sourceDataCursor, destinationDataCursor, sourceFileDescriptor.DataLength);
+            });
+        }
+
+        /// <inheritdoc />
         public FileEntry Read(string fileName)
         {
             // 1. Find descriptor
