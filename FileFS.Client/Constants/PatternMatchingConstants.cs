@@ -8,6 +8,6 @@
         /// <summary>
         /// Pattern that represents valid filename for FileFS storage.
         /// </summary>
-        public static readonly string ValidFilename = @"^(\/|(\/[\p{L}\-. 0-9]+)*)$";
+        public static readonly string ValidFilename = @"^(\/|(\/[\p{L}\-_. 0-9]+)+)$";
     }
 }

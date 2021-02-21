@@ -116,7 +116,7 @@ namespace FileFS.Client
             var parentDirectoryName = fileName.GetParentFullName();
             if (!DirectoryExistsInternal(parentDirectoryName))
             {
-                throw new DirectoryNotFoundException(fileName);
+                throw new DirectoryNotFoundException(parentDirectoryName);
             }
 
             if (data is null)
