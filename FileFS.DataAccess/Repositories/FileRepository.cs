@@ -100,7 +100,7 @@ namespace FileFS.DataAccess.Repositories
         }
 
         /// <inheritdoc />
-        public void Read(string fileName, Stream destinationStream)
+        public void ReadData(string fileName, Stream destinationStream)
         {
             // 1. Find descriptor
             var descriptorItem = _entryDescriptorRepository.Find(fileName);
@@ -178,7 +178,7 @@ namespace FileFS.DataAccess.Repositories
             var updatedDescriptor = new EntryDescriptor(
                 descriptorItem.Value.Id,
                 descriptorItem.Value.ParentId,
-                descriptorItem.Value.EntryName,
+                descriptorItem.Value.Name,
                 EntryType.File,
                 descriptorItem.Value.CreatedOn,
                 updatedOn,

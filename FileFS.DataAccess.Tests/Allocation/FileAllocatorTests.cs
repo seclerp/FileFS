@@ -80,10 +80,10 @@ namespace FileFS.DataAccess.Tests.Allocation
             var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
             var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
             var dataBytes = Encoding.UTF8.GetBytes("data");
-            fileRepository.Create(new FileEntry("some_file", "some_directory", dataBytes));
-            fileRepository.Create(new FileEntry("some_other_file", "some_directory", dataBytes));
-            fileRepository.Create(new FileEntry("some_other_other_file", "some_directory", dataBytes));
-            fileRepository.Delete("some_file");
+            fileRepository.Create(new FileEntry("/some_file", Guid.NewGuid(), dataBytes));
+            fileRepository.Create(new FileEntry("/some_other_file", Guid.NewGuid(), dataBytes));
+            fileRepository.Create(new FileEntry("/some_other_other_file", Guid.NewGuid(), dataBytes));
+            fileRepository.Delete("/some_file");
             var expectedCursor = new Cursor(0, SeekOrigin.Begin);
 
             // Ac
@@ -105,9 +105,9 @@ namespace FileFS.DataAccess.Tests.Allocation
             var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
             var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
             var dataBytes = Encoding.UTF8.GetBytes("data");
-            fileRepository.Create(new FileEntry("some_file", "some_directory", dataBytes));
-            fileRepository.Create(new FileEntry("some_other_file", "some_directory", dataBytes));
-            fileRepository.Create(new FileEntry("some_other_other_file", "some_directory", dataBytes));
+            fileRepository.Create(new FileEntry("some_file", Guid.NewGuid(), dataBytes));
+            fileRepository.Create(new FileEntry("some_other_file", Guid.NewGuid(), dataBytes));
+            fileRepository.Create(new FileEntry("some_other_other_file", Guid.NewGuid(), dataBytes));
             fileRepository.Delete("some_file");
             var expectedCursor = new Cursor(dataBytes.Length * 3, SeekOrigin.Begin);
 

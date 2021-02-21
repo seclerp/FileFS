@@ -96,7 +96,7 @@ namespace FileFS.DataAccess.Repositories
             return _entryDescriptorRepository
                 .ReadChildren(directoryName)
                 .Select(info => new FileFsEntryInfo(
-                    info.Value.EntryName,
+                    info.Value.Name,
                     info.Value.Type,
                     info.Value.DataLength,
                     info.Value.CreatedOn.FromUnixTime(),

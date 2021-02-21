@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Exceptions;
@@ -39,6 +41,17 @@ namespace FileFS.DataAccess.Repositories
         }
 
         /// <inheritdoc />
+        public StorageItem<EntryDescriptor> Read(Guid id)
+        {
+            if (TryFindInternal(descriptor => descriptor.Id == id, out var item))
+            {
+                throw new EntryDescriptorNotFound(id);
+            }
+
+            return item;
+        }
+
+        /// <inheritdoc />
         public StorageItem<EntryDescriptor> Read(Cursor cursor)
         {
             _logger.Information("Start file descriptor data reading process");
@@ -61,66 +74,16 @@ namespace FileFS.DataAccess.Repositories
         /// <inheritdoc />
         public IReadOnlyCollection<StorageItem<EntryDescriptor>> ReadAll()
         {
-            _logger.Information("Start reading all file descriptors data");
-
-            _logger.Information("Retrieving info about file descriptors from filesystem descriptor");
-
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var descriptorsCursorRange = GetDescriptorsRange(in filesystemDescriptor);
-
-            _logger.Information("Reading all file descriptors data");
-
-            var allDescriptors = new StorageItem<EntryDescriptor>[filesystemDescriptor.EntryDescriptorsCount];
-            var index = 0;
-            for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.EntryDescriptorLength)
-            {
-                var cursor = new Cursor(offset, SeekOrigin.End);
-
-                var length = filesystemDescriptor.EntryDescriptorLength;
-                var data = _connection.PerformRead(cursor, length);
-                var descriptor = _serializer.FromBytes(data);
-
-                allDescriptors[index] = new StorageItem<EntryDescriptor>(descriptor, cursor);
-                index++;
-            }
-
-            _logger.Information("Done reading all file descriptors data");
-
-            return allDescriptors;
+            return FindManyInternal(_ => true);
         }
 
         /// <inheritdoc />
         public IReadOnlyCollection<StorageItem<EntryDescriptor>> ReadChildren(string entryName)
         {
-            _logger.Information($"Start reading children for '{entryName}'");
+            var entryDescriptor = Find(entryName).Value;
+            var children = FindManyInternal(descriptor => descriptor.ParentId == entryDescriptor.Id);
 
-            _logger.Information("Retrieving info about file descriptors from filesystem descriptor");
-
-            var id = Find(entryName).Value.Id;
-
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var descriptorsCursorRange = GetDescriptorsRange(in filesystemDescriptor);
-
-            _logger.Information("Reading all file descriptors data");
-
-            var childrenDescriptors = new LinkedList<StorageItem<EntryDescriptor>>();
-            for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.EntryDescriptorLength)
-            {
-                var cursor = new Cursor(offset, SeekOrigin.End);
-
-                var length = filesystemDescriptor.EntryDescriptorLength;
-                var data = _connection.PerformRead(cursor, length);
-                var descriptor = _serializer.FromBytes(data);
-
-                if (descriptor.ParentId == id)
-                {
-                    childrenDescriptors.AddLast(new StorageItem<EntryDescriptor>(descriptor, cursor));
-                }
-            }
-
-            _logger.Information($"Done reading children for '{entryName}'");
-
-            return childrenDescriptors;
+            return children;
         }
 
         /// <inheritdoc />
@@ -149,68 +112,16 @@ namespace FileFS.DataAccess.Repositories
         /// <inheritdoc />
         public bool TryFind(string entryName, out StorageItem<EntryDescriptor> item)
         {
-            item = default;
-            _logger.Information("Start file descriptor search process");
-
-            _logger.Information("Retrieving info about file descriptors from filesystem descriptor");
-
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var descriptorsCursorRange = GetDescriptorsRange(filesystemDescriptor);
-
-            _logger.Information("Searching for specific file descriptor");
-
-            for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.EntryDescriptorLength)
-            {
-                var cursor = new Cursor(offset, SeekOrigin.End);
-                var data = _connection.PerformRead(cursor, filesystemDescriptor.EntryDescriptorLength);
-                var currentDescriptor = _serializer.FromBytes(data);
-
-                if (currentDescriptor.EntryName == entryName)
-                {
-                    _logger.Information("Specific descriptor found");
-
-                    item = new StorageItem<EntryDescriptor>(currentDescriptor, cursor);
-                    return true;
-                }
-            }
-
-            _logger.Information("Specific descriptor not found");
-
-            return false;
+            return TryFindInternal(descriptor => descriptor.Name == entryName, out item);
         }
 
         /// <inheritdoc />
         public bool Exists(string entryName)
         {
-            _logger.Information("Start file descriptor existence checking process");
-
-            _logger.Information("Retrieving info about file descriptors from filesystem descriptor");
-
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var descriptorsCursorRange = GetDescriptorsRange(filesystemDescriptor);
-
-            _logger.Information("Searching for specific file descriptor");
-
-            for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.EntryDescriptorLength)
-            {
-                var cursor = new Cursor(offset, SeekOrigin.End);
-                var data = _connection.PerformRead(cursor, filesystemDescriptor.EntryDescriptorLength);
-                var currentDescriptor = _serializer.FromBytes(data);
-
-                if (currentDescriptor.EntryName == entryName)
-                {
-                    _logger.Information("Specific descriptor found");
-
-                    return true;
-                }
-            }
-
-            _logger.Information("Specific descriptor not found");
-
-            return false;
+            return TryFindInternal(descriptor => descriptor.Name == entryName, out _);
         }
 
-        private CursorRange GetDescriptorsRange(in FilesystemDescriptor filesystemDescriptor)
+        private static CursorRange GetDescriptorsRange(in FilesystemDescriptor filesystemDescriptor)
         {
             const SeekOrigin origin = SeekOrigin.End;
 
@@ -223,6 +134,43 @@ namespace FileFS.DataAccess.Repositories
             var end = new Cursor(endOffset, origin);
 
             return new CursorRange(begin, end);
+        }
+
+        private bool TryFindInternal(Func<EntryDescriptor, bool> selector, out StorageItem<EntryDescriptor> item)
+        {
+            var items = FindManyInternal(selector);
+            item = items.FirstOrDefault();
+
+            return items.Any();
+        }
+
+        private IReadOnlyCollection<StorageItem<EntryDescriptor>> FindManyInternal(Func<EntryDescriptor, bool> selector)
+        {
+            var items = new LinkedList<StorageItem<EntryDescriptor>>();
+            _logger.Information("Start file descriptor search process");
+
+            _logger.Information("Retrieving info about file descriptors from filesystem descriptor");
+
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+            var descriptorsCursorRange = GetDescriptorsRange(filesystemDescriptor);
+
+            _logger.Information("Searching for specific file descriptors");
+
+            for (var offset = descriptorsCursorRange.Begin.Offset; offset >= descriptorsCursorRange.End.Offset; offset -= filesystemDescriptor.EntryDescriptorLength)
+            {
+                var cursor = new Cursor(offset, SeekOrigin.End);
+                var data = _connection.PerformRead(cursor, filesystemDescriptor.EntryDescriptorLength);
+                var currentDescriptor = _serializer.FromBytes(data);
+
+                if (selector(currentDescriptor))
+                {
+                    _logger.Information("Specific descriptors found");
+
+                    items.AddLast(new StorageItem<EntryDescriptor>(currentDescriptor, cursor));
+                }
+            }
+
+            return items;
         }
     }
 }

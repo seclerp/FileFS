@@ -17,7 +17,7 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         /// <summary>
         /// Creates new directory in FileFS storage.
         /// </summary>
-        /// <param name="fullPath">Full path to a newly created directory.</param>
-        void Create(string fullPath);
+        /// <param name="directoryEntry">Directory entry instance to create..</param>
+        void Create(DirectoryEntry directoryEntry);
     }
 }

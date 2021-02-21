@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using FileFS.DataAccess.Entities;
 
 namespace FileFS.DataAccess.Repositories.Abstractions
@@ -8,6 +9,13 @@ namespace FileFS.DataAccess.Repositories.Abstractions
     /// </summary>
     public interface IEntryDescriptorRepository
     {
+        /// <summary>
+        /// Reads file descriptor from FileFS storage.
+        /// </summary>
+        /// <param name="id">Id of the file.</param>
+        /// <returns>Storage item that represents file descriptor with its cursor in memory.</returns>
+        StorageItem<EntryDescriptor> Read(Guid id);
+
         /// <summary>
         /// Reads file descriptor from FileFS storage.
         /// </summary>
