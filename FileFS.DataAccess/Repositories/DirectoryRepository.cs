@@ -42,22 +42,28 @@ namespace FileFS.DataAccess.Repositories
 
             return new DirectoryEntry(
                 descriptor.Value.Id,
-                descriptor.Value.EntryName,
+                descriptor.Value.Name,
                 descriptor.Value.ParentId);
         }
 
         /// <inheritdoc/>
-        public void Create(string fullPath)
+        public void Create(DirectoryEntry directoryEntry)
         {
-            _logger.Information($"Start writing entry descriptor for directory {fullPath}");
+            _logger.Information($"Start writing entry descriptor for directory {directoryEntry.EntryName}");
 
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var createdOn = DateTime.UtcNow.ToUnixTime();
             var updatedOn = createdOn;
-            var id = Guid.NewGuid();
-            var parentName = fullPath.GetParentFullName();
-            var parentEntry = _entryDescriptorRepository.Find(parentName);
-            var entryDescriptor = new EntryDescriptor(id, parentEntry.Value.Id, fullPath, EntryType.Directory, createdOn, updatedOn, 0, 0);
+            var entryDescriptor = new EntryDescriptor(
+                directoryEntry.Id,
+                directoryEntry.ParentEntryId,
+                directoryEntry.EntryName,
+                EntryType.Directory,
+                createdOn,
+                updatedOn,
+                0,
+                0);
+
             var entryDescriptorOffset = -FilesystemDescriptor.BytesTotal -
                                        (filesystemDescriptor.EntryDescriptorsCount *
                                         filesystemDescriptor.EntryDescriptorLength)
@@ -70,7 +76,7 @@ namespace FileFS.DataAccess.Repositories
 
             _entryDescriptorRepository.Write(storageItem);
 
-            _logger.Information($"Done writing entry descriptor for directory {fullPath}");
+            _logger.Information($"Done writing entry descriptor for directory {directoryEntry.EntryName}");
 
             IncreaseEntriesCount(1);
         }

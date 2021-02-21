@@ -47,10 +47,10 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         FileEntry Read(string fileName);
 
         /// <summary>
-        /// Reads file with given filename.
+        /// Reads file data with given filename into destination stream.
         /// </summary>
         /// <param name="fileName">Name of a file to read.</param>
         /// <param name="destinationStream">Destination stream of data.</param>
-        void Read(string fileName, Stream destinationStream);
+        void ReadData(string fileName, Stream destinationStream);
     }
 }

@@ -36,11 +36,11 @@ namespace FileFS.DataAccess.Tests.Allocation
             var expectedLength = data.Length * 3;
             var expectedBytesOptimized = data.Length * 2;
 
-            fileRepository.Create(new FileEntry("some_file", "some_directory", data));
-            fileRepository.Create(new FileEntry("some_other_file", "some_directory", data));
-            fileRepository.Create(new FileEntry("some_other_other_file", "some_directory", data));
-            fileRepository.Create(new FileEntry("some_other_other_other_file1", "some_directory", data));
-            fileRepository.Create(new FileEntry("some_other_other_other_file2", "some_directory", data));
+            fileRepository.Create(new FileEntry("some_file", Guid.NewGuid(), data));
+            fileRepository.Create(new FileEntry("some_other_file", Guid.NewGuid(), data));
+            fileRepository.Create(new FileEntry("some_other_other_file", Guid.NewGuid(), data));
+            fileRepository.Create(new FileEntry("some_other_other_other_file1", Guid.NewGuid(), data));
+            fileRepository.Create(new FileEntry("some_other_other_other_file2", Guid.NewGuid(), data));
 
             fileRepository.Delete("some_file");
             fileRepository.Delete("some_other_other_file");

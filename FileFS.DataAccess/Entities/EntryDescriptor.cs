@@ -26,12 +26,12 @@ namespace FileFS.DataAccess.Entities
         /// <summary>
         /// Actual length of the name.
         /// </summary>
-        public readonly int EntryNameLength; // 4
+        public readonly int NameLength; // 4
 
         /// <summary>
         /// Name of the entry.
         /// </summary>
-        public readonly string EntryName; // N
+        public readonly string Name; // N
 
         /// <summary>
         /// Type of the entry.
@@ -63,18 +63,18 @@ namespace FileFS.DataAccess.Entities
         /// </summary>
         /// <param name="id">Unique ID of a entry descriptor.</param>
         /// <param name="parentId">ID of the parent entry.</param>
-        /// <param name="entryName">Name of the entry.</param>
+        /// <param name="name">Name of the entry.</param>
         /// <param name="type">Type of the entry stored in descriptor.</param>
         /// <param name="createdOn">Unix timestamp that represents time when entry was created.</param>
         /// <param name="updatedOn">Unix timestamp that represents time when entry was changed last time.</param>
         /// <param name="dataOffset">Offset of the entry data in memory.</param>
         /// <param name="dataLength">Length of the entry data.</param>
-        public EntryDescriptor(Guid id, Guid parentId, string entryName, EntryType type, long createdOn, long updatedOn, int dataOffset, int dataLength)
+        public EntryDescriptor(Guid id, Guid parentId, string name, EntryType type, long createdOn, long updatedOn, int dataOffset, int dataLength)
         {
             Id = id;
             ParentId = parentId;
-            EntryNameLength = entryName.Length;
-            EntryName = entryName;
+            NameLength = name.Length;
+            Name = name;
             Type = type;
             CreatedOn = createdOn;
             UpdatedOn = updatedOn;

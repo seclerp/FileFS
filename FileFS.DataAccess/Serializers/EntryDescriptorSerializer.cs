@@ -67,7 +67,7 @@ namespace FileFS.DataAccess.Serializers
         {
             _logger.Information("Creating new buffer and memory stream to write file descriptor to buffer");
 
-            var fileNameBytes = Encoding.UTF8.GetBytes(model.EntryName);
+            var fileNameBytes = Encoding.UTF8.GetBytes(model.Name);
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var buffer = new byte[filesystemDescriptor.EntryDescriptorLength];
             using var stream = new MemoryStream(buffer);
@@ -77,7 +77,7 @@ namespace FileFS.DataAccess.Serializers
 
             writer.Write(model.Id.ToByteArray());
             writer.Write(model.ParentId.ToByteArray());
-            writer.Write(model.EntryNameLength);
+            writer.Write(model.NameLength);
             writer.Write(fileNameBytes);
             writer.Seek(filesystemDescriptor.EntryDescriptorLength - fileNameBytes.Length - EntryDescriptor.BytesWithoutFilename, SeekOrigin.Current);
             writer.Write((byte)model.Type);

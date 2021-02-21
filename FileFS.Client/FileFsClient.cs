@@ -79,7 +79,8 @@ namespace FileFS.Client
                 throw new DirectoryNotFoundException(name);
             }
 
-            _directoryRepository.Create(name);
+            var directoryEntry = CreateDirectoryEntry(name);
+            _directoryRepository.Create(directoryEntry);
 
             _transactionWrapper.EndTransaction();
         }
@@ -266,7 +267,7 @@ namespace FileFS.Client
                 throw new ArgumentNonValidException($"Argument cannot be null: {nameof(destinationStream)}");
             }
 
-            _fileRepository.Read(fileName, destinationStream);
+            _fileRepository.ReadData(fileName, destinationStream);
 
             _transactionWrapper.EndTransaction();
         }
@@ -610,7 +611,7 @@ namespace FileFS.Client
 
         private void ReadInternal(string name, Stream destinationStream)
         {
-            _fileRepository.Read(name, destinationStream);
+            _fileRepository.ReadData(name, destinationStream);
         }
 
         private void CopyInternal(string from, string to)
@@ -632,7 +633,8 @@ namespace FileFS.Client
 
         private void CopyDirectoryInternal(string from, string to)
         {
-            _directoryRepository.Create(to);
+            var directoryEntry = CreateDirectoryEntry(to);
+            _directoryRepository.Create(directoryEntry);
 
             var entriesInfo = _entryRepository.GetEntriesInfo(from);
             var directoriesInfo = entriesInfo.Where(entryInfo => entryInfo.EntryType is EntryType.Directory);
@@ -715,6 +717,15 @@ namespace FileFS.Client
             var exists = _entryRepository.Exists(name);
 
             return exists;
+        }
+
+        private DirectoryEntry CreateDirectoryEntry(string name)
+        {
+            var parentDirectoryName = name.GetParentFullName();
+            var parentDirectory = _directoryRepository.Find(parentDirectoryName);
+            var directoryEntry = new DirectoryEntry(Guid.NewGuid(), name, parentDirectory.Id);
+
+            return directoryEntry;
         }
     }
 }

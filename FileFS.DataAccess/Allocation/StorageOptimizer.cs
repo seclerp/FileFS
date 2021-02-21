@@ -111,7 +111,7 @@ namespace FileFS.DataAccess.Allocation
             var newDescriptor = new EntryDescriptor(
                 entryDescriptor.Id,
                 entryDescriptor.ParentId,
-                entryDescriptor.EntryName,
+                entryDescriptor.Name,
                 entryDescriptor.Type,
                 entryDescriptor.CreatedOn,
                 entryDescriptor.UpdatedOn,

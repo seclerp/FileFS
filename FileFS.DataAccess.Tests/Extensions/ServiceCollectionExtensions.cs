@@ -44,9 +44,11 @@ namespace FileFS.DataAccess.Tests.Extensions
             services.AddSingleton<IStorageOptimizer, StorageOptimizer>();
             services.AddSingleton<IFileAllocator, FileAllocator>();
 
-            services.AddSingleton<IFileRepository, FileRepository>();
-
             services.AddSingleton<IStorageInitializer, StorageInitializer>();
+
+            services.AddSingleton<IEntryRepository, EntryRepository>();
+            services.AddSingleton<IFileRepository, FileRepository>();
+            services.AddSingleton<IDirectoryRepository, DirectoryRepository>();
 
             return services;
         }

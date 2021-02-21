@@ -5,7 +5,9 @@ using FileFS.Client.Abstractions;
 using FileFS.Client.Exceptions;
 using FileFS.Client.Transactions.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
+using FileFS.DataAccess.Constants;
 using FileFS.DataAccess.Entities;
+using FileFS.DataAccess.Entities.Enums;
 using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.Tests.Shared.Comparers;
@@ -24,13 +26,13 @@ namespace FileFS.Client.Tests
     public class FileFsClientTests
     {
         [Theory]
-        [InlineData("some filename")]
-        [InlineData("some-filename")]
-        [InlineData("some-filename123")]
-        [InlineData("1.2.3")]
-        [InlineData("123_123")]
-        [InlineData("_")]
-        [InlineData("a")]
+        [InlineData("/some filename")]
+        [InlineData("/some-filename")]
+        [InlineData("/some-filename123")]
+        [InlineData("/1.2.3")]
+        [InlineData("/123_123")]
+        [InlineData("/_")]
+        [InlineData("/a")]
         public void CreateEmpty_WithValidParameters_ShouldCallCreate(string fileName)
         {
             // Arrange
@@ -46,7 +48,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("file$name")]
+        [InlineData("/file$name")]
         [InlineData("")]
         [InlineData(null)]
         [InlineData("()9")]
@@ -70,7 +72,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename")]
+        [InlineData("/filename")]
         public void CreateEmpty_WhenFileAlreadyExists_ShouldThrowException(string fileName)
         {
             // Arrange
@@ -88,13 +90,13 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("some filename", "")]
-        [InlineData("some-filename", "123123123")]
-        [InlineData("some-filename123", "123123123")]
-        [InlineData("1.2.3", "asdasd")]
-        [InlineData("123_123", "asdasd")]
-        [InlineData("_", "asdasd")]
-        [InlineData("a", "12312312")]
+        [InlineData("/some filename", "")]
+        [InlineData("/some-filename", "123123123")]
+        [InlineData("/some-filename123", "123123123")]
+        [InlineData("/1.2.3", "asdasd")]
+        [InlineData("/123_123", "asdasd")]
+        [InlineData("/_", "asdasd")]
+        [InlineData("/a", "12312312")]
         public void Create_WithValidParameters_ShouldCallCreate(string fileName, string data)
         {
             // Arrange
@@ -111,7 +113,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("file$name", "")]
+        [InlineData("/file$name", "")]
         [InlineData("", "")]
         [InlineData(null, "")]
         [InlineData("()9", "")]
@@ -136,7 +138,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename", "")]
+        [InlineData("/filename", "")]
         public void Create_WhenFileAlreadyExists_ShouldThrowException(string fileName, string data)
         {
             // Arrange
@@ -155,7 +157,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename")]
+        [InlineData("/filename")]
         public void Create_WithNullData_ShouldThrowException(string fileName)
         {
             // Arrange
@@ -169,13 +171,13 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("some filename", "")]
-        [InlineData("some-filename", "123123123")]
-        [InlineData("some-filename123", "123123123")]
-        [InlineData("1.2.3", "asdasd")]
-        [InlineData("123_123", "asdasd")]
-        [InlineData("_", "asdasd")]
-        [InlineData("a", "12312312")]
+        [InlineData("/some filename", "")]
+        [InlineData("/some-filename", "123123123")]
+        [InlineData("/some-filename123", "123123123")]
+        [InlineData("/1.2.3", "asdasd")]
+        [InlineData("/123_123", "asdasd")]
+        [InlineData("/_", "asdasd")]
+        [InlineData("/a", "12312312")]
         public void CreateStreamed_WithValidParameters_ShouldCallCreate(string fileName, string data)
         {
             // Arrange
@@ -194,7 +196,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("file$name", "")]
+        [InlineData("/file$name", "")]
         [InlineData("", "")]
         [InlineData(null, "")]
         [InlineData("()9", "")]
@@ -221,7 +223,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename", "")]
+        [InlineData("/filename", "")]
         public void CreateStreamed_WhenFileAlreadyExists_ShouldThrowException(string fileName, string data)
         {
             // Arrange
@@ -242,7 +244,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename")]
+        [InlineData("/filename")]
         public void CreateStreamed_WithNullDataStream_ShouldThrowException(string fileName)
         {
             // Arrange
@@ -256,13 +258,13 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("some filename", "")]
-        [InlineData("some-filename", "123123123")]
-        [InlineData("some-filename123", "123123123")]
-        [InlineData("1.2.3", "asdasd")]
-        [InlineData("123_123", "asdasd")]
-        [InlineData("_", "asdasd")]
-        [InlineData("a", "12312312")]
+        [InlineData("/some filename", "")]
+        [InlineData("/some-filename", "123123123")]
+        [InlineData("/some-filename123", "123123123")]
+        [InlineData("/1.2.3", "asdasd")]
+        [InlineData("/123_123", "asdasd")]
+        [InlineData("/_", "asdasd")]
+        [InlineData("/a", "12312312")]
         public void Update_WithValidParameters_ShouldCallUpdate(string fileName, string newData)
         {
             // Arrange
@@ -283,7 +285,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("file$name", "")]
+        [InlineData("/file$name", "")]
         [InlineData("", "")]
         [InlineData(null, "")]
         [InlineData("()9", "")]
@@ -308,7 +310,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename", "data")]
+        [InlineData("/filename", "data")]
         public void Update_WhenFileNotExists_ShouldThrowException(string fileName, string data)
         {
             // Arrange
@@ -329,7 +331,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename")]
+        [InlineData("/filename")]
         public void Update_WithNullData_ShouldThrowException(string fileName)
         {
             // Arrange
@@ -343,13 +345,13 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("some filename", "")]
-        [InlineData("some-filename", "123123123")]
-        [InlineData("some-filename123", "123123123")]
+        [InlineData("/some filename", "")]
+        [InlineData("/some-filename", "123123123")]
+        [InlineData("/some-filename123", "123123123")]
         [InlineData("1.2.3", "asdasd")]
-        [InlineData("123_123", "asdasd")]
-        [InlineData("_", "asdasd")]
-        [InlineData("a", "12312312")]
+        [InlineData("/123_123", "asdasd")]
+        [InlineData("/_", "asdasd")]
+        [InlineData("/a", "12312312")]
         public void UpdateStreamed_WithValidParameters_ShouldCallUpdate(string fileName, string data)
         {
             // Arrange
@@ -371,7 +373,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("file$name", "")]
+        [InlineData("/file$name", "")]
         [InlineData("", "")]
         [InlineData(null, "")]
         [InlineData("()9", "")]
@@ -398,7 +400,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename", "data")]
+        [InlineData("/filename", "data")]
         public void UpdateStreamed_WhenFileNotExists_ShouldThrowException(string fileName, string data)
         {
             // Arrange
@@ -420,7 +422,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename")]
+        [InlineData("/filename")]
         public void UpdateStreamed_WithNullDataStream_ShouldThrowException(string fileName)
         {
             // Arrange
@@ -434,13 +436,13 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("some filename")]
-        [InlineData("some-filename")]
-        [InlineData("some-filename123")]
-        [InlineData("1.2.3")]
-        [InlineData("123_123")]
-        [InlineData("_")]
-        [InlineData("a")]
+        [InlineData("/some filename")]
+        [InlineData("/some-filename")]
+        [InlineData("/some-filename123")]
+        [InlineData("/1.2.3")]
+        [InlineData("/123_123")]
+        [InlineData("/_")]
+        [InlineData("/a")]
         public void Read_WithValidParameters_ShouldCallRead(string fileName)
         {
             // Arrange
@@ -456,7 +458,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("file$name")]
+        [InlineData("/file$name")]
         [InlineData("")]
         [InlineData(null)]
         [InlineData("()9")]
@@ -480,13 +482,13 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("some filename")]
-        [InlineData("some-filename")]
-        [InlineData("some-filename123")]
-        [InlineData("1.2.3")]
-        [InlineData("123_123")]
-        [InlineData("_")]
-        [InlineData("a")]
+        [InlineData("/some filename")]
+        [InlineData("/some-filename")]
+        [InlineData("/some-filename123")]
+        [InlineData("/1.2.3")]
+        [InlineData("/123_123")]
+        [InlineData("/_")]
+        [InlineData("/a")]
         public void ReadStreamed_WithValidParameters_ShouldCallRead(string fileName)
         {
             // Arrange
@@ -497,11 +499,11 @@ namespace FileFS.Client.Tests
             client.Read(fileName, new MemoryStream());
 
             // Assert
-            fileRepositoryMock.Verify(r => r.Read(fileName, It.IsAny<Stream>()));
+            fileRepositoryMock.Verify(r => r.ReadData(fileName, It.IsAny<Stream>()));
         }
 
         [Theory]
-        [InlineData("file$name")]
+        [InlineData("/file$name")]
         [InlineData("")]
         [InlineData(null)]
         [InlineData("()9")]
@@ -525,7 +527,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename")]
+        [InlineData("/filename")]
         public void ReadStreamed_WithDestinationStreamNull_ShouldThrowException(string fileName)
         {
             // Arrange
@@ -539,7 +541,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("from", "to")]
+        [InlineData("/from", "/to")]
         public void Rename_WithValidParameters_ShouldCallRename(string oldFileName, string newFileName)
         {
             // Arrange
@@ -554,28 +556,28 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("file$name", "valid")]
-        [InlineData("", "valid")]
-        [InlineData(null, "valid")]
-        [InlineData("()9", "valid")]
-        [InlineData("+++", "valid")]
-        [InlineData("#sdfd", "valid")]
-        [InlineData("\\/\\/asdasd", "valid")]
-        [InlineData("!!!asdasd!!!", "valid")]
-        [InlineData("[dapk_xantep]", "valid")]
-        [InlineData("&lol&", "valid")]
-        [InlineData("%%", "valid")]
-        [InlineData("valid", "file$name")]
-        [InlineData("valid", "")]
-        [InlineData("valid", null)]
-        [InlineData("valid", "()9")]
-        [InlineData("valid", "+++")]
-        [InlineData("valid", "#sdfd")]
-        [InlineData("valid", "\\/\\/asdasd")]
-        [InlineData("valid", "!!!asdasd!!!")]
-        [InlineData("valid", "[dapk_xantep]")]
-        [InlineData("valid", "&lol&")]
-        [InlineData("valid", "%%")]
+        [InlineData("file$name", "/valid")]
+        [InlineData("", "/valid")]
+        [InlineData(null, "/valid")]
+        [InlineData("()9", "/valid")]
+        [InlineData("+++", "/valid")]
+        [InlineData("#sdfd", "/valid")]
+        [InlineData("\\/\\/asdasd", "/valid")]
+        [InlineData("!!!asdasd!!!", "/valid")]
+        [InlineData("[dapk_xantep]", "/valid")]
+        [InlineData("&lol&", "/valid")]
+        [InlineData("%%", "/valid")]
+        [InlineData("/valid", "file$name")]
+        [InlineData("/valid", "")]
+        [InlineData("/valid", null)]
+        [InlineData("/valid", "()9")]
+        [InlineData("/valid", "+++")]
+        [InlineData("/valid", "#sdfd")]
+        [InlineData("/valid", "\\/\\/asdasd")]
+        [InlineData("/valid", "!!!asdasd!!!")]
+        [InlineData("/valid", "[dapk_xantep]")]
+        [InlineData("/valid", "&lol&")]
+        [InlineData("/valid", "%%")]
         [InlineData("432$$4", "%%")]
         public void Rename_WithOneOfNamesIsInvalid_ShouldThrowException(string oldFileName, string newFileName)
         {
@@ -590,13 +592,13 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("some filename")]
-        [InlineData("some-filename")]
-        [InlineData("some-filename123")]
-        [InlineData("1.2.3")]
-        [InlineData("123_123")]
-        [InlineData("_")]
-        [InlineData("a")]
+        [InlineData("/some filename")]
+        [InlineData("/some-filename")]
+        [InlineData("/some-filename123")]
+        [InlineData("/1.2.3")]
+        [InlineData("/123_123")]
+        [InlineData("/_")]
+        [InlineData("/a")]
         public void Delete_WithValidParameters_ShouldDeleteFile(string fileName)
         {
             // Arrange
@@ -608,14 +610,14 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            client.DeleteFile(fileName);
+            client.Delete(fileName);
 
             // Assert
             fileRepositoryMock.Verify(r => r.Delete(fileName));
         }
 
         [Theory]
-        [InlineData("file$name")]
+        [InlineData("/file$name")]
         [InlineData("")]
         [InlineData(null)]
         [InlineData("()9")]
@@ -632,14 +634,14 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
 
             // Act
-            void Act() => client.DeleteFile(fileName);
+            void Act() => client.Delete(fileName);
 
             // Assert
             Assert.Throws<InvalidNameException>(Act);
         }
 
         [Theory]
-        [InlineData("filename")]
+        [InlineData("/filename")]
         public void Delete_WhenFileNotExists_ShouldThrowException(string fileName)
         {
             // Arrange
@@ -651,20 +653,20 @@ namespace FileFS.Client.Tests
             var client = CreateClient(fileRepositoryMock.Object);
 
             // Act
-            void Act() => client.DeleteFile(fileName);
+            void Act() => client.Delete(fileName);
 
             // Assert
             Assert.Throws<FileNotFoundException>(Act);
         }
 
         [Theory]
-        [InlineData("some filename", "external")]
-        [InlineData("some-filename", "external")]
-        [InlineData("some-filename123", "external")]
-        [InlineData("1.2.3", "external")]
-        [InlineData("123_123", "external")]
-        [InlineData("_", "external")]
-        [InlineData("a", "external")]
+        [InlineData("/some filename", "external")]
+        [InlineData("/some-filename", "external")]
+        [InlineData("/some-filename123", "external")]
+        [InlineData("/1.2.3", "external")]
+        [InlineData("/123_123", "external")]
+        [InlineData("/_", "external")]
+        [InlineData("/a", "external")]
         public void Import_WithValidParameters_ShouldImportFile(string fileName, string externalPath)
         {
             // Arrange
@@ -691,7 +693,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("file$name", "external")]
+        [InlineData("/file$name", "external")]
         [InlineData("", "external")]
         [InlineData(null, "external")]
         [InlineData("()9", "external")]
@@ -715,7 +717,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename", "external")]
+        [InlineData("/filename", "external")]
         public void Import_WhenFileAlreadyExists_ShouldThrowException(string fileName, string externalPath)
         {
             // Arrange
@@ -733,7 +735,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename", "external")]
+        [InlineData("/filename", "external")]
         public void Import_WhenExternalFileNotExists_ShouldThrowException(string fileName, string externalPath)
         {
             // Arrange
@@ -757,13 +759,13 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("some filename", "external")]
-        [InlineData("some-filename", "external")]
-        [InlineData("some-filename123", "external")]
-        [InlineData("1.2.3", "external")]
-        [InlineData("123_123", "external")]
-        [InlineData("_", "external")]
-        [InlineData("a", "external")]
+        [InlineData("/some filename", "external")]
+        [InlineData("/some-filename", "external")]
+        [InlineData("/some-filename123", "external")]
+        [InlineData("/1.2.3", "external")]
+        [InlineData("/123_123", "external")]
+        [InlineData("/_", "external")]
+        [InlineData("/a", "external")]
         public void Export_WithValidParameters_ShouldExportFile(string fileName, string externalPath)
         {
             // Arrange
@@ -786,11 +788,11 @@ namespace FileFS.Client.Tests
             client.ExportFile(fileName, externalPath);
 
             // Assert
-            fileRepositoryMock.Verify(r => r.Read(fileName, It.IsAny<Stream>()));
+            fileRepositoryMock.Verify(r => r.ReadData(fileName, It.IsAny<Stream>()));
         }
 
         [Theory]
-        [InlineData("file$name", "external")]
+        [InlineData("/file$name", "external")]
         [InlineData("", "external")]
         [InlineData(null, "external")]
         [InlineData("()9", "external")]
@@ -814,7 +816,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename", "external")]
+        [InlineData("/filename", "external")]
         public void Export_WhenFileNotExists_ShouldThrowException(string fileName, string externalPath)
         {
             // Arrange
@@ -832,7 +834,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("filename", "external")]
+        [InlineData("/filename", "external")]
         public void Export_WhenExternalFileAlreadyExists_ShouldThrowException(string fileName, string externalPath)
         {
             // Arrange
@@ -856,13 +858,13 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("some filename")]
-        [InlineData("some-filename")]
-        [InlineData("some-filename123")]
-        [InlineData("1.2.3")]
-        [InlineData("123_123")]
-        [InlineData("_")]
-        [InlineData("a")]
+        [InlineData("/some filename")]
+        [InlineData("/some-filename")]
+        [InlineData("/some-filename123")]
+        [InlineData("/1.2.3")]
+        [InlineData("/123_123")]
+        [InlineData("/_")]
+        [InlineData("/a")]
         public void Exists_WithValidParameters_ShouldCallExists(string fileName)
         {
             // Arrange
@@ -877,7 +879,7 @@ namespace FileFS.Client.Tests
         }
 
         [Theory]
-        [InlineData("file$name")]
+        [InlineData("/file$name")]
         [InlineData("")]
         [InlineData(null)]
         [InlineData("()9")]
@@ -912,13 +914,13 @@ namespace FileFS.Client.Tests
 
             var expectedListFiles = new[]
             {
-                new FileFsEntryInfo(firstFileName, firstFileData.Length, DateTime.UtcNow, DateTime.UtcNow),
-                new FileFsEntryInfo(secondFileName, secondFileData.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileFsEntryInfo(firstFileName, EntryType.File, firstFileData.Length, DateTime.UtcNow, DateTime.UtcNow),
+                new FileFsEntryInfo(secondFileName, EntryType.File, secondFileData.Length, DateTime.UtcNow, DateTime.UtcNow),
             };
 
             var fileRepositoryMock = new Mock<IFileRepository>();
             fileRepositoryMock
-                .Setup(r => r.GetEntriesInfo())
+                .Setup(r => r.GetEntriesInfo(PathConstants.RootDirectoryName))
                 .Returns(expectedListFiles);
 
             var client = CreateClient(fileRepositoryMock.Object);
@@ -937,7 +939,7 @@ namespace FileFS.Client.Tests
             var client = CreateClient();
             var fileRepositoryMock = new Mock<IFileRepository>();
             fileRepositoryMock
-                .Setup(r => r.GetEntriesInfo())
+                .Setup(r => r.GetEntriesInfo(PathConstants.RootDirectoryName))
                 .Returns(Array.Empty<FileFsEntryInfo>());
 
             // Act
@@ -948,19 +950,23 @@ namespace FileFS.Client.Tests
         }
 
         private static IFileFsClient CreateClient(
-            IFileRepository repository = null,
+            IFileRepository fileRepository = null,
             IExternalFileManager externalFileManager = null,
-            IStorageOptimizer storageOptimizer = null)
+            IStorageOptimizer storageOptimizer = null,
+            IEntryRepository entryRepository = null,
+            IDirectoryRepository directoryRepository = null)
         {
-            repository ??= new Mock<IFileRepository>().Object;
+            fileRepository ??= new Mock<IFileRepository>().Object;
             externalFileManager ??= new Mock<IExternalFileManager>().Object;
             storageOptimizer ??= new Mock<IStorageOptimizer>().Object;
+            entryRepository ??= new Mock<IEntryRepository>().Object;
+            directoryRepository ??= new Mock<IDirectoryRepository>().Object;
 
             var transactionWrapper = new Mock<ITransactionWrapper>();
             transactionWrapper.Setup(t => t.BeginTransaction());
             transactionWrapper.Setup(t => t.EndTransaction());
 
-            var client = new FileFsClient(repository, externalFileManager, storageOptimizer, transactionWrapper.Object);
+            var client = new FileFsClient(fileRepository, directoryRepository, entryRepository, externalFileManager, storageOptimizer, transactionWrapper.Object);
             return client;
         }
     }
