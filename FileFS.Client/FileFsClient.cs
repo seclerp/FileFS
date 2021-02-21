@@ -559,7 +559,7 @@ namespace FileFS.Client
                 throw new DirectoryNotFoundException(directoryName);
             }
 
-            return _fileRepository
+            return _entryRepository
                 .GetEntriesInfo(directoryName)
                 .Where(entryInfo => entryInfo.EntryName != PathConstants.RootDirectoryName);
         }
@@ -673,7 +673,7 @@ namespace FileFS.Client
 
         private void DeleteFileInternal(string name)
         {
-            _fileRepository.Delete(name);
+            _entryRepository.Delete(name);
         }
 
         private void DeleteDirectoryInternal(string name)
