@@ -15,7 +15,7 @@ namespace FileFS.DataAccess
     /// </summary>
     public class StorageInitializer : IStorageInitializer
     {
-        private readonly IStorageStreamProvider _storageStreamProvider;
+        private readonly IStorageConnection _storageConnection;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly IEntryDescriptorRepository _entryDescriptorRepository;
         private readonly ILogger _logger;
@@ -23,17 +23,17 @@ namespace FileFS.DataAccess
         /// <summary>
         /// Initializes a new instance of the <see cref="StorageInitializer"/> class.
         /// </summary>
-        /// <param name="storageStreamProvider">Storage stream provider instance.</param>
+        /// <param name="storageConnection">Storage connection instance.</param>
         /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
         /// <param name="entryDescriptorRepository">Entry descriptor repository instance.</param>
         /// <param name="logger">Logger instance.</param>
         public StorageInitializer(
-            IStorageStreamProvider storageStreamProvider,
+            IStorageConnection storageConnection,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             IEntryDescriptorRepository entryDescriptorRepository,
             ILogger logger)
         {
-            _storageStreamProvider = storageStreamProvider;
+            _storageConnection = storageConnection;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _entryDescriptorRepository = entryDescriptorRepository;
             _logger = logger;
@@ -57,9 +57,7 @@ namespace FileFS.DataAccess
             _logger.Information($"Start storage initialization process, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
 
             // Simply initialize new empty storage file
-            using var stream = _storageStreamProvider.OpenStream(false);
-            stream.SetLength(fileSize);
-            stream.Dispose();
+            _storageConnection.SetSize(fileSize);
 
             var fileSystemDescriptor = new FilesystemDescriptor(0, 1, fileNameLength + EntryDescriptor.BytesWithoutFilename);
             _filesystemDescriptorAccessor.Update(fileSystemDescriptor);

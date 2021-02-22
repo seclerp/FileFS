@@ -19,6 +19,7 @@ namespace FileFS.DataAccess.Allocation
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly IEntryDescriptorRepository _entryDescriptorRepository;
         private readonly IStorageOptimizer _optimizer;
+        private readonly IStorageExtender _storageExtender;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -28,18 +29,21 @@ namespace FileFS.DataAccess.Allocation
         /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
         /// <param name="entryDescriptorRepository">File descriptor repository instance.</param>
         /// <param name="optimizer">Storage optimizer instance.</param>
+        /// <param name="storageExtender">Storage extender instance.</param>
         /// <param name="logger">Logger instance.</param>
         public FileAllocator(
             IStorageConnection connection,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             IEntryDescriptorRepository entryDescriptorRepository,
             IStorageOptimizer optimizer,
+            IStorageExtender storageExtender,
             ILogger logger)
         {
             _connection = connection;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _entryDescriptorRepository = entryDescriptorRepository;
             _optimizer = optimizer;
+            _storageExtender = storageExtender;
             _logger = logger;
         }
 
@@ -75,7 +79,8 @@ namespace FileFS.DataAccess.Allocation
                 // Recheck
                 if (!CouldAllocate(dataSize))
                 {
-                    throw new NotEnoughSpaceException($"There is no space in storage for {dataSize} bytes.");
+                    var currentSize = _connection.GetSize();
+                    _storageExtender.Extend(currentSize * 2);
                 }
 
                 return PerformAllocate(dataSize);

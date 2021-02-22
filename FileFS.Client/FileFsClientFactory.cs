@@ -43,7 +43,8 @@ namespace FileFS.Client
             var entryDescriptorRepository = new EntryDescriptorRepository(connection, filesystemDescriptorAccessor, entryDescriptorSerializer, logger);
 
             var optimizer = new StorageOptimizer(connection, entryDescriptorRepository, filesystemDescriptorAccessor, logger);
-            var allocator = new FileAllocator(connection, filesystemDescriptorAccessor, entryDescriptorRepository, optimizer, logger);
+            var extender = new StorageExtender(connection, filesystemDescriptorAccessor, logger);
+            var allocator = new FileAllocator(connection, filesystemDescriptorAccessor, entryDescriptorRepository, optimizer, extender, logger);
 
             var entryRepository = new EntryRepository(filesystemDescriptorAccessor, entryDescriptorRepository, logger);
             var fileRepository = new FileRepository(connection, allocator, filesystemDescriptorAccessor, entryDescriptorRepository, logger);

@@ -49,6 +49,7 @@ namespace FileFS.Extensions.DependencyInjection
             services.AddSingleton<IEntryDescriptorRepository, EntryDescriptorRepository>();
 
             services.AddSingleton<IStorageOptimizer, StorageOptimizer>();
+            services.AddSingleton<IStorageExtender, StorageExtender>();
             services.AddSingleton<IFileAllocator, FileAllocator>();
 
             services.AddSingleton<IStorageInitializer, StorageInitializer>();

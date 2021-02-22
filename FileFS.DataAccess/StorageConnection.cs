@@ -120,6 +120,13 @@ namespace FileFS.DataAccess
         }
 
         /// <inheritdoc />
+        public void SetSize(long newSize)
+        {
+            using var stream = _storageStreamProvider.OpenStream(false);
+            stream.SetLength(newSize);
+        }
+
+        /// <inheritdoc />
         public long GetSize()
         {
             using var stream = _storageStreamProvider.OpenStream();
