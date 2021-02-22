@@ -29,26 +29,23 @@ namespace FileFS.DataAccess.Tests.Extensions
             services.AddSingleton<IStorageStreamProvider>(provider =>
                 StorageStreamProviderMockFactory.Create(storageBuffer));
 
-            services.AddSingleton<IStorageConnection, StorageConnection>(provider =>
-                new StorageConnection(
-                    provider.GetRequiredService<IStorageStreamProvider>(),
-                    4096,
-                    provider.GetRequiredService<ILogger>()));
+            services.InjectCommonServices();
 
-            services.AddSingleton<ISerializer<FilesystemDescriptor>, FilesystemDescriptorSerializer>();
-            services.AddSingleton<IFilesystemDescriptorAccessor, FilesystemDescriptorAccessor>();
+            return services;
+        }
 
-            services.AddSingleton<ISerializer<EntryDescriptor>, EntryDescriptorSerializer>();
-            services.AddSingleton<IEntryDescriptorRepository, EntryDescriptorRepository>();
+        /// <summary>
+        /// Adds FileFS data access layer dependencies with in memory stream provider.
+        /// </summary>
+        /// <param name="services"><see cref="IServiceCollection"/> instance.</param>
+        /// <param name="storageFileName">Name of FileFS storage file.</param>
+        /// <returns>Configured <see cref="IServiceCollection"/> instance.</returns>
+        public static IServiceCollection AddFileFsDataAccessInMemory(this IServiceCollection services, string storageFileName)
+        {
+            services.AddSingleton<IStorageStreamProvider>(provider =>
+                new StorageStreamProvider(storageFileName, provider.GetRequiredService<ILogger>()));
 
-            services.AddSingleton<IStorageOptimizer, StorageOptimizer>();
-            services.AddSingleton<IFileAllocator, FileAllocator>();
-
-            services.AddSingleton<IStorageInitializer, StorageInitializer>();
-
-            services.AddSingleton<IEntryRepository, EntryRepository>();
-            services.AddSingleton<IFileRepository, FileRepository>();
-            services.AddSingleton<IDirectoryRepository, DirectoryRepository>();
+            services.InjectCommonServices();
 
             return services;
         }
@@ -63,6 +60,33 @@ namespace FileFS.DataAccess.Tests.Extensions
         {
             var storageInitializer = serviceProvider.GetRequiredService<IStorageInitializer>();
             storageInitializer.Initialize(storageSize, fileNameLength);
+        }
+
+        private static IServiceCollection InjectCommonServices(this IServiceCollection services)
+        {
+            services.AddSingleton<IStorageConnection, StorageConnection>(provider =>
+                new StorageConnection(
+                    provider.GetRequiredService<IStorageStreamProvider>(),
+                    4096,
+                    provider.GetRequiredService<ILogger>()));
+
+            services.AddSingleton<ISerializer<FilesystemDescriptor>, FilesystemDescriptorSerializer>();
+            services.AddSingleton<IFilesystemDescriptorAccessor, FilesystemDescriptorAccessor>();
+
+            services.AddSingleton<ISerializer<EntryDescriptor>, EntryDescriptorSerializer>();
+            services.AddSingleton<IEntryDescriptorRepository, EntryDescriptorRepository>();
+
+            services.AddSingleton<IStorageOptimizer, StorageOptimizer>();
+            services.AddSingleton<IStorageExtender, StorageExtender>();
+            services.AddSingleton<IFileAllocator, FileAllocator>();
+
+            services.AddSingleton<IStorageInitializer, StorageInitializer>();
+
+            services.AddSingleton<IEntryRepository, EntryRepository>();
+            services.AddSingleton<IFileRepository, FileRepository>();
+            services.AddSingleton<IDirectoryRepository, DirectoryRepository>();
+
+            return services;
         }
     }
 }

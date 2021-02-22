@@ -47,6 +47,12 @@ namespace FileFS.DataAccess.Abstractions
         void PerformCopy(Cursor sourceCursor, Cursor destinationCursor, int length);
 
         /// <summary>
+        /// Sets new reserved size of FileFS storage.
+        /// </summary>
+        /// <param name="newSize">New reserved size of FileFS storage.</param>
+        void SetSize(long newSize);
+
+        /// <summary>
         /// Returns reserved size of a FileFS storage.
         /// </summary>
         /// <returns>Reserved size of a FileFS storage.</returns>

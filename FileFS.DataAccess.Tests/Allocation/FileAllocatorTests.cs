@@ -31,119 +31,173 @@ namespace FileFS.DataAccess.Tests.Allocation
         [InlineData(2000)]
         public void AllocateFile_WhenThereAreDataAndSizeIsNonZero_ShouldAllocateOnEnd(int dataSize)
         {
-            // Arrange
-            var buffer = new byte[10000];
-            var serviceProvider = CreateServiceProvider(buffer);
-            serviceProvider.InitializeStorage(buffer.Length, FileNameLength);
-            var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
-            var expectedCursor = new Cursor(dataSize * 2, SeekOrigin.Begin);
+            var fileFsStorageName = Guid.NewGuid().ToString();
+            try
+            {
+                // Arrange
+                var storageSize = 10000;
+                var serviceProvider = CreateServiceProvider(fileFsStorageName);
+                serviceProvider.InitializeStorage(storageSize, FileNameLength);
+                var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
+                var expectedCursor = new Cursor(dataSize * 2, SeekOrigin.Begin);
 
-            // Act
-            allocator.AllocateFile(dataSize);
-            allocator.AllocateFile(dataSize);
-            var cursor = allocator.AllocateFile(dataSize);
+                // Act
+                allocator.AllocateFile(dataSize);
+                allocator.AllocateFile(dataSize);
+                var cursor = allocator.AllocateFile(dataSize);
 
-            // Assert
-            Assert.Equal(expectedCursor, cursor);
+                // Assert
+                Assert.Equal(expectedCursor, cursor);
+            }
+            finally
+            {
+                if (File.Exists(fileFsStorageName))
+                {
+                    File.Delete(fileFsStorageName);
+                }
+            }
         }
 
         [Fact]
         public void AllocateFile_WhenSizeIsZero_ShouldAlwaysReturnZeroCursor()
         {
-            // Arrange
-            var buffer = new byte[10000];
-            var serviceProvider = CreateServiceProvider(buffer);
-            serviceProvider.InitializeStorage(buffer.Length, FileNameLength);
-            var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
-            var expectedCursor = new Cursor(0, SeekOrigin.Begin);
+            var fileFsStorageName = Guid.NewGuid().ToString();
+            try
+            {
+                // Arrange
+                var storageSize = 10000;
+                var serviceProvider = CreateServiceProvider(fileFsStorageName);
+                serviceProvider.InitializeStorage(storageSize, FileNameLength);
+                var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
+                var expectedCursor = new Cursor(0, SeekOrigin.Begin);
 
-            // Act
-            var cursorA = allocator.AllocateFile(0);
-            var cursorB = allocator.AllocateFile(0);
-            var cursorC = allocator.AllocateFile(0);
+                // Act
+                var cursorA = allocator.AllocateFile(0);
+                var cursorB = allocator.AllocateFile(0);
+                var cursorC = allocator.AllocateFile(0);
 
-            // Assert
-            var filesystemDescriptor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>().Value;
-            Assert.Equal(0, filesystemDescriptor.FilesDataLength);
-            Assert.Equal(expectedCursor, cursorA);
-            Assert.Equal(expectedCursor, cursorB);
-            Assert.Equal(expectedCursor, cursorC);
+                // Assert
+                var filesystemDescriptor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>().Value;
+                Assert.Equal(0, filesystemDescriptor.FilesDataLength);
+                Assert.Equal(expectedCursor, cursorA);
+                Assert.Equal(expectedCursor, cursorB);
+                Assert.Equal(expectedCursor, cursorC);
+            }
+            finally
+            {
+                if (File.Exists(fileFsStorageName))
+                {
+                    File.Delete(fileFsStorageName);
+                }
+            }
         }
 
         [Fact]
         public void AllocateFile_WhenSuitableGapExists_ShouldAllocateInGap()
         {
-            // Arrange
-            var buffer = new byte[10000];
-            var serviceProvider = CreateServiceProvider(buffer);
-            serviceProvider.InitializeStorage(buffer.Length, FileNameLength);
-            var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
-            var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
-            var dataBytes = Encoding.UTF8.GetBytes("data");
-            fileRepository.Create(new FileEntry("/some_file", Guid.NewGuid(), dataBytes));
-            fileRepository.Create(new FileEntry("/some_other_file", Guid.NewGuid(), dataBytes));
-            fileRepository.Create(new FileEntry("/some_other_other_file", Guid.NewGuid(), dataBytes));
-            fileRepository.Delete("/some_file");
-            var expectedCursor = new Cursor(0, SeekOrigin.Begin);
+            var fileFsStorageName = Guid.NewGuid().ToString();
+            try
+            {
+                // Arrange
+                var storageSize = 10000;
+                var serviceProvider = CreateServiceProvider(fileFsStorageName);
+                serviceProvider.InitializeStorage(storageSize, FileNameLength);
+                var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
+                var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
+                var dataBytes = Encoding.UTF8.GetBytes("data");
+                fileRepository.Create(new FileEntry("/some_file", Guid.NewGuid(), dataBytes));
+                fileRepository.Create(new FileEntry("/some_other_file", Guid.NewGuid(), dataBytes));
+                fileRepository.Create(new FileEntry("/some_other_other_file", Guid.NewGuid(), dataBytes));
+                fileRepository.Delete("/some_file");
+                var expectedCursor = new Cursor(0, SeekOrigin.Begin);
 
-            // Ac
-            var cursor = allocator.AllocateFile(dataBytes.Length);
+                // Ac
+                var cursor = allocator.AllocateFile(dataBytes.Length);
 
-            // Assert
-            var filesystemDescriptor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>().Value;
-            Assert.Equal(dataBytes.Length * 3, filesystemDescriptor.FilesDataLength);
-            Assert.Equal(expectedCursor, cursor);
+                // Assert
+                var filesystemDescriptor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>().Value;
+                Assert.Equal(dataBytes.Length * 3, filesystemDescriptor.FilesDataLength);
+                Assert.Equal(expectedCursor, cursor);
+            }
+            finally
+            {
+                if (File.Exists(fileFsStorageName))
+                {
+                    File.Delete(fileFsStorageName);
+                }
+            }
         }
 
         [Fact]
         public void AllocateFile_WhenSuitableGapNotExists_ShouldAllocateOnEnd()
         {
-            // Arrange
-            var buffer = new byte[10000];
-            var serviceProvider = CreateServiceProvider(buffer);
-            serviceProvider.InitializeStorage(buffer.Length, FileNameLength);
-            var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
-            var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
-            var dataBytes = Encoding.UTF8.GetBytes("data");
-            fileRepository.Create(new FileEntry("some_file", Guid.NewGuid(), dataBytes));
-            fileRepository.Create(new FileEntry("some_other_file", Guid.NewGuid(), dataBytes));
-            fileRepository.Create(new FileEntry("some_other_other_file", Guid.NewGuid(), dataBytes));
-            fileRepository.Delete("some_file");
-            var expectedCursor = new Cursor(dataBytes.Length * 3, SeekOrigin.Begin);
+            var fileFsStorageName = Guid.NewGuid().ToString();
+            try
+            {
+                // Arrange
+                var storageSize = 10000;
+                var serviceProvider = CreateServiceProvider(fileFsStorageName);
+                serviceProvider.InitializeStorage(storageSize, FileNameLength);
+                var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
+                var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
+                var dataBytes = Encoding.UTF8.GetBytes("data");
+                fileRepository.Create(new FileEntry("some_file", Guid.NewGuid(), dataBytes));
+                fileRepository.Create(new FileEntry("some_other_file", Guid.NewGuid(), dataBytes));
+                fileRepository.Create(new FileEntry("some_other_other_file", Guid.NewGuid(), dataBytes));
+                fileRepository.Delete("some_file");
+                var expectedCursor = new Cursor(dataBytes.Length * 3, SeekOrigin.Begin);
 
-            // Ac
-            var cursor = allocator.AllocateFile(dataBytes.Length + 5);
+                // Ac
+                var cursor = allocator.AllocateFile(dataBytes.Length + 5);
 
-            // Assert
-            var filesystemDescriptor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>().Value;
-            Assert.Equal((dataBytes.Length * 4) + 5, filesystemDescriptor.FilesDataLength);
-            Assert.Equal(expectedCursor, cursor);
+                // Assert
+                var filesystemDescriptor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>().Value;
+                Assert.Equal((dataBytes.Length * 4) + 5, filesystemDescriptor.FilesDataLength);
+                Assert.Equal(expectedCursor, cursor);
+            }
+            finally
+            {
+                if (File.Exists(fileFsStorageName))
+                {
+                    File.Delete(fileFsStorageName);
+                }
+            }
         }
 
         [Theory]
         [InlineData(10000, 100000)]
         public void AllocateFile_WhenDataSizeBiggerThanExistingSpace_ShouldTryOptimizeAndThrowException(int storageSize, int dataSize)
         {
-            // Arrange
-            var buffer = new byte[storageSize];
-            var storageOptimizerMock = new Mock<IStorageOptimizer>();
-            var serviceProvider = CreateServiceProvider(buffer, storageOptimizerMock.Object);
-            serviceProvider.InitializeStorage(buffer.Length, FileNameLength);
-            var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
+            var fileFsStorageName = Guid.NewGuid().ToString();
+            try
+            {
+                // Arrange
+                var storageOptimizerMock = new Mock<IStorageOptimizer>();
+                var serviceProvider = CreateServiceProvider(fileFsStorageName, storageOptimizerMock.Object);
+                serviceProvider.InitializeStorage(storageSize, FileNameLength);
+                var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
 
-            // Ac
-            void Act() => allocator.AllocateFile(dataSize);
+                // Ac
+                void Act() => allocator.AllocateFile(dataSize);
 
-            // Assert
-            Assert.Throws<NotEnoughSpaceException>(Act);
-            storageOptimizerMock.Verify(s => s.Optimize());
+                // Assert
+                Assert.Throws<NotEnoughSpaceException>(Act);
+                storageOptimizerMock.Verify(s => s.Optimize());
+            }
+            finally
+            {
+                if (File.Exists(fileFsStorageName))
+                {
+                    File.Delete(fileFsStorageName);
+                }
+            }
         }
 
-        private static IServiceProvider CreateServiceProvider(byte[] storageBuffer, IStorageOptimizer storageOptimizer = null)
+        private static IServiceProvider CreateServiceProvider(string storageFileName, IStorageOptimizer storageOptimizer = null)
         {
             var services = new ServiceCollection();
             services.AddSingleton<ILogger>(new LoggerConfiguration().CreateLogger());
-            services.AddFileFsDataAccessInMemory(storageBuffer);
+            services.AddFileFsDataAccessInMemory(storageFileName);
 
             storageOptimizer ??= new Mock<IStorageOptimizer>().Object;
             services.Replace(ServiceDescriptor.Singleton(storageOptimizer));
