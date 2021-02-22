@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using FileFS.DataAccess.Abstractions;
+using FileFS.DataAccess.Constants;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Entities.Abstractions;
 using FileFS.DataAccess.Repositories.Abstractions;
@@ -31,7 +32,9 @@ namespace FileFS.DataAccess.Tests.Repositories
             var storageBuffer = new byte[10000];
             var dataBytes = Encoding.UTF8.GetBytes(data);
             var fileEntry = new FileEntry(fileName, Guid.NewGuid(), dataBytes);
-            var repository = CreateRepository(storageBuffer, true);
+            var serviceProvider = CreateServiceProvider(storageBuffer);
+            var repository = serviceProvider.GetRequiredService<IFileRepository>();
+            InitializeStorage(serviceProvider, storageBuffer.Length);
 
             // Act
             repository.Create(fileEntry);
@@ -53,7 +56,9 @@ namespace FileFS.DataAccess.Tests.Repositories
             var dataBuffer = new byte[streamLength];
             using var dataStream = new MemoryStream(dataBuffer);
             var streamedFileEntry = new StreamedFileEntry(fileName, Guid.NewGuid(), dataStream, (int)dataStream.Length);
-            var repository = CreateRepository(storageBuffer, true);
+            var serviceProvider = CreateServiceProvider(storageBuffer);
+            var repository = serviceProvider.GetRequiredService<IFileRepository>();
+            InitializeStorage(serviceProvider, storageBuffer.Length);
 
             // Act
             repository.Create(streamedFileEntry);
@@ -80,7 +85,9 @@ namespace FileFS.DataAccess.Tests.Repositories
             var newDataBytes = Encoding.UTF8.GetBytes(newData);
             var newFileEntry = new FileEntry(fileName, id, newDataBytes);
 
-            var repository = CreateRepository(storageBuffer, true, oldFileEntry);
+            var serviceProvider = CreateServiceProvider(storageBuffer);
+            var repository = serviceProvider.GetRequiredService<IFileRepository>();
+            InitializeStorage(serviceProvider, storageBuffer.Length, oldFileEntry);
 
             // Act
             repository.Update(newFileEntry);
@@ -108,7 +115,9 @@ namespace FileFS.DataAccess.Tests.Repositories
             using var newDataStream = new MemoryStream(newDataBuffer);
             var newFileEntry = new StreamedFileEntry(fileName, id, newDataStream, (int)newDataStream.Length);
 
-            var repository = CreateRepository(storageBuffer, true, oldFileEntry);
+            var serviceProvider = CreateServiceProvider(storageBuffer);
+            var repository = serviceProvider.GetRequiredService<IFileRepository>();
+            InitializeStorage(serviceProvider, storageBuffer.Length, oldFileEntry);
 
             // Act
             repository.Update(newFileEntry);
@@ -122,6 +131,33 @@ namespace FileFS.DataAccess.Tests.Repositories
         }
 
         [Theory]
+        [InlineData("/from.file.name", "/to.file.name", "data")]
+        public void Copy_ShouldCopySuccessfully(string oldFileName, string newFileName, string data)
+        {
+            // Arrange
+            var storageBuffer = new byte[10000];
+            var serviceProvider = CreateServiceProvider(storageBuffer);
+            var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
+            var directoryRepository = serviceProvider.GetRequiredService<IDirectoryRepository>();
+
+            var dataBytes = Encoding.UTF8.GetBytes(data);
+            InitializeStorage(serviceProvider, storageBuffer.Length);
+            var rootDirectoryEntry = directoryRepository.Find(PathConstants.RootDirectoryName);
+            var fileEntry = new FileEntry(oldFileName, rootDirectoryEntry.Id, dataBytes);
+            fileRepository.Create(fileEntry);
+
+            // Act
+            fileRepository.Copy(oldFileName, newFileName);
+
+            // Assert
+            var copiedFile = fileRepository.Read(newFileName);
+            Assert.Equal(newFileName, copiedFile.EntryName);
+            Assert.Equal(fileEntry.ParentEntryId, copiedFile.ParentEntryId);
+            Assert.Equal(fileEntry.DataLength, copiedFile.DataLength);
+            Assert.Equal(fileEntry.Data, copiedFile.Data);
+        }
+
+        [Theory]
         [InlineData("/file.name", "data")]
         public void Read_FileEntry_ShouldReturnValidItem(string fileName, string data)
         {
@@ -129,7 +165,9 @@ namespace FileFS.DataAccess.Tests.Repositories
             var storageBuffer = new byte[10000];
             var dataBytes = Encoding.UTF8.GetBytes(data);
             var expectedFileEntry = new FileEntry(fileName, Guid.NewGuid(), dataBytes);
-            var repository = CreateRepository(storageBuffer, true, expectedFileEntry);
+            var serviceProvider = CreateServiceProvider(storageBuffer);
+            var repository = serviceProvider.GetRequiredService<IFileRepository>();
+            InitializeStorage(serviceProvider, storageBuffer.Length, expectedFileEntry);
 
             // Act
             var writtenFileEntry = repository.Read(fileName);
@@ -150,7 +188,9 @@ namespace FileFS.DataAccess.Tests.Repositories
             var dataBuffer = new byte[streamLength];
             using var dataStream = new MemoryStream(dataBuffer);
             var streamedFileEntry = new StreamedFileEntry(fileName, Guid.NewGuid(), dataStream, (int)dataStream.Length);
-            var repository = CreateRepository(storageBuffer, true, streamedFileEntry);
+            var serviceProvider = CreateServiceProvider(storageBuffer);
+            var repository = serviceProvider.GetRequiredService<IFileRepository>();
+            InitializeStorage(serviceProvider, storageBuffer.Length, streamedFileEntry);
             var createdFileBuffer = new byte[streamLength];
             using var createdFileDataStream = new MemoryStream(createdFileBuffer);
 
@@ -170,7 +210,9 @@ namespace FileFS.DataAccess.Tests.Repositories
             var storageBuffer = new byte[10000];
             var dataBytes = Encoding.UTF8.GetBytes(data);
             var fileEntry = new FileEntry(fileName, Guid.NewGuid(), dataBytes);
-            var repository = CreateRepository(storageBuffer, true, fileEntry);
+            var serviceProvider = CreateServiceProvider(storageBuffer);
+            var repository = serviceProvider.GetRequiredService<IFileRepository>();
+            InitializeStorage(serviceProvider, storageBuffer.Length, fileEntry);
 
             // Act
             var exists = repository.Exists(fileName);
@@ -185,7 +227,9 @@ namespace FileFS.DataAccess.Tests.Repositories
         {
             // Arrange
             var storageBuffer = new byte[10000];
-            var repository = CreateRepository(storageBuffer, true);
+            var serviceProvider = CreateServiceProvider(storageBuffer);
+            var repository = serviceProvider.GetRequiredService<IFileRepository>();
+            InitializeStorage(serviceProvider, storageBuffer.Length);
 
             // Act
             var exists = repository.Exists(fileName);
@@ -194,34 +238,34 @@ namespace FileFS.DataAccess.Tests.Repositories
             Assert.False(exists);
         }
 
-        private static IFileRepository CreateRepository(byte[] storageBuffer, bool initializeStorage, params IFileEntry[] itemsToCreate)
+        private static IServiceProvider CreateServiceProvider(byte[] storageBuffer)
         {
             var services = new ServiceCollection();
             services.AddSingleton<ILogger>(new LoggerConfiguration().CreateLogger());
             services.AddFileFsDataAccessInMemory(storageBuffer);
             var serviceProvider = services.BuildServiceProvider();
+
+            return serviceProvider;
+        }
+
+        private static void InitializeStorage(IServiceProvider serviceProvider, int storageSize, params IFileEntry[] itemsToCreate)
+        {
             var fileRepository = serviceProvider.GetRequiredService<IFileRepository>();
+            var storageInitializer = serviceProvider.GetRequiredService<IStorageInitializer>();
+            storageInitializer.Initialize(storageSize, FileNameLength);
 
-            if (initializeStorage)
+            foreach (var itemToCreate in itemsToCreate)
             {
-                var storageInitializer = serviceProvider.GetRequiredService<IStorageInitializer>();
-                storageInitializer.Initialize(storageBuffer.Length, FileNameLength);
-
-                foreach (var itemToCreate in itemsToCreate)
+                switch (itemToCreate)
                 {
-                    switch (itemToCreate)
-                    {
-                        case FileEntry fileEntry:
-                            fileRepository.Create(fileEntry);
-                            break;
-                        case StreamedFileEntry streamedFileEntry:
-                            fileRepository.Create(streamedFileEntry);
-                            break;
-                    }
+                    case FileEntry fileEntry:
+                        fileRepository.Create(fileEntry);
+                        break;
+                    case StreamedFileEntry streamedFileEntry:
+                        fileRepository.Create(streamedFileEntry);
+                        break;
                 }
             }
-
-            return fileRepository;
         }
     }
 }

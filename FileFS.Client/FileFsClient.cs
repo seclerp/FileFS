@@ -300,7 +300,7 @@ namespace FileFS.Client
             }
 
             var currentParentName = currentName.GetParentFullName();
-            var newParentName = currentName.GetParentFullName();
+            var newParentName = newName.GetParentFullName();
 
             if (currentParentName != newParentName)
             {
@@ -565,6 +565,8 @@ namespace FileFS.Client
         }
 
         /// <inheritdoc />
+        /// <exception cref="InvalidNameException">Throws if name is invalid.</exception>
+        /// <exception cref="EntryNotFoundException">If there is no entry with such name.</exception>
         public bool IsDirectory(string name)
         {
             _transactionWrapper.BeginTransaction();
@@ -572,6 +574,11 @@ namespace FileFS.Client
             if (!NameValid(name))
             {
                 throw new InvalidNameException(name);
+            }
+
+            if (!ExistsInternal(name))
+            {
+                throw new EntryNotFoundException(name);
             }
 
             var result = _directoryRepository.Exists(name);

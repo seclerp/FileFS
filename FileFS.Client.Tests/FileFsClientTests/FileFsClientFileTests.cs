@@ -7,9 +7,11 @@ using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Constants;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Exceptions;
+using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using Moq;
 using Xunit;
+using DirectoryNotFoundException = FileFS.Client.Exceptions.DirectoryNotFoundException;
 using FileNotFoundException = FileFS.Client.Exceptions.FileNotFoundException;
 
 // Missing XML comment for publicly visible type or member...
@@ -100,13 +102,29 @@ namespace FileFS.Client.Tests.FileFsClientTests
             // Arrange
             _entryRepositoryMock
                 .Setup(r => r.Exists(fileName))
-                .Returns(() => true);
+                .Returns(true);
 
             // Act
             void Act() => _client.CreateFile(fileName);
 
             // Assert
             Assert.Throws<EntryAlreadyExistsException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/dir", "/dir/name")]
+        public void CreateEmpty_WhenParentEntryNotExists_ShouldThrowException(string parentName, string name)
+        {
+            // Arrange
+            _directoryRepositoryMock
+                .Setup(r => r.Exists(parentName))
+                .Returns(false);
+
+            // Act
+            void Act() => _client.CreateFile(name);
+
+            // Assert
+            Assert.Throws<DirectoryNotFoundException>(Act);
         }
 
         [Theory]
@@ -183,6 +201,22 @@ namespace FileFS.Client.Tests.FileFsClientTests
         }
 
         [Theory]
+        [InlineData("/dir", "/dir/name")]
+        public void Create_WhenParentEntryNotExists_ShouldThrowException(string parentName, string name)
+        {
+            // Arrange
+            _directoryRepositoryMock
+                .Setup(r => r.Exists(parentName))
+                .Returns(false);
+
+            // Act
+            void Act() => _client.CreateFile(name, Encoding.UTF8.GetBytes("data"));
+
+            // Assert
+            Assert.Throws<DirectoryNotFoundException>(Act);
+        }
+
+        [Theory]
         [InlineData("/some filename", "")]
         [InlineData("/some-filename", "123123123")]
         [InlineData("/some-filename123", "123123123")]
@@ -238,7 +272,7 @@ namespace FileFS.Client.Tests.FileFsClientTests
 
             _entryRepositoryMock
                 .Setup(r => r.Exists(fileName))
-                .Returns(() => true);
+                .Returns(true);
 
             // Act
             void Act() => _client.CreateFile(fileName, stream, dataBytes.Length);
@@ -259,6 +293,25 @@ namespace FileFS.Client.Tests.FileFsClientTests
         }
 
         [Theory]
+        [InlineData("/dir", "/dir/name")]
+        public void CreateStreamed_WhenParentEntryNotExists_ShouldThrowException(string parentName, string name)
+        {
+            // Arrange
+            var dataBytes = Encoding.UTF8.GetBytes("data");
+            using var stream = new MemoryStream(dataBytes);
+
+            _directoryRepositoryMock
+                .Setup(r => r.Exists(parentName))
+                .Returns(false);
+
+            // Act
+            void Act() => _client.CreateFile(name, stream, dataBytes.Length);
+
+            // Assert
+            Assert.Throws<DirectoryNotFoundException>(Act);
+        }
+
+        [Theory]
         [InlineData("/some filename", "")]
         [InlineData("/some-filename", "123123123")]
         [InlineData("/some-filename123", "123123123")]
@@ -273,7 +326,7 @@ namespace FileFS.Client.Tests.FileFsClientTests
 
             _fileRepositoryMock
                 .Setup(r => r.Exists(fileName))
-                .Returns(() => true);
+                .Returns(true);
 
             // Act
             _client.Update(fileName, dataBytes);
@@ -315,7 +368,7 @@ namespace FileFS.Client.Tests.FileFsClientTests
 
             _fileRepositoryMock
                 .Setup(r => r.Exists(fileName))
-                .Returns(() => false);
+                .Returns(false);
 
             // Act
             void Act() => _client.Update(fileName, dataBytes);
@@ -328,8 +381,13 @@ namespace FileFS.Client.Tests.FileFsClientTests
         [InlineData("/filename")]
         public void Update_WithNullData_ShouldThrowException(string fileName)
         {
+            // Arrange
+            _fileRepositoryMock
+                .Setup(r => r.Exists(fileName))
+                .Returns(true);
+
             // Act
-            void Act() => _client.CreateFile(fileName, null);
+            void Act() => _client.Update(fileName, null);
 
             // Assert
             Assert.Throws<DataIsNullException>(Act);
@@ -351,7 +409,7 @@ namespace FileFS.Client.Tests.FileFsClientTests
 
             _fileRepositoryMock
                 .Setup(r => r.Exists(fileName))
-                .Returns(() => true);
+                .Returns(true);
 
             // Act
             _client.Update(fileName, stream, dataBytes.Length);
@@ -395,7 +453,7 @@ namespace FileFS.Client.Tests.FileFsClientTests
 
             _entryRepositoryMock
                 .Setup(r => r.Exists(fileName))
-                .Returns(() => false);
+                .Returns(false);
 
             // Act
             void Act() => _client.Update(fileName, stream, dataBytes.Length);
@@ -408,11 +466,133 @@ namespace FileFS.Client.Tests.FileFsClientTests
         [InlineData("/filename")]
         public void UpdateStreamed_WithNullDataStream_ShouldThrowException(string fileName)
         {
+            // Arrange
+            _fileRepositoryMock
+                .Setup(r => r.Exists(fileName))
+                .Returns(true);
+
             // Act
-            void Act() => _client.CreateFile(fileName, null, 0);
+            void Act() => _client.Update(fileName, null, 0);
 
             // Assert
             Assert.Throws<DataIsNullException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/from", "/to")]
+        public void Rename_WithValidParameters_ShouldCallRename(string oldFileName, string newFileName)
+        {
+            // Arrange
+            _entryRepositoryMock
+                .Setup(r => r.Exists(oldFileName))
+                .Returns(true);
+
+            // Act
+            _client.Rename(oldFileName, newFileName);
+
+            // Assert
+            _entryRepositoryMock.Verify(r => r.Rename(oldFileName, newFileName));
+        }
+
+        [Theory]
+        [InlineData("file$name", "/valid")]
+        [InlineData("", "/valid")]
+        [InlineData(null, "/valid")]
+        [InlineData("()9", "/valid")]
+        [InlineData("+++", "/valid")]
+        [InlineData("#sdfd", "/valid")]
+        [InlineData("\\/\\/asdasd", "/valid")]
+        [InlineData("!!!asdasd!!!", "/valid")]
+        [InlineData("[dapk_xantep]", "/valid")]
+        [InlineData("&lol&", "/valid")]
+        [InlineData("%%", "/valid")]
+        [InlineData("/valid", "file$name")]
+        [InlineData("/valid", "")]
+        [InlineData("/valid", null)]
+        [InlineData("/valid", "()9")]
+        [InlineData("/valid", "+++")]
+        [InlineData("/valid", "#sdfd")]
+        [InlineData("/valid", "\\/\\/asdasd")]
+        [InlineData("/valid", "!!!asdasd!!!")]
+        [InlineData("/valid", "[dapk_xantep]")]
+        [InlineData("/valid", "&lol&")]
+        [InlineData("/valid", "%%")]
+        [InlineData("432$$4", "%%")]
+        public void Rename_WithOneOfNamesIsInvalid_ShouldThrowException(string oldFileName, string newFileName)
+        {
+            // Act
+            void Act() => _client.Rename(oldFileName, newFileName);
+
+            // Assert
+            Assert.Throws<InvalidNameException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/from", "/to")]
+        public void Rename_WhenEntryNotExists_ShouldThrowException(string oldFileName, string newFileName)
+        {
+            // Arrange
+            _entryRepositoryMock
+                .Setup(r => r.Exists(oldFileName))
+                .Returns(false);
+
+            // Act
+            void Act() => _client.Rename(oldFileName, newFileName);
+
+            // Assert
+            Assert.Throws<EntryNotFoundException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/from", "/to")]
+        public void Rename_WhenDestinationEntryExists_ShouldThrowException(string oldFileName, string newFileName)
+        {
+            // Arrange
+            _entryRepositoryMock
+                .Setup(r => r.Exists(oldFileName))
+                .Returns(true);
+
+            _entryRepositoryMock
+                .Setup(r => r.Exists(newFileName))
+                .Returns(true);
+
+            // Act
+            void Act() => _client.Rename(oldFileName, newFileName);
+
+            // Assert
+            Assert.Throws<EntryAlreadyExistsException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/from/from", "/to/to")]
+        public void Rename_WhenParentsNotMatch_ShouldThrowException(string oldFileName, string newFileName)
+        {
+            // Arrange
+            _entryRepositoryMock
+                .Setup(r => r.Exists(oldFileName))
+                .Returns(true);
+
+            // Act
+            void Act() => _client.Rename(oldFileName, newFileName);
+
+            // Assert
+            Assert.Throws<ArgumentNonValidException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/to")]
+        public void Rename_WhenEntryIsRootDirectory_ShouldThrowException(string newFileName)
+        {
+            // Arrange
+            _entryRepositoryMock
+                .Setup(r => r.Exists(PathConstants.RootDirectoryName))
+                .Returns(true);
+
+            // Act
+            void Act() => _client.Rename(PathConstants.RootDirectoryName, newFileName);
+
+            // Assert
+            Assert.Throws<OperationIsInvalid>(Act);
         }
 
         [Theory]
@@ -456,6 +636,22 @@ namespace FileFS.Client.Tests.FileFsClientTests
 
             // Assert
             Assert.Throws<InvalidNameException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/file-name")]
+        public void Read_WhenFileNotExists_ShouldThrowException(string fileName)
+        {
+            // Arrange
+            _fileRepositoryMock
+                .Setup(r => r.Exists(fileName))
+                .Returns(false);
+
+            // Act
+            void Act() => _client.Read(fileName);
+
+            // Assert
+            Assert.Throws<FileNotFoundException>(Act);
         }
 
         [Theory]
@@ -518,6 +714,22 @@ namespace FileFS.Client.Tests.FileFsClientTests
         }
 
         [Theory]
+        [InlineData("/file-name")]
+        public void ReadStreamed_WhenFileNotExists_ShouldThrowException(string fileName)
+        {
+            // Arrange
+            _fileRepositoryMock
+                .Setup(r => r.Exists(fileName))
+                .Returns(false);
+
+            // Act
+            void Act() => _client.Read(fileName, new MemoryStream());
+
+            // Assert
+            Assert.Throws<FileNotFoundException>(Act);
+        }
+
+        [Theory]
         [InlineData("/some filename")]
         [InlineData("/some-filename")]
         [InlineData("/some-filename123")]
@@ -530,7 +742,7 @@ namespace FileFS.Client.Tests.FileFsClientTests
             // Arrange
             _entryRepositoryMock
                 .Setup(r => r.Exists(fileName))
-                .Returns(() => true);
+                .Returns(true);
 
             // Act
             _client.Delete(fileName);
@@ -567,13 +779,146 @@ namespace FileFS.Client.Tests.FileFsClientTests
             // Arrange
             _entryRepositoryMock
                 .Setup(r => r.Exists(fileName))
-                .Returns(() => false);
+                .Returns(false);
 
             // Act
             void Act() => _client.Delete(fileName);
 
             // Assert
             Assert.Throws<EntryNotFoundException>(Act);
+        }
+
+        [Theory]
+        [InlineData("file$name", "/valid")]
+        [InlineData("", "/valid")]
+        [InlineData(null, "/valid")]
+        [InlineData("()9", "/valid")]
+        [InlineData("+++", "/valid")]
+        [InlineData("#sdfd", "/valid")]
+        [InlineData("\\/\\/asdasd", "/valid")]
+        [InlineData("!!!asdasd!!!", "/valid")]
+        [InlineData("[dapk_xantep]", "/valid")]
+        [InlineData("&lol&", "/valid")]
+        [InlineData("%%", "/valid")]
+        [InlineData("/valid", "file$name")]
+        [InlineData("/valid", "")]
+        [InlineData("/valid", null)]
+        [InlineData("/valid", "()9")]
+        [InlineData("/valid", "+++")]
+        [InlineData("/valid", "#sdfd")]
+        [InlineData("/valid", "\\/\\/asdasd")]
+        [InlineData("/valid", "!!!asdasd!!!")]
+        [InlineData("/valid", "[dapk_xantep]")]
+        [InlineData("/valid", "&lol&")]
+        [InlineData("/valid", "%%")]
+        [InlineData("432$$4", "%%")]
+        public void Copy_WithOneOfNamesIsInvalid_ShouldThrowException(string oldFileName, string newFileName)
+        {
+            // Act
+            void Act() => _client.Copy(oldFileName, newFileName);
+
+            // Assert
+            Assert.Throws<InvalidNameException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/from", "/to")]
+        public void Copy_WhenEntryNotExists_ShouldThrowException(string oldName, string newName)
+        {
+            // Arrange
+            _entryRepositoryMock
+                .Setup(r => r.Exists(oldName))
+                .Returns(false);
+
+            // Act
+            void Act() => _client.Copy(oldName, newName);
+
+            // Assert
+            Assert.Throws<EntryNotFoundException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/from", "/to")]
+        public void Copy_WhenDestinationEntryExists_ShouldThrowException(string oldName, string newName)
+        {
+            // Arrange
+            _entryRepositoryMock
+                .Setup(r => r.Exists(oldName))
+                .Returns(true);
+
+            _entryRepositoryMock
+                .Setup(r => r.Exists(newName))
+                .Returns(true);
+
+            // Act
+            void Act() => _client.Copy(oldName, newName);
+
+            // Assert
+            Assert.Throws<EntryAlreadyExistsException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/from", "/to/to")]
+        public void Copy_WhenDestinationParentEntryNotExists_ShouldThrowException(string oldName, string newName)
+        {
+            // Arrange
+            _entryRepositoryMock
+                .Setup(r => r.Exists(oldName))
+                .Returns(true);
+
+            _directoryRepositoryMock
+                .Setup(r => r.Exists(newName.GetParentFullName()))
+                .Returns(false);
+
+            _entryRepositoryMock
+                .Setup(r => r.Exists(newName))
+                .Returns(false);
+
+            // Act
+            void Act() => _client.Copy(oldName, newName);
+
+            // Assert
+            Assert.Throws<DirectoryNotFoundException>(Act);
+        }
+
+        [Theory]
+        [InlineData("/to")]
+        public void Copy_WhenEntryIsRootDirectory_ShouldThrowException(string newName)
+        {
+            // Arrange
+            _entryRepositoryMock
+                .Setup(r => r.Exists(PathConstants.RootDirectoryName))
+                .Returns(true);
+
+            // Act
+            void Act() => _client.Copy(PathConstants.RootDirectoryName, newName);
+
+            // Assert
+            Assert.Throws<OperationIsInvalid>(Act);
+        }
+
+        [Theory]
+        [InlineData("/from", "/from/to")]
+        public void Copy_WhenDestinationIsChildToSource_ShouldThrowException(string oldName, string newName)
+        {
+            // Arrange
+            _entryRepositoryMock
+                .Setup(r => r.Exists(oldName))
+                .Returns(true);
+
+            _directoryRepositoryMock
+                .Setup(r => r.Exists(newName.GetParentFullName()))
+                .Returns(true);
+
+            _entryRepositoryMock
+                .Setup(r => r.Exists(newName))
+                .Returns(false);
+
+            // Act
+            void Act() => _client.Copy(oldName, newName);
+
+            // Assert
+            Assert.Throws<OperationIsInvalid>(Act);
         }
 
         [Theory]
