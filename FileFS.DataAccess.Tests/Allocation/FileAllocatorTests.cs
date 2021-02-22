@@ -4,7 +4,6 @@ using System.Text;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
-using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Tests.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -165,24 +164,25 @@ namespace FileFS.DataAccess.Tests.Allocation
         }
 
         [Theory]
-        [InlineData(10000, 100000)]
-        public void AllocateFile_WhenDataSizeBiggerThanExistingSpace_ShouldTryOptimizeAndThrowException(int storageSize, int dataSize)
+        [InlineData(10000, 160000, 100000)]
+        public void AllocateFile_WhenDataSizeBiggerThanExistingSpace_ShouldTryOptimizeAndExtend(int storageSize, int newStorageSize, int dataSize)
         {
             var fileFsStorageName = Guid.NewGuid().ToString();
             try
             {
                 // Arrange
                 var storageOptimizerMock = new Mock<IStorageOptimizer>();
-                var serviceProvider = CreateServiceProvider(fileFsStorageName, storageOptimizerMock.Object);
+                var storageExtenderMock = new Mock<IStorageExtender>();
+                var serviceProvider = CreateServiceProvider(fileFsStorageName, storageOptimizerMock.Object, storageExtenderMock.Object);
                 serviceProvider.InitializeStorage(storageSize, FileNameLength);
                 var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
 
                 // Ac
-                void Act() => allocator.AllocateFile(dataSize);
+                allocator.AllocateFile(dataSize);
 
                 // Assert
-                Assert.Throws<NotEnoughSpaceException>(Act);
                 storageOptimizerMock.Verify(s => s.Optimize());
+                storageExtenderMock.Verify(s => s.Extend(It.IsAny<long>()));
             }
             finally
             {
@@ -193,7 +193,7 @@ namespace FileFS.DataAccess.Tests.Allocation
             }
         }
 
-        private static IServiceProvider CreateServiceProvider(string storageFileName, IStorageOptimizer storageOptimizer = null)
+        private static IServiceProvider CreateServiceProvider(string storageFileName, IStorageOptimizer storageOptimizer = null, IStorageExtender storageExtender = null)
         {
             var services = new ServiceCollection();
             services.AddSingleton<ILogger>(new LoggerConfiguration().CreateLogger());
@@ -201,6 +201,9 @@ namespace FileFS.DataAccess.Tests.Allocation
 
             storageOptimizer ??= new Mock<IStorageOptimizer>().Object;
             services.Replace(ServiceDescriptor.Singleton(storageOptimizer));
+
+            storageExtender ??= new Mock<IStorageExtender>().Object;
+            services.Replace(ServiceDescriptor.Singleton(storageExtender));
 
             var serviceProvider = services.BuildServiceProvider();
             return serviceProvider;
