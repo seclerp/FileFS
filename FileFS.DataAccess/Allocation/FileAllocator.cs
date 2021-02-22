@@ -1,9 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
-using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
@@ -79,8 +79,11 @@ namespace FileFS.DataAccess.Allocation
                 // Recheck
                 if (!CouldAllocate(dataSize))
                 {
-                    var currentSize = _connection.GetSize();
-                    _storageExtender.Extend(currentSize * 2);
+                    var totalAllocatedSpace = GetTotalAllocatedSpace();
+                    var currentReservedSize = _connection.GetSize();
+                    var timesResize = (int)Math.Ceiling(Math.Log((totalAllocatedSpace + dataSize) / (double)currentReservedSize, 2));
+
+                    _storageExtender.Extend(currentReservedSize * (long)Math.Pow(2, timesResize));
                 }
 
                 return PerformAllocate(dataSize);
@@ -93,19 +96,26 @@ namespace FileFS.DataAccess.Allocation
         {
             _logger.Information($"Checking possibility to allocate new {dataSize} bytes");
 
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var overallSpace = _connection.GetSize();
-            var specialSpace = FilesystemDescriptor.BytesTotal +
-                               (filesystemDescriptor.EntryDescriptorsCount * filesystemDescriptor.EntryDescriptorLength);
-
-            var dataSpace = filesystemDescriptor.FilesDataLength;
-            var remainingSpace = overallSpace - specialSpace - dataSpace;
+            var totalAllocatedSpace = GetTotalAllocatedSpace();
+            var remainingSpace = overallSpace - totalAllocatedSpace;
 
             var couldAllocate = remainingSpace >= dataSize;
 
             _logger.Information($"Could allocate decision: {couldAllocate}");
 
             return couldAllocate;
+        }
+
+        private int GetTotalAllocatedSpace()
+        {
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+            var specialSpace = FilesystemDescriptor.BytesTotal +
+                               (filesystemDescriptor.EntryDescriptorsCount * filesystemDescriptor.EntryDescriptorLength);
+
+            var dataSpace = filesystemDescriptor.FilesDataLength;
+
+            return specialSpace + dataSpace;
         }
 
         private Cursor PerformAllocate(int dataSize)
