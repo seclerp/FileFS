@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
+using FileFS.DataAccess.Exceptions;
 using FileFS.DataAccess.Tests.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -16,31 +18,59 @@ namespace FileFS.DataAccess.Tests.Allocation
 {
     public class StorageExtenderTests
     {
-        private const int FileNameLength = 100;
+        private const int FileNameLength = 5;
 
         [Theory]
-        [InlineData(100)]
-        [InlineData(1000)]
-        [InlineData(2000)]
-        public void AllocateFile_WhenThereAreDataAndSizeIsNonZero_ShouldAllocateOnEnd(int dataSize)
+        [InlineData(100, 1000)]
+        [InlineData(100, 101)]
+        public void Extend_WhenNewSizeIsGreaterThanCurrent_ShouldExtend(int currentStorageSize, int newStorageSize)
         {
             var fileFsStorageName = Guid.NewGuid().ToString();
             try
             {
                 // Arrange
-                var storageSize = 10000;
                 var serviceProvider = CreateServiceProvider(fileFsStorageName);
-                serviceProvider.InitializeStorage(storageSize, FileNameLength);
-                var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
-                var expectedCursor = new Cursor(dataSize * 2, SeekOrigin.Begin);
+                serviceProvider.InitializeStorage(currentStorageSize, FileNameLength);
+                var filesystemDescriptorAccessor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>();
+                var connection = serviceProvider.GetRequiredService<IStorageConnection>();
+                var extender = serviceProvider.GetRequiredService<IStorageExtender>();
+                var descriptor = filesystemDescriptorAccessor.Value;
 
                 // Act
-                allocator.AllocateFile(dataSize);
-                allocator.AllocateFile(dataSize);
-                var cursor = allocator.AllocateFile(dataSize);
+                extender.Extend(newStorageSize);
 
                 // Assert
-                Assert.Equal(expectedCursor, cursor);
+                var movedDescriptor = filesystemDescriptorAccessor.Value;
+                Assert.Equal(newStorageSize, connection.GetSize());
+                Assert.Equal(descriptor, movedDescriptor);
+            }
+            finally
+            {
+                if (File.Exists(fileFsStorageName))
+                {
+                    File.Delete(fileFsStorageName);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(100, 15)]
+        [InlineData(100, 99)]
+        public void Extend_WhenNewSizeIsEqualOrLessThanCurrent_ShouldThrowException(int currentStorageSize, int newStorageSize)
+        {
+            var fileFsStorageName = Guid.NewGuid().ToString();
+            try
+            {
+                // Arrange
+                var serviceProvider = CreateServiceProvider(fileFsStorageName);
+                serviceProvider.InitializeStorage(currentStorageSize, FileNameLength);
+                var extender = serviceProvider.GetRequiredService<IStorageExtender>();
+
+                // Act
+                void Act() => extender.Extend(newStorageSize);
+
+                // Assert
+                Assert.Throws<OperationIsInvalid>(Act);
             }
             finally
             {
