@@ -1,4 +1,5 @@
-﻿using FileFS.DataAccess.Entities.Abstractions;
+﻿using System;
+using FileFS.DataAccess.Entities.Abstractions;
 
 namespace FileFS.DataAccess.Entities
 {
@@ -16,15 +17,20 @@ namespace FileFS.DataAccess.Entities
         /// Initializes a new instance of the <see cref="FileEntry"/> struct.
         /// </summary>
         /// <param name="fileName">Name of the file.</param>
+        /// <param name="parentEntryId">ID of the parent entry.</param>
         /// <param name="data">File data.</param>
-        public FileEntry(string fileName, byte[] data)
+        public FileEntry(string fileName, Guid parentEntryId, byte[] data)
         {
-            FileName = fileName;
+            EntryName = fileName;
+            ParentEntryId = parentEntryId;
             Data = data;
         }
 
         /// <inheritdoc />
-        public string FileName { get; }
+        public string EntryName { get; }
+
+        /// <inheritdoc />
+        public Guid ParentEntryId { get; }
 
         /// <inheritdoc />
         public int DataLength => Data.Length;

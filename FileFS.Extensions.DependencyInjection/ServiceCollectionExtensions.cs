@@ -45,15 +45,18 @@ namespace FileFS.Extensions.DependencyInjection
             services.AddSingleton<ISerializer<FilesystemDescriptor>, FilesystemDescriptorSerializer>();
             services.AddSingleton<IFilesystemDescriptorAccessor, FilesystemDescriptorAccessor>();
 
-            services.AddSingleton<ISerializer<FileDescriptor>, FileDescriptorSerializer>();
-            services.AddSingleton<IFileDescriptorRepository, FileDescriptorRepository>();
+            services.AddSingleton<ISerializer<EntryDescriptor>, EntryDescriptorSerializer>();
+            services.AddSingleton<IEntryDescriptorRepository, EntryDescriptorRepository>();
 
             services.AddSingleton<IStorageOptimizer, StorageOptimizer>();
             services.AddSingleton<IFileAllocator, FileAllocator>();
 
             services.AddSingleton<IStorageInitializer, StorageInitializer>();
 
+            services.AddSingleton<IEntryRepository, EntryRepository>();
             services.AddSingleton<IFileRepository, FileRepository>();
+            services.AddSingleton<IDirectoryRepository, DirectoryRepository>();
+
             services.AddSingleton<IExternalFileManager, ExternalFileManager>();
 
             if (options.EnableTransactions)
@@ -63,7 +66,7 @@ namespace FileFS.Extensions.DependencyInjection
             }
             else
             {
-                services.AddSingleton<ITransactionWrapper>(provider => new NullTransactionWrapper());
+                services.AddSingleton<ITransactionWrapper>(new NullTransactionWrapper());
             }
 
             services.AddSingleton<IFileFsClient, FileFsClient>();

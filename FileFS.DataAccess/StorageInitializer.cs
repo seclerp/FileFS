@@ -1,8 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
+using FileFS.DataAccess.Entities.Enums;
 using FileFS.DataAccess.Exceptions;
-using FileFS.DataAccess.Serializers.Abstractions;
+using FileFS.DataAccess.Extensions;
+using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
 
 namespace FileFS.DataAccess
@@ -12,20 +15,27 @@ namespace FileFS.DataAccess
     /// </summary>
     public class StorageInitializer : IStorageInitializer
     {
-        private readonly ISerializer<FilesystemDescriptor> _serializer;
         private readonly IStorageStreamProvider _storageStreamProvider;
+        private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
+        private readonly IEntryDescriptorRepository _entryDescriptorRepository;
         private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StorageInitializer"/> class.
         /// </summary>
         /// <param name="storageStreamProvider">Storage stream provider instance.</param>
-        /// <param name="serializer">Filesystem descriptor serializer instance.</param>
+        /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
+        /// <param name="entryDescriptorRepository">Entry descriptor repository instance.</param>
         /// <param name="logger">Logger instance.</param>
-        public StorageInitializer(IStorageStreamProvider storageStreamProvider, ISerializer<FilesystemDescriptor> serializer, ILogger logger)
+        public StorageInitializer(
+            IStorageStreamProvider storageStreamProvider,
+            IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
+            IEntryDescriptorRepository entryDescriptorRepository,
+            ILogger logger)
         {
-            _serializer = serializer;
             _storageStreamProvider = storageStreamProvider;
+            _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
+            _entryDescriptorRepository = entryDescriptorRepository;
             _logger = logger;
         }
 
@@ -46,15 +56,44 @@ namespace FileFS.DataAccess
 
             _logger.Information($"Start storage initialization process, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
 
-            var fileSystemDescriptor = new FilesystemDescriptor(0, 0, fileNameLength + FileDescriptor.BytesWithoutFilename);
-            var buffer = _serializer.ToBytes(fileSystemDescriptor);
-
+            // Simply initialize new empty storage file
             using var stream = _storageStreamProvider.OpenStream(false);
             stream.SetLength(fileSize);
-            stream.Seek(-FilesystemDescriptor.BytesTotal, SeekOrigin.End);
-            stream.Write(buffer);
+            stream.Dispose();
+
+            var fileSystemDescriptor = new FilesystemDescriptor(0, 1, fileNameLength + EntryDescriptor.BytesWithoutFilename);
+            _filesystemDescriptorAccessor.Update(fileSystemDescriptor);
+
+            _logger.Information("Filesystem descriptor initialized");
+
+            _logger.Information("Start creation of root directory");
+
+            CreateRootDirectory();
+
+            _logger.Information("Root directory was created");
 
             _logger.Information($"Done storage initialization process, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
+        }
+
+        private void CreateRootDirectory()
+        {
+            var rootDirectoryId = Guid.NewGuid();
+            var createdOn = DateTime.UtcNow.ToUnixTime();
+            var updatedOn = createdOn;
+            var rootDirectory = new EntryDescriptor(
+                rootDirectoryId,
+                rootDirectoryId,
+                "/",
+                EntryType.Directory,
+                createdOn,
+                updatedOn,
+                0,
+                0);
+
+            // Write root directory descriptor
+            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+            var cursor = new Cursor(-FilesystemDescriptor.BytesTotal - filesystemDescriptor.EntryDescriptorLength, SeekOrigin.End);
+            _entryDescriptorRepository.Write(new StorageItem<EntryDescriptor>(rootDirectory, cursor));
         }
     }
 }

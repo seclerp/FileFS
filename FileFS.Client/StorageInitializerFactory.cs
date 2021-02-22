@@ -1,5 +1,6 @@
 ﻿using FileFS.DataAccess;
 using FileFS.DataAccess.Abstractions;
+using FileFS.DataAccess.Repositories;
 using FileFS.DataAccess.Serializers;
 using Serilog;
 
@@ -19,9 +20,13 @@ namespace FileFS.Client
         public static IStorageInitializer Create(string fileFsStoragePath, ILogger logger)
         {
             var storageStreamProvider = new StorageStreamProvider(fileFsStoragePath, logger);
+            var connection = new StorageConnection(storageStreamProvider, 4096, logger);
             var filesystemDescriptorSerializer = new FilesystemDescriptorSerializer(logger);
+            var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(connection, filesystemDescriptorSerializer, logger);
+            var entryDescriptorSerializer = new EntryDescriptorSerializer(filesystemDescriptorAccessor, logger);
+            var entryDescriptorRepository = new EntryDescriptorRepository(connection, filesystemDescriptorAccessor, entryDescriptorSerializer, logger);
             var storageInitializer =
-                new StorageInitializer(storageStreamProvider, filesystemDescriptorSerializer, logger);
+                new StorageInitializer(storageStreamProvider, filesystemDescriptorAccessor, entryDescriptorRepository, logger);
 
             return storageInitializer;
         }

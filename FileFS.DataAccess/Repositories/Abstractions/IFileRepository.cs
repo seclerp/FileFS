@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using FileFS.DataAccess.Entities;
 
 namespace FileFS.DataAccess.Repositories.Abstractions
@@ -7,7 +6,7 @@ namespace FileFS.DataAccess.Repositories.Abstractions
     /// <summary>
     /// Abstraction that represents file repository.
     /// </summary>
-    public interface IFileRepository
+    public interface IFileRepository : IEntryRepository
     {
         /// <summary>
         /// Creates new file in FileFS storage.
@@ -34,6 +33,13 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         void Update(StreamedFileEntry streamedFile);
 
         /// <summary>
+        /// Copies existing file to a new destination.
+        /// </summary>
+        /// <param name="fileNameFrom">Name of an existing file to copy.</param>
+        /// <param name="fileNameTo">Destination name of a file to copy to.</param>
+        void Copy(string fileNameFrom, string fileNameTo);
+
+        /// <summary>
         /// Reads file with given filename.
         /// </summary>
         /// <param name="fileName">Name of a file to read.</param>
@@ -41,36 +47,10 @@ namespace FileFS.DataAccess.Repositories.Abstractions
         FileEntry Read(string fileName);
 
         /// <summary>
-        /// Reads file with given filename.
+        /// Reads file data with given filename into destination stream.
         /// </summary>
         /// <param name="fileName">Name of a file to read.</param>
         /// <param name="destinationStream">Destination stream of data.</param>
-        void Read(string fileName, Stream destinationStream);
-
-        /// <summary>
-        /// Renames file with given filename.
-        /// </summary>
-        /// <param name="currentFilename">Current name of a file to rename.</param>
-        /// <param name="newFilename">New name of a file to rename.</param>
-        void Rename(string currentFilename, string newFilename);
-
-        /// <summary>
-        /// Deletes file with given filename.
-        /// </summary>
-        /// <param name="fileName">Name of a file to delete.</param>
-        void Delete(string fileName);
-
-        /// <summary>
-        /// Returns true if file with given filename exists, otherwise false.
-        /// </summary>
-        /// <param name="fileName">Name of a file to check.</param>
-        /// <returns>True if file with given filename exists, otherwise false.</returns>
-        bool Exists(string fileName);
-
-        /// <summary>
-        /// Returns all files details.
-        /// </summary>
-        /// <returns>All files details.</returns>
-        IEnumerable<FileEntryInfo> GetAllFilesInfo();
+        void ReadData(string fileName, Stream destinationStream);
     }
 }

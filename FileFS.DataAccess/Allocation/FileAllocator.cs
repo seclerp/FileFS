@@ -17,7 +17,7 @@ namespace FileFS.DataAccess.Allocation
     {
         private readonly IStorageConnection _connection;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
-        private readonly IFileDescriptorRepository _fileDescriptorRepository;
+        private readonly IEntryDescriptorRepository _entryDescriptorRepository;
         private readonly IStorageOptimizer _optimizer;
         private readonly ILogger _logger;
 
@@ -26,19 +26,19 @@ namespace FileFS.DataAccess.Allocation
         /// </summary>
         /// <param name="connection">Storage connection instance.</param>
         /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
-        /// <param name="fileDescriptorRepository">File descriptor repository instance.</param>
+        /// <param name="entryDescriptorRepository">File descriptor repository instance.</param>
         /// <param name="optimizer">Storage optimizer instance.</param>
         /// <param name="logger">Logger instance.</param>
         public FileAllocator(
             IStorageConnection connection,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
-            IFileDescriptorRepository fileDescriptorRepository,
+            IEntryDescriptorRepository entryDescriptorRepository,
             IStorageOptimizer optimizer,
             ILogger logger)
         {
             _connection = connection;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
-            _fileDescriptorRepository = fileDescriptorRepository;
+            _entryDescriptorRepository = entryDescriptorRepository;
             _optimizer = optimizer;
             _logger = logger;
         }
@@ -91,7 +91,7 @@ namespace FileFS.DataAccess.Allocation
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var overallSpace = _connection.GetSize();
             var specialSpace = FilesystemDescriptor.BytesTotal +
-                               (filesystemDescriptor.FileDescriptorsCount * filesystemDescriptor.FileDescriptorLength);
+                               (filesystemDescriptor.EntryDescriptorsCount * filesystemDescriptor.EntryDescriptorLength);
 
             var dataSpace = filesystemDescriptor.FilesDataLength;
             var remainingSpace = overallSpace - specialSpace - dataSpace;
@@ -132,7 +132,7 @@ namespace FileFS.DataAccess.Allocation
             cursor = default;
 
             // 1. Get all descriptors
-            var descriptors = _fileDescriptorRepository.ReadAll();
+            var descriptors = _entryDescriptorRepository.ReadAll();
 
             // 2. Sort by offset
             var orderedDescriptors = descriptors

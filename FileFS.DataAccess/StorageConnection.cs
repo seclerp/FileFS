@@ -102,19 +102,18 @@ namespace FileFS.DataAccess
             // Do not copy anything if size is zero, not necessary
             if (length > 0)
             {
-                using var tempStream = new MemoryStream(length);
-                using var tempStreamReader = CreateReader(tempStream);
-                using var tempStreamWriter = CreateWriter(tempStream);
-
                 using var stream = _storageStreamProvider.OpenStream();
                 using var reader = CreateReader(stream);
                 using var writer = CreateWriter(stream);
 
-                stream.Seek(sourceCursor);
-                tempStreamWriter.Write(reader.ReadBytes(length));
-                stream.Seek(destinationCursor);
-                tempStream.Seek(0, SeekOrigin.Begin);
-                writer.Write(tempStreamReader.ReadBytes(length));
+                for (var relativeOffset = 0; relativeOffset < length; relativeOffset += _bufferSize)
+                {
+                    var chunkSize = _bufferSize < length ? _bufferSize : length;
+                    stream.Seek(new Cursor(sourceCursor.Offset + relativeOffset, sourceCursor.Origin));
+                    var chunk = reader.ReadBytes(chunkSize);
+                    stream.Seek(new Cursor(destinationCursor.Offset + relativeOffset, destinationCursor.Origin));
+                    writer.Write(chunk);
+                }
             }
 
             _logger.Information($"Done copy operation from offset {sourceCursor.Offset} to offset {destinationCursor.Offset}, {length} bytes length");

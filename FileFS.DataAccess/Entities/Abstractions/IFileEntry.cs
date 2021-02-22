@@ -1,15 +1,10 @@
 ﻿namespace FileFS.DataAccess.Entities.Abstractions
 {
     /// <summary>
-    /// Abstraction for every file entry implementation.
+    /// Abstraction for every file entry in FileFS storage.
     /// </summary>
-    public interface IFileEntry
+    public interface IFileEntry : IEntry
     {
-        /// <summary>
-        /// Gets name of the file.
-        /// </summary>
-        public string FileName { get; }
-
         /// <summary>
         /// Gets length of the data in bytes.
         /// </summary>

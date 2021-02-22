@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FileFS.DataAccess.Exceptions
+﻿namespace FileFS.DataAccess.Exceptions
 {
     /// <summary>
     /// Exception that should be thrown when storage not exists.

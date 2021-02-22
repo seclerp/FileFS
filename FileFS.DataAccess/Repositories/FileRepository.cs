@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Entities.Abstractions;
+using FileFS.DataAccess.Entities.Enums;
 using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
@@ -15,12 +14,12 @@ namespace FileFS.DataAccess.Repositories
     /// <summary>
     /// File repository implementation.
     /// </summary>
-    public class FileRepository : IFileRepository
+    public class FileRepository : EntryRepository, IFileRepository
     {
         private readonly IStorageConnection _connection;
         private readonly IFileAllocator _allocator;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
-        private readonly IFileDescriptorRepository _fileDescriptorRepository;
+        private readonly IEntryDescriptorRepository _entryDescriptorRepository;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -29,19 +28,20 @@ namespace FileFS.DataAccess.Repositories
         /// <param name="connection">Storage connection instance.</param>
         /// <param name="allocator">File allocator instance.</param>
         /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
-        /// <param name="fileDescriptorRepository">File descriptor repository.</param>
+        /// <param name="entryDescriptorRepository">File descriptor repository.</param>
         /// <param name="logger">Logger instance.</param>
         public FileRepository(
             IStorageConnection connection,
             IFileAllocator allocator,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
-            IFileDescriptorRepository fileDescriptorRepository,
+            IEntryDescriptorRepository entryDescriptorRepository,
             ILogger logger)
+            : base(filesystemDescriptorAccessor, entryDescriptorRepository, logger)
         {
             _connection = connection;
             _allocator = allocator;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
-            _fileDescriptorRepository = fileDescriptorRepository;
+            _entryDescriptorRepository = entryDescriptorRepository;
             _logger = logger;
         }
 
@@ -70,143 +70,92 @@ namespace FileFS.DataAccess.Repositories
         }
 
         /// <inheritdoc />
+        public void Copy(string fileNameFrom, string fileNameTo)
+        {
+            var sourceFileDescriptor = _entryDescriptorRepository.Find(fileNameFrom).Value;
+            var sourceDataCursor = new Cursor(sourceFileDescriptor.DataOffset, SeekOrigin.Begin);
+
+            var destinationParentName = fileNameTo.GetParentFullName();
+            var destinationParentDescriptor = _entryDescriptorRepository.Find(destinationParentName).Value;
+            var destinationPlaceholder = new PlaceholderFileEntry(fileNameTo, destinationParentDescriptor.Id, sourceFileDescriptor.DataLength);
+
+            // Create empty file of given size with no data
+            CreateInternal(destinationPlaceholder, destinationDataCursor =>
+            {
+                // Copy data from source file data origin to destination
+                _connection.PerformCopy(sourceDataCursor, destinationDataCursor, sourceFileDescriptor.DataLength);
+            });
+        }
+
+        /// <inheritdoc />
         public FileEntry Read(string fileName)
         {
             // 1. Find descriptor
-            var descriptorItem = _fileDescriptorRepository.Find(fileName);
+            var descriptorItem = _entryDescriptorRepository.Find(fileName);
 
             // 2. Read data by given offset from descriptor
             var dataBytes = ReadFileData(new Cursor(descriptorItem.Value.DataOffset, SeekOrigin.Begin), descriptorItem.Value.DataLength);
 
-            return new FileEntry(fileName, dataBytes);
+            return new FileEntry(fileName, descriptorItem.Value.ParentId, dataBytes);
         }
 
         /// <inheritdoc />
-        public void Read(string fileName, Stream destinationStream)
+        public void ReadData(string fileName, Stream destinationStream)
         {
             // 1. Find descriptor
-            var descriptorItem = _fileDescriptorRepository.Find(fileName);
+            var descriptorItem = _entryDescriptorRepository.Find(fileName);
 
             // 2. Read data by given offset from descriptor
             ReadStreamedFileData(new Cursor(descriptorItem.Value.DataOffset, SeekOrigin.Begin), descriptorItem.Value.DataLength, destinationStream);
         }
 
-        /// <inheritdoc />
-        public void Rename(string currentFilename, string newFilename)
+        /// <inheritdoc/>
+        public override bool Exists(string entryName)
         {
-            // 1. Find descriptor
-            var descriptorItem = _fileDescriptorRepository.Find(currentFilename);
-
-            // 2. Create descriptor with new filename
-            var newDescriptor = new FileDescriptor(
-                newFilename,
-                descriptorItem.Value.CreatedOn,
-                descriptorItem.Value.UpdatedOn,
-                descriptorItem.Value.DataOffset,
-                descriptorItem.Value.DataLength);
-            var cursor = descriptorItem.Cursor;
-
-            // 3. Write new descriptor
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(in newDescriptor, in cursor));
-        }
-
-        /// <inheritdoc />
-        public void Delete(string fileName)
-        {
-            // 1. Find last descriptor
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var lastDescriptorCursor = new Cursor(
-                -FilesystemDescriptor.BytesTotal -
-                (filesystemDescriptor.FileDescriptorsCount *
-                 filesystemDescriptor.FileDescriptorLength),
-                SeekOrigin.End);
-            var lastDescriptor = _fileDescriptorRepository.Read(lastDescriptorCursor).Value;
-
-            // 2. Find current descriptor
-            var descriptorItem = _fileDescriptorRepository.Find(fileName);
-            var cursor = descriptorItem.Cursor;
-
-            // 3. Save last descriptor in new empty space (perform swap with last)
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(in lastDescriptor, in cursor));
-
-            // 4. Decrease count of descriptors
-            var updatedFilesystemDescriptor =
-                filesystemDescriptor.WithFileDescriptorsCount(filesystemDescriptor.FileDescriptorsCount - 1);
-
-            _filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
-        }
-
-        /// <inheritdoc />
-        public bool Exists(string fileName)
-        {
-            return _fileDescriptorRepository.Exists(fileName);
-        }
-
-        /// <inheritdoc />
-        public IEnumerable<FileEntryInfo> GetAllFilesInfo()
-        {
-            return _fileDescriptorRepository
-                .ReadAll()
-                .Select(info => new FileEntryInfo(
-                    info.Value.FileName,
-                    info.Value.DataLength,
-                    info.Value.CreatedOn.FromUnixTime(),
-                    info.Value.UpdatedOn.FromUnixTime()))
-                .ToArray();
+            return _entryDescriptorRepository.TryFind(entryName, out var item)
+                   && item.Value.Type is EntryType.File;
         }
 
         private void CreateInternal(IFileEntry file, Action<Cursor> writeAction)
         {
-            _logger.Information($"Start file create process, filename {file.FileName}, bytes count {file.DataLength}");
+            _logger.Information($"Start file create process, filename {file.EntryName}, bytes count {file.DataLength}");
 
             // 1. Allocate space and write new file descriptor
             var allocatedDataCursor = WriteFileDescriptor(file);
 
             // 2. Update filesystem descriptor
-            IncrementFilesCount();
+            IncreaseEntriesCount(1);
 
             // 3. Write data
             writeAction(allocatedDataCursor);
 
-            _logger.Information($"File {file.FileName} was created");
-        }
-
-        private void IncrementFilesCount()
-        {
-            _logger.Information("Start updating filesystem descriptor");
-
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var updatedFilesystemDescriptor =
-                filesystemDescriptor.WithFileDescriptorsCount(filesystemDescriptor.FileDescriptorsCount + 1);
-
-            _filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
-
-            _logger.Information("Done updating filesystem descriptor");
+            _logger.Information($"File {file.EntryName} was created");
         }
 
         private Cursor WriteFileDescriptor(IFileEntry file)
         {
-            _logger.Information($"Start writing file descriptor for filename {file.FileName}");
+            _logger.Information($"Start writing file descriptor for filename {file.EntryName}");
 
             var allocatedCursor = _allocator.AllocateFile(file.DataLength);
 
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var createdOn = DateTime.UtcNow.ToUnixTime();
             var updatedOn = createdOn;
-            var fileDescriptor = new FileDescriptor(file.FileName, createdOn, updatedOn, allocatedCursor.Offset, file.DataLength);
+            var id = Guid.NewGuid();
+            var fileDescriptor = new EntryDescriptor(id, file.ParentEntryId, file.EntryName, EntryType.File, createdOn, updatedOn, allocatedCursor.Offset, file.DataLength);
             var fileDescriptorOffset = -FilesystemDescriptor.BytesTotal -
-                                       (filesystemDescriptor.FileDescriptorsCount *
-                                        filesystemDescriptor.FileDescriptorLength)
-                                       - filesystemDescriptor.FileDescriptorLength;
+                                       (filesystemDescriptor.EntryDescriptorsCount *
+                                        filesystemDescriptor.EntryDescriptorLength)
+                                       - filesystemDescriptor.EntryDescriptorLength;
 
             var origin = SeekOrigin.End;
             var cursor = new Cursor(fileDescriptorOffset, origin);
 
-            var storageItem = new StorageItem<FileDescriptor>(in fileDescriptor, in cursor);
+            var storageItem = new StorageItem<EntryDescriptor>(in fileDescriptor, in cursor);
 
-            _fileDescriptorRepository.Write(storageItem);
+            _entryDescriptorRepository.Write(storageItem);
 
-            _logger.Information($"Done writing file descriptor for filename {file.FileName}");
+            _logger.Information($"Done writing file descriptor for filename {file.EntryName}");
 
             return allocatedCursor;
         }
@@ -214,7 +163,7 @@ namespace FileFS.DataAccess.Repositories
         private void UpdateInternal(IFileEntry file, Action<Cursor> writeAction)
         {
             // 1. Find descriptor
-            var descriptorItem = _fileDescriptorRepository.Find(file.FileName);
+            var descriptorItem = _entryDescriptorRepository.Find(file.EntryName);
 
             // 2. If new content size equals or smaller than was previously allocated to this file,
             // we don't need to allocate new space, only change length
@@ -226,8 +175,11 @@ namespace FileFS.DataAccess.Repositories
             writeAction(allocatedCursor);
 
             var updatedOn = DateTime.UtcNow.ToUnixTime();
-            var updatedDescriptor = new FileDescriptor(
-                descriptorItem.Value.FileName,
+            var updatedDescriptor = new EntryDescriptor(
+                descriptorItem.Value.Id,
+                descriptorItem.Value.ParentId,
+                descriptorItem.Value.Name,
+                EntryType.File,
                 descriptorItem.Value.CreatedOn,
                 updatedOn,
                 allocatedCursor.Offset,
@@ -235,7 +187,7 @@ namespace FileFS.DataAccess.Repositories
             var cursor = descriptorItem.Cursor;
 
             // 4. Write descriptor
-            _fileDescriptorRepository.Write(new StorageItem<FileDescriptor>(in updatedDescriptor, in cursor));
+            _entryDescriptorRepository.Write(new StorageItem<EntryDescriptor>(in updatedDescriptor, in cursor));
         }
 
         private byte[] ReadFileData(Cursor cursor, int length)

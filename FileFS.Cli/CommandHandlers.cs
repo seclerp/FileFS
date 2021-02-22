@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using FileFS.Cli.Constants;
 using FileFS.Cli.Extensions;
 using FileFS.Cli.Options;
-using FileFS.DataAccess;
-using FileFS.DataAccess.Serializers;
+using FileFS.Client;
+using FileFS.DataAccess.Entities.Enums;
+using FileFS.DataAccess.Extensions;
 
 namespace FileFS.Cli
 {
@@ -22,10 +24,8 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(initOptions, options =>
             {
                 var logger = CommandHandlerHelper.CreateLogger(options.IsDebug);
-                var storageStreamProvider = new StorageStreamProvider(options.Instance, logger);
-                var serializer = new FilesystemDescriptorSerializer(logger);
-                var manager = new StorageInitializer(storageStreamProvider, serializer, logger);
-                manager.Initialize(options.Size, options.FileNameLength);
+                var storageInitializer = StorageInitializerFactory.Create(options.Instance, logger);
+                storageInitializer.Initialize(options.Size, options.FileNameLength);
             });
         }
 
@@ -39,7 +39,20 @@ namespace FileFS.Cli
             {
                 var client = CommandHandlerHelper.CreateClient(options);
                 var contentBytes = Encoding.UTF8.GetBytes(options.Content);
-                client.Create(options.FileName, contentBytes);
+                client.CreateFile(options.FileName, contentBytes);
+            });
+        }
+
+        /// <summary>
+        /// Method that handles "create-dir" command.
+        /// </summary>
+        /// <param name="createDirectoryOptions">Options passed to the command.</param>
+        internal static void HandleCreateDirectory(CreateDirectoryOptions createDirectoryOptions)
+        {
+            CommandHandlerHelper.TryExecute(createDirectoryOptions, options =>
+            {
+                var client = CommandHandlerHelper.CreateClient(options);
+                client.CreateDirectory(options.DirectoryName);
             });
         }
 
@@ -89,7 +102,7 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(importOptions, options =>
             {
                 var client = CommandHandlerHelper.CreateClient(options);
-                client.Import(options.ImportPath, options.FileName);
+                client.ImportFile(options.ImportPath, options.FileName);
             });
         }
 
@@ -102,7 +115,7 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(exportOptions, options =>
             {
                 var client = CommandHandlerHelper.CreateClient(options);
-                client.Export(options.FileName, options.ExportPath);
+                client.ExportFile(options.FileName, options.ExportPath);
             });
         }
 
@@ -115,7 +128,33 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(renameOptions, options =>
             {
                 var client = CommandHandlerHelper.CreateClient(options);
-                client.Rename(options.OldFileName, options.NewFileName);
+                client.Rename(options.CurrentName, options.NewName);
+            });
+        }
+
+        /// <summary>
+        /// Method that handles "move" command.
+        /// </summary>
+        /// <param name="moveOptions">Options passed to the command.</param>
+        internal static void HandleMove(MoveOptions moveOptions)
+        {
+            CommandHandlerHelper.TryExecute(moveOptions, options =>
+            {
+                var client = CommandHandlerHelper.CreateClient(options);
+                client.Move(options.CurrentName, options.NewName);
+            });
+        }
+
+        /// <summary>
+        /// Method that handles "copy" command.
+        /// </summary>
+        /// <param name="copyOptions">Options passed to the command.</param>
+        internal static void HandleCopy(CopyOptions copyOptions)
+        {
+            CommandHandlerHelper.TryExecute(copyOptions, options =>
+            {
+                var client = CommandHandlerHelper.CreateClient(options);
+                client.Copy(options.CurrentName, options.NewName);
             });
         }
 
@@ -128,7 +167,7 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(existsOptions, options =>
             {
                 var client = CommandHandlerHelper.CreateClient(options);
-                var exists = client.Exists(options.FileName);
+                var exists = client.FileExists(options.FileName);
                 Console.WriteLine(exists);
             });
         }
@@ -157,26 +196,44 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(listOptions, options =>
             {
                 var client = CommandHandlerHelper.CreateClient(options);
-                var allEntries = client.ListFiles();
+                var allEntries = client.GetEntries(listOptions.DirectoryName)
+                    .OrderByDescending(entryInfo => (byte)entryInfo.EntryType)
+                    .ThenBy(entryInfo => entryInfo.EntryName);
 
                 if (options.IsDetailedView)
                 {
+                    Console.WriteLine($"Directory: {listOptions.DirectoryName}");
                     Console.WriteLine("{0, -21}{1, 9}{2, 21}{3, 21}", "NAME", "SIZE", "CREATED ON", "UPDATED ON");
                     foreach (var entryInfo in allEntries)
                     {
-                        Console.WriteLine(
-                            "{0, -21}{1, 9}{2, 21}{3, 21}",
-                            entryInfo.FileName.Clip(17),
-                            ((long)entryInfo.Size).FormatBytesSize(),
-                            entryInfo.CreatedOn.ToString(CliConstants.DateTimeFormat),
-                            entryInfo.UpdatedOn.ToString(CliConstants.DateTimeFormat));
+                        if (entryInfo.EntryType is EntryType.Directory)
+                        {
+                            var currentColor = Console.ForegroundColor;
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine(
+                                "{0, -21}{1, 9}{2, 21}{3, 21}",
+                                entryInfo.EntryName.GetShortName().Clip(17),
+                                string.Empty,
+                                entryInfo.CreatedOn.ToString(CliConstants.DateTimeFormat),
+                                entryInfo.UpdatedOn.ToString(CliConstants.DateTimeFormat));
+                            Console.ForegroundColor = currentColor;
+                        }
+                        else
+                        {
+                            Console.WriteLine(
+                                "{0, -21}{1, 9}{2, 21}{3, 21}",
+                                entryInfo.EntryName.GetShortName().Clip(17),
+                                ((long)entryInfo.Size).FormatBytesSize(),
+                                entryInfo.CreatedOn.ToString(CliConstants.DateTimeFormat),
+                                entryInfo.UpdatedOn.ToString(CliConstants.DateTimeFormat));
+                        }
                     }
                 }
                 else
                 {
                     foreach (var entryInfo in allEntries)
                     {
-                        Console.WriteLine(entryInfo.FileName);
+                        Console.WriteLine(entryInfo.EntryName);
                     }
                 }
             });

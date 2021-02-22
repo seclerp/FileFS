@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FileFS.DataAccess.Abstractions;
@@ -17,7 +16,7 @@ namespace FileFS.DataAccess.Allocation
     public class StorageOptimizer : IStorageOptimizer
     {
         private readonly IStorageConnection _connection;
-        private readonly IFileDescriptorRepository _fileDescriptorRepository;
+        private readonly IEntryDescriptorRepository _entryDescriptorRepository;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly ILogger _logger;
 
@@ -25,17 +24,17 @@ namespace FileFS.DataAccess.Allocation
         /// Initializes a new instance of the <see cref="StorageOptimizer"/> class.
         /// </summary>
         /// <param name="connection">Storage connection instance.</param>
-        /// <param name="fileDescriptorRepository">File descriptor repository instance.</param>
+        /// <param name="entryDescriptorRepository">File descriptor repository instance.</param>
         /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
         /// <param name="logger">Logger instance.</param>
         public StorageOptimizer(
             IStorageConnection connection,
-            IFileDescriptorRepository fileDescriptorRepository,
+            IEntryDescriptorRepository entryDescriptorRepository,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             ILogger logger)
         {
             _connection = connection;
-            _fileDescriptorRepository = fileDescriptorRepository;
+            _entryDescriptorRepository = entryDescriptorRepository;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _logger = logger;
         }
@@ -49,7 +48,7 @@ namespace FileFS.DataAccess.Allocation
             var initialDataSize = _filesystemDescriptorAccessor.Value.FilesDataLength;
 
             // 1. Get all descriptors
-            var descriptors = _fileDescriptorRepository.ReadAll();
+            var descriptors = _entryDescriptorRepository.ReadAll();
 
             _logger.Information($"There is {descriptors.Count} descriptors found");
 
@@ -97,7 +96,7 @@ namespace FileFS.DataAccess.Allocation
             return bytesOptimized;
         }
 
-        private void ProcessGap(IList<StorageItem<FileDescriptor>> orderedDescriptors, int descriptorIndex, int gapOffset)
+        private void ProcessGap(IList<StorageItem<EntryDescriptor>> orderedDescriptors, int descriptorIndex, int gapOffset)
         {
             var movingDataDescriptorItem = orderedDescriptors[descriptorIndex];
 
@@ -107,19 +106,25 @@ namespace FileFS.DataAccess.Allocation
             orderedDescriptors[descriptorIndex] = newStorageItem;
         }
 
-        private StorageItem<FileDescriptor> CopyFile(FileDescriptor fileDescriptor, Cursor cursor, int destinationOffset)
+        private StorageItem<EntryDescriptor> CopyFile(EntryDescriptor entryDescriptor, Cursor cursor, int destinationOffset)
         {
-            var createdOn = DateTime.UtcNow.ToUnixTime();
-            var updatedOn = createdOn;
-            var newDescriptor = new FileDescriptor(fileDescriptor.FileName, createdOn, updatedOn, destinationOffset, fileDescriptor.DataLength);
-            var newStorageItem = new StorageItem<FileDescriptor>(in newDescriptor, in cursor);
+            var newDescriptor = new EntryDescriptor(
+                entryDescriptor.Id,
+                entryDescriptor.ParentId,
+                entryDescriptor.Name,
+                entryDescriptor.Type,
+                entryDescriptor.CreatedOn,
+                entryDescriptor.UpdatedOn,
+                destinationOffset,
+                entryDescriptor.DataLength);
+            var newStorageItem = new StorageItem<EntryDescriptor>(in newDescriptor, in cursor);
 
-            _logger.Information($"Moving {fileDescriptor.DataLength} bytes of data from {fileDescriptor.DataOffset} to {destinationOffset}");
+            _logger.Information($"Moving {entryDescriptor.DataLength} bytes of data from {entryDescriptor.DataOffset} to {destinationOffset}");
 
-            PerformCopy(fileDescriptor.DataOffset, destinationOffset, fileDescriptor.DataLength);
-            _fileDescriptorRepository.Write(newStorageItem);
+            PerformCopy(entryDescriptor.DataOffset, destinationOffset, entryDescriptor.DataLength);
+            _entryDescriptorRepository.Write(newStorageItem);
 
-            _logger.Information($"{fileDescriptor.DataLength} bytes of data moved to offset {destinationOffset}");
+            _logger.Information($"{entryDescriptor.DataLength} bytes of data moved to offset {destinationOffset}");
 
             return newStorageItem;
         }
