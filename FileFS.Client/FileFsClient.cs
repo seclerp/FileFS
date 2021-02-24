@@ -7,6 +7,7 @@ using FileFS.Client.Abstractions;
 using FileFS.Client.Constants;
 using FileFS.Client.Exceptions;
 using FileFS.Client.Transactions.Abstractions;
+using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Constants;
 using FileFS.DataAccess.Entities;

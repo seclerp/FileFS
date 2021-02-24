@@ -20,6 +20,7 @@ namespace FileFS.DataAccess.Repositories
         private readonly IFileAllocator _allocator;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly IEntryDescriptorRepository _entryDescriptorRepository;
+        private readonly IStorageOperationLocker _storageOperationLocker;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -35,13 +36,15 @@ namespace FileFS.DataAccess.Repositories
             IFileAllocator allocator,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             IEntryDescriptorRepository entryDescriptorRepository,
+            IStorageOperationLocker storageOperationLocker,
             ILogger logger)
-            : base(filesystemDescriptorAccessor, entryDescriptorRepository, logger)
+            : base(filesystemDescriptorAccessor, entryDescriptorRepository, storageOperationLocker, logger)
         {
             _connection = connection;
             _allocator = allocator;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _entryDescriptorRepository = entryDescriptorRepository;
+            _storageOperationLocker = storageOperationLocker;
             _logger = logger;
         }
 
@@ -72,18 +75,22 @@ namespace FileFS.DataAccess.Repositories
         /// <inheritdoc />
         public void Copy(string fileNameFrom, string fileNameTo)
         {
-            var sourceFileDescriptor = _entryDescriptorRepository.Find(fileNameFrom).Value;
-            var sourceDataCursor = new Cursor(sourceFileDescriptor.DataOffset, SeekOrigin.Begin);
-
-            var destinationParentName = fileNameTo.GetParentFullName();
-            var destinationParentDescriptor = _entryDescriptorRepository.Find(destinationParentName).Value;
-            var destinationPlaceholder = new PlaceholderFileEntry(fileNameTo, destinationParentDescriptor.Id, sourceFileDescriptor.DataLength);
-
-            // Create empty file of given size with no data
-            CreateInternal(destinationPlaceholder, destinationDataCursor =>
+            var operationId = Guid.NewGuid();
+            _storageOperationLocker.MakeOperation(fileNameFrom, operationId, () =>
             {
-                // Copy data from source file data origin to destination
-                _connection.PerformCopy(sourceDataCursor, destinationDataCursor, sourceFileDescriptor.DataLength);
+                var sourceFileDescriptor = _entryDescriptorRepository.Find(fileNameFrom).Value;
+                var sourceDataCursor = new Cursor(sourceFileDescriptor.DataOffset, SeekOrigin.Begin);
+
+                var destinationParentName = fileNameTo.GetParentFullName();
+                var destinationParentDescriptor = _entryDescriptorRepository.Find(destinationParentName).Value;
+                var destinationPlaceholder = new PlaceholderFileEntry(fileNameTo, destinationParentDescriptor.Id, sourceFileDescriptor.DataLength);
+
+                // Create empty file of given size with no data
+                CreateInternal(destinationPlaceholder, destinationDataCursor =>
+                {
+                    // Copy data from source file data origin to destination
+                    _connection.PerformCopy(sourceDataCursor, destinationDataCursor, sourceFileDescriptor.DataLength);
+                });
             });
         }
 
@@ -132,11 +139,15 @@ namespace FileFS.DataAccess.Repositories
             _logger.Information($"File {file.EntryName} was created");
         }
 
-        private Cursor WriteFileDescriptor(IFileEntry file)
+        private Cursor WriteFileDescriptor(IFileEntry file, Guid operationId)
         {
             _logger.Information($"Start writing file descriptor for filename {file.EntryName}");
 
-            var allocatedCursor = _allocator.AllocateFile(file.DataLength);
+            Cursor allocatedCursor = default;
+            _storageOperationLocker.MakeGlobalOperation(operationId, () =>
+            {
+                allocatedCursor = _allocator.AllocateFile(file.DataLength);
+            });
 
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var createdOn = DateTime.UtcNow.ToUnixTime();

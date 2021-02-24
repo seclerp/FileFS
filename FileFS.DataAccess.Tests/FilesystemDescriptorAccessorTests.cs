@@ -60,7 +60,7 @@ namespace FileFS.DataAccess.Tests
                 new FilesystemDescriptorAccessor(storageConnection, filesystemSerializer, logger);
 
             // Act
-            filesystemDescriptorAccessor.Update(expectedDescriptor);
+            filesystemDescriptorAccessor.Update(_ => 0, _ => 0, _ => fileDescriptorLength);
 
             // Assert
             var returnedDescriptorBytes =

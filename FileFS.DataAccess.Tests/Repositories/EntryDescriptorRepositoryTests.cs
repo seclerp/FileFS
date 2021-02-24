@@ -5,7 +5,6 @@ using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Constants;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Entities.Enums;
-using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using FileFS.DataAccess.Tests.Extensions;
 using Microsoft.Extensions.DependencyInjection;
@@ -197,10 +196,7 @@ namespace FileFS.DataAccess.Tests.Repositories
                 foreach (var itemToAdd in itemsToAdd)
                 {
                     entryDescriptorRepository.Write(new StorageItem<EntryDescriptor>(itemToAdd, new Cursor(offset, SeekOrigin.End)));
-                    var currentFilesystemDescriptor = filesystemDescriptorAccessor.Value;
-                    var updatedFilesystemDescriptor = currentFilesystemDescriptor
-                        .WithFileDescriptorsCount(currentFilesystemDescriptor.EntryDescriptorsCount + 1);
-                    filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
+                    filesystemDescriptorAccessor.Update(entryDescriptorsCountUpdater: value => value + 1);
                     offset -= EntryDescriptor.BytesWithoutFilename + fileNameLength;
                 }
             }

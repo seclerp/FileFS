@@ -4,7 +4,6 @@ using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
-using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
 
@@ -82,14 +81,11 @@ namespace FileFS.DataAccess.Allocation
             }
 
             // 4. Update new size of file data in descriptor.
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var updatedFilesystemDescriptor =
-                filesystemDescriptor
-                    .WithFileDataLength(orderedDescriptors.Select(descriptor => descriptor.Value.DataLength).Sum());
+            var allEntriesDataLength = orderedDescriptors.Select(descriptor => descriptor.Value.DataLength).Sum();
 
-            _filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
+            _filesystemDescriptorAccessor.Update(filesDataLengthUpdater: _ => allEntriesDataLength);
 
-            var bytesOptimized = initialDataSize - updatedFilesystemDescriptor.FilesDataLength;
+            var bytesOptimized = initialDataSize - allEntriesDataLength;
 
             _logger.Information($"Optimization process completed, {dataItemsMoved} items moved, {bytesOptimized} bytes optimized");
 

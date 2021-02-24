@@ -165,7 +165,7 @@ namespace FileFS.DataAccess.Tests.Allocation
 
         [Theory]
         [InlineData(10000, 160000, 100000)]
-        public void AllocateFile_WhenDataSizeBiggerThanExistingSpace_ShouldTryOptimizeAndExtend(int storageSize, int newStorageSize, int dataSize)
+        public void AllocateFile_WhenDataSizeBiggerThanExistingSpace_ShouldTryOptimizeAndExtend(int storageSize, int expectedNewStorageSize, int dataSize)
         {
             var fileFsStorageName = Guid.NewGuid().ToString();
             try
@@ -182,7 +182,7 @@ namespace FileFS.DataAccess.Tests.Allocation
 
                 // Assert
                 storageOptimizerMock.Verify(s => s.Optimize());
-                storageExtenderMock.Verify(s => s.Extend(It.IsAny<long>()));
+                storageExtenderMock.Verify(s => s.Extend(expectedNewStorageSize));
             }
             finally
             {

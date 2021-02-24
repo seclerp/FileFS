@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Serializers.Abstractions;
@@ -15,6 +16,8 @@ namespace FileFS.DataAccess
         private readonly ISerializer<FilesystemDescriptor> _serializer;
         private readonly ILogger _logger;
 
+        private readonly object _locker;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="FilesystemDescriptorAccessor"/> class.
         /// </summary>
@@ -29,13 +32,34 @@ namespace FileFS.DataAccess
             _connection = connection;
             _serializer = serializer;
             _logger = logger;
+            _locker = new object();
         }
 
         /// <inheritdoc />
         public FilesystemDescriptor Value => Read();
 
         /// <inheritdoc />
-        public void Update(FilesystemDescriptor descriptor)
+        public FilesystemDescriptor Update(
+            Func<int, int> filesDataLengthUpdater = null,
+            Func<int, int> entryDescriptorsCountUpdater = null,
+            Func<int, int> entryDescriptorLengthUpdater = null)
+        {
+            lock (_locker)
+            {
+                var descriptor = Read();
+                var newFilesDataLength = filesDataLengthUpdater?.Invoke(descriptor.FilesDataLength) ?? descriptor.FilesDataLength;
+                var newEntryDescriptorsCount = entryDescriptorsCountUpdater?.Invoke(descriptor.EntryDescriptorsCount) ?? descriptor.EntryDescriptorsCount;
+                var newEntryDescriptorLength = entryDescriptorLengthUpdater?.Invoke(descriptor.EntryDescriptorLength) ?? descriptor.EntryDescriptorLength;
+
+                var updatedDescriptor = new FilesystemDescriptor(newFilesDataLength, newEntryDescriptorsCount, newEntryDescriptorLength);
+
+                UpdateInternal(updatedDescriptor);
+
+                return updatedDescriptor;
+            }
+        }
+
+        private void UpdateInternal(FilesystemDescriptor descriptor)
         {
             _logger.Information("Trying to update filesystem descriptor");
 
@@ -50,18 +74,21 @@ namespace FileFS.DataAccess
 
         private FilesystemDescriptor Read()
         {
-            _logger.Information("Trying to retrieve filesystem descriptor");
+            lock (_locker)
+            {
+                _logger.Information("Trying to retrieve filesystem descriptor");
 
-            const SeekOrigin origin = SeekOrigin.End;
+                const SeekOrigin origin = SeekOrigin.End;
 
-            var offset = -FilesystemDescriptor.BytesTotal;
-            var length = FilesystemDescriptor.BytesTotal;
-            var data = _connection.PerformRead(new Cursor(offset, origin), length);
-            var descriptor = _serializer.FromBytes(data);
+                var offset = -FilesystemDescriptor.BytesTotal;
+                var length = FilesystemDescriptor.BytesTotal;
+                var data = _connection.PerformRead(new Cursor(offset, origin), length);
+                var descriptor = _serializer.FromBytes(data);
 
-            _logger.Information("Filesystem descriptor retrieved");
+                _logger.Information("Filesystem descriptor retrieved");
 
-            return descriptor;
+                return descriptor;
+            }
         }
     }
 }
