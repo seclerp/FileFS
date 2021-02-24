@@ -25,8 +25,9 @@ namespace FileFS.Client
             var filesystemDescriptorAccessor = new FilesystemDescriptorAccessor(connection, filesystemDescriptorSerializer, logger);
             var entryDescriptorSerializer = new EntryDescriptorSerializer(filesystemDescriptorAccessor, logger);
             var entryDescriptorRepository = new EntryDescriptorRepository(connection, filesystemDescriptorAccessor, entryDescriptorSerializer, logger);
+            var operationLocker = new StorageOperationLocker();
             var storageInitializer =
-                new StorageInitializer(connection, filesystemDescriptorAccessor, entryDescriptorRepository, logger);
+                new StorageInitializer(connection, operationLocker, filesystemDescriptorAccessor, entryDescriptorRepository, logger);
 
             return storageInitializer;
         }

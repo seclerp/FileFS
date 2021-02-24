@@ -16,6 +16,7 @@ namespace FileFS.DataAccess
     public class StorageInitializer : IStorageInitializer
     {
         private readonly IStorageConnection _storageConnection;
+        private readonly IStorageOperationLocker _storageOperationLocker;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly IEntryDescriptorRepository _entryDescriptorRepository;
         private readonly ILogger _logger;
@@ -29,11 +30,13 @@ namespace FileFS.DataAccess
         /// <param name="logger">Logger instance.</param>
         public StorageInitializer(
             IStorageConnection storageConnection,
+            IStorageOperationLocker storageOperationLocker,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             IEntryDescriptorRepository entryDescriptorRepository,
             ILogger logger)
         {
             _storageConnection = storageConnection;
+            _storageOperationLocker = storageOperationLocker;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _entryDescriptorRepository = entryDescriptorRepository;
             _logger = logger;
@@ -54,23 +57,25 @@ namespace FileFS.DataAccess
                 throw new ArgumentNonValidException($"Value '{nameof(fileNameLength)}'cannot be less or equals to 0");
             }
 
-            _logger.Information($"Start storage initialization process, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
+            _storageOperationLocker.MakeGlobalOperation(() =>
+            {
+                _logger.Information($"Start storage initialization process, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
 
-            // Simply initialize new empty storage file
-            _storageConnection.SetSize(fileSize);
+                // Simply initialize new empty storage file
+                _storageConnection.SetSize(fileSize);
 
-            var fileSystemDescriptor = new FilesystemDescriptor(0, 1, fileNameLength + EntryDescriptor.BytesWithoutFilename);
-            _filesystemDescriptorAccessor.Update(fileSystemDescriptor);
+                _filesystemDescriptorAccessor.Update(_ => 0, _ => 1, _ => fileNameLength + EntryDescriptor.BytesWithoutFilename);
 
-            _logger.Information("Filesystem descriptor initialized");
+                _logger.Information("Filesystem descriptor initialized");
 
-            _logger.Information("Start creation of root directory");
+                _logger.Information("Start creation of root directory");
 
-            CreateRootDirectory();
+                CreateRootDirectory();
 
-            _logger.Information("Root directory was created");
+                _logger.Information("Root directory was created");
 
-            _logger.Information($"Done storage initialization process, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
+                _logger.Information($"Done storage initialization process, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
+            });
         }
 
         private void CreateRootDirectory()

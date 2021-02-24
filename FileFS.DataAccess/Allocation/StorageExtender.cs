@@ -48,8 +48,11 @@ namespace FileFS.DataAccess.Allocation
             _connection.SetSize(newSize);
 
             // Filesystem descriptor will be written at new position at the new end of storage
-            _filesystemDescriptorAccessor.Update(filesystemDescriptor);
-            var updatedFilesystemDescriptor = _filesystemDescriptorAccessor.Value;
+            var updatedFilesystemDescriptor =
+                _filesystemDescriptorAccessor.Update(
+                    _ => filesystemDescriptor.FilesDataLength,
+                    _ => filesystemDescriptor.EntryDescriptorsCount,
+                    _ => filesystemDescriptor.EntryDescriptorLength);
 
             CopyDescriptors(updatedFilesystemDescriptor, (int)currentSize, (int)newSize);
 

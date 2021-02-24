@@ -16,6 +16,7 @@ namespace FileFS.DataAccess.Repositories
     {
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly IEntryDescriptorRepository _entryDescriptorRepository;
+        private readonly IStorageOperationLocker _storageOperationLocker;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -27,11 +28,13 @@ namespace FileFS.DataAccess.Repositories
         public DirectoryRepository(
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             IEntryDescriptorRepository entryDescriptorRepository,
+            IStorageOperationLocker storageOperationLocker,
             ILogger logger)
-            : base(filesystemDescriptorAccessor, entryDescriptorRepository, logger)
+            : base(filesystemDescriptorAccessor, entryDescriptorRepository, storageOperationLocker, logger)
         {
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _entryDescriptorRepository = entryDescriptorRepository;
+            _storageOperationLocker = storageOperationLocker;
             _logger = logger;
         }
 

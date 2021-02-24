@@ -78,6 +78,7 @@ namespace FileFS.DataAccess.Tests.Extensions
 
             services.AddSingleton<IStorageOptimizer, StorageOptimizer>();
             services.AddSingleton<IStorageExtender, StorageExtender>();
+            services.AddSingleton<IStorageOperationLocker, StorageOperationLocker>();
             services.AddSingleton<IFileAllocator, FileAllocator>();
 
             services.AddSingleton<IStorageInitializer, StorageInitializer>();

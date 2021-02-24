@@ -4,7 +4,6 @@ using System.Linq;
 using FileFS.DataAccess.Abstractions;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Entities;
-using FileFS.DataAccess.Extensions;
 using FileFS.DataAccess.Repositories.Abstractions;
 using Serilog;
 
@@ -20,6 +19,7 @@ namespace FileFS.DataAccess.Allocation
         private readonly IEntryDescriptorRepository _entryDescriptorRepository;
         private readonly IStorageOptimizer _optimizer;
         private readonly IStorageExtender _storageExtender;
+        private readonly IStorageOperationLocker _storageOperationLocker;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -37,6 +37,7 @@ namespace FileFS.DataAccess.Allocation
             IEntryDescriptorRepository entryDescriptorRepository,
             IStorageOptimizer optimizer,
             IStorageExtender storageExtender,
+            IStorageOperationLocker storageOperationLocker,
             ILogger logger)
         {
             _connection = connection;
@@ -44,6 +45,7 @@ namespace FileFS.DataAccess.Allocation
             _entryDescriptorRepository = entryDescriptorRepository;
             _optimizer = optimizer;
             _storageExtender = storageExtender;
+            _storageOperationLocker = storageOperationLocker;
             _logger = logger;
         }
 
@@ -129,10 +131,7 @@ namespace FileFS.DataAccess.Allocation
             _logger.Information($"Space allocated at offset {newDataOffset}");
             _logger.Information("Updating filesystem descriptor");
 
-            var updatedFilesystemDescriptor = filesystemDescriptor
-                .WithFileDataLength(filesystemDescriptor.FilesDataLength + dataSize);
-
-            _filesystemDescriptorAccessor.Update(updatedFilesystemDescriptor);
+            _filesystemDescriptorAccessor.Update(filesDataLengthUpdater: value => value + dataSize);
 
             _logger.Information("filesystem descriptor updated");
             _logger.Information($"Done performing allocation of {dataSize} bytes");
