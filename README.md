@@ -10,17 +10,20 @@ Simple single file-based filesystem.
 
 Features:
 - Basic file operations: create, read, update, delete, rename, exists, list all files
+- Tree-based files and directiories structure
 - Import and export of external files (with buffering)
 - Defragmentation of storage space (manually or automatically when there is not enough space)
+- Afto-extending of storage when there is no space to allocate new file
 - Exclusive access support across multiple client instances
 - Debugging using verbose logging
+- Thread-safe
 
 You could find latest library and CLI release in **[Releases](https://github.com/seclerp/FileFS/releases)** section.
 
 ## Documentation
 
 - **[Client library getting started](docs/Client-library-getting-started.md)**
-- **[Client library API](docs/Client-library-API.md)**
+- **[Client library API](https://seclerp.github.io/FileFS/)**
 - **[CLI usage guide](docs/CLI-usage-guide.md)**
 - **[Architecture overview](docs/Architecture-overview.md)**
 
@@ -66,5 +69,4 @@ To run all tests from solution use:
 ## Fields for improvement
 
 - Fix Int32 size limitation for large files support (see [#15](https://github.com/seclerp/FileFS/issues/15)
-- Add folders support (see [#8](https://github.com/seclerp/FileFS/issues/8))
 - Improve memory management, especially byte arrays by using Span<T> (see [#1](https://github.com/seclerp/FileFS/issues/1))

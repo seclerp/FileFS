@@ -24,7 +24,7 @@ Each FileFS storage file has such memory structure:
 ![Memory structure](img/Memory-structure.png)
 
 - **File system descriptor**: describes internal metadata of the filesystem
-- **File descriptor**: describes metadata of the file
+- **Entry descriptor**: describes metadata of file or directory
 - **File data**: data actually
 
 Main point here - file data starts and **grows from beginning** of the file, filesystem descriptor, file descriptors - **from the end**. That allows distinguish those 2 memory types very easily.
