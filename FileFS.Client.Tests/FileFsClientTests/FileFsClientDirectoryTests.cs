@@ -1,6 +1,7 @@
 ﻿using System;
 using FileFS.Client.Exceptions;
 using FileFS.Client.Transactions.Abstractions;
+using FileFS.DataAccess;
 using FileFS.DataAccess.Constants;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Entities.Enums;
@@ -46,7 +47,8 @@ namespace FileFS.Client.Tests.FileFsClientTests
                 _entryRepositoryMock.Object,
                 null,
                 null,
-                _transactionWrapperMock.Object);
+                _transactionWrapperMock.Object,
+                new StorageOperationLocker());
         }
 
         [Theory]

@@ -31,6 +31,7 @@ namespace FileFS.Client
         private readonly IExternalFileManager _externalFileManager;
         private readonly IStorageOptimizer _optimizer;
         private readonly ITransactionWrapper _transactionWrapper;
+        private readonly IStorageOperationLocker _storageOperationLocker;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileFsClient"/> class.
@@ -41,13 +42,15 @@ namespace FileFS.Client
         /// <param name="externalFileManager">External file manager instance.</param>
         /// <param name="optimizer">Optimizer instance.</param>
         /// <param name="transactionWrapper">Transaction wrapper instance.</param>
+        /// <param name="storageOperationLocker">Storage operation locker instance.</param>
         public FileFsClient(
             IFileRepository fileRepository,
             IDirectoryRepository directoryRepository,
             IEntryRepository entryRepository,
             IExternalFileManager externalFileManager,
             IStorageOptimizer optimizer,
-            ITransactionWrapper transactionWrapper)
+            ITransactionWrapper transactionWrapper,
+            IStorageOperationLocker storageOperationLocker)
         {
             _fileRepository = fileRepository;
             _directoryRepository = directoryRepository;
@@ -55,6 +58,7 @@ namespace FileFS.Client
             _externalFileManager = externalFileManager;
             _optimizer = optimizer;
             _transactionWrapper = transactionWrapper;
+            _storageOperationLocker = storageOperationLocker;
         }
 
         /// <inheritdoc />
@@ -64,24 +68,27 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(name))
+            _storageOperationLocker.LockEntry(name, () =>
             {
-                throw new InvalidNameException(name);
-            }
+                if (!NameValid(name))
+                {
+                    throw new InvalidNameException(name);
+                }
 
-            if (ExistsInternal(name))
-            {
-                throw new EntryAlreadyExistsException(name);
-            }
+                if (ExistsInternal(name))
+                {
+                    throw new EntryAlreadyExistsException(name);
+                }
 
-            var parentDirectoryName = name.GetParentFullName();
-            if (!DirectoryExistsInternal(parentDirectoryName))
-            {
-                throw new DirectoryNotFoundException(name);
-            }
+                var parentDirectoryName = name.GetParentFullName();
+                if (!DirectoryExistsInternal(parentDirectoryName))
+                {
+                    throw new DirectoryNotFoundException(name);
+                }
 
-            var directoryEntry = CreateDirectoryEntry(name);
-            _directoryRepository.Create(directoryEntry);
+                var directoryEntry = CreateDirectoryEntry(name);
+                _directoryRepository.Create(directoryEntry);
+            });
 
             _transactionWrapper.EndTransaction();
         }
@@ -104,29 +111,36 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(fileName))
+            _storageOperationLocker.LockEntry(fileName, () =>
             {
-                throw new InvalidNameException(fileName);
-            }
+                if (!NameValid(fileName))
+                {
+                    throw new InvalidNameException(fileName);
+                }
 
-            if (ExistsInternal(fileName))
-            {
-                throw new EntryAlreadyExistsException(fileName);
-            }
+                if (ExistsInternal(fileName))
+                {
+                    throw new EntryAlreadyExistsException(fileName);
+                }
 
-            var parentDirectoryName = fileName.GetParentFullName();
-            if (!DirectoryExistsInternal(parentDirectoryName))
-            {
-                throw new DirectoryNotFoundException(parentDirectoryName);
-            }
+                var parentDirectoryName = fileName.GetParentFullName();
 
-            if (data is null)
-            {
-                throw new DataIsNullException(fileName);
-            }
+                _storageOperationLocker.LockEntry(parentDirectoryName, () =>
+                {
+                    if (!DirectoryExistsInternal(parentDirectoryName))
+                    {
+                        throw new DirectoryNotFoundException(parentDirectoryName);
+                    }
 
-            var parentDirectory = _directoryRepository.Find(parentDirectoryName);
-            _fileRepository.Create(new FileEntry(fileName, parentDirectory.Id, data));
+                    if (data is null)
+                    {
+                        throw new DataIsNullException(fileName);
+                    }
+
+                    var parentDirectory = _directoryRepository.Find(parentDirectoryName);
+                    _fileRepository.Create(new FileEntry(fileName, parentDirectory.Id, data));
+                });
+            });
 
             _transactionWrapper.EndTransaction();
         }
@@ -140,29 +154,36 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(fileName))
+            _storageOperationLocker.LockEntry(fileName, () =>
             {
-                throw new InvalidNameException(fileName);
-            }
+                if (!NameValid(fileName))
+                {
+                    throw new InvalidNameException(fileName);
+                }
 
-            if (ExistsInternal(fileName))
-            {
-                throw new EntryAlreadyExistsException(fileName);
-            }
+                if (ExistsInternal(fileName))
+                {
+                    throw new EntryAlreadyExistsException(fileName);
+                }
 
-            var parentDirectoryName = fileName.GetParentFullName();
-            if (!DirectoryExistsInternal(parentDirectoryName))
-            {
-                throw new DirectoryNotFoundException(fileName);
-            }
+                var parentDirectoryName = fileName.GetParentFullName();
 
-            if (sourceStream is null)
-            {
-                throw new DataIsNullException(fileName);
-            }
+                _storageOperationLocker.LockEntry(parentDirectoryName, () =>
+                {
+                    if (!DirectoryExistsInternal(parentDirectoryName))
+                    {
+                        throw new DirectoryNotFoundException(fileName);
+                    }
 
-            var parentDirectory = _directoryRepository.Find(parentDirectoryName);
-            _fileRepository.Create(new StreamedFileEntry(fileName, parentDirectory.Id, sourceStream, length));
+                    if (sourceStream is null)
+                    {
+                        throw new DataIsNullException(fileName);
+                    }
+
+                    var parentDirectory = _directoryRepository.Find(parentDirectoryName);
+                    _fileRepository.Create(new StreamedFileEntry(fileName, parentDirectory.Id, sourceStream, length));
+                });
+            });
 
             _transactionWrapper.EndTransaction();
         }
@@ -175,24 +196,31 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(fileName))
+            _storageOperationLocker.LockEntry(fileName, () =>
             {
-                throw new InvalidNameException(fileName);
-            }
+                if (!NameValid(fileName))
+                {
+                    throw new InvalidNameException(fileName);
+                }
 
-            if (!FileExistsInternal(fileName))
-            {
-                throw new FileNotFoundException(fileName);
-            }
+                if (!FileExistsInternal(fileName))
+                {
+                    throw new FileNotFoundException(fileName);
+                }
 
-            if (newData is null)
-            {
-                throw new DataIsNullException(fileName);
-            }
+                if (newData is null)
+                {
+                    throw new DataIsNullException(fileName);
+                }
 
-            var parentDirectoryName = fileName.GetParentFullName();
-            var parentDirectory = _directoryRepository.Find(parentDirectoryName);
-            _fileRepository.Update(new FileEntry(fileName, parentDirectory.Id, newData));
+                var parentDirectoryName = fileName.GetParentFullName();
+
+                _storageOperationLocker.LockEntry(parentDirectoryName, () =>
+                {
+                    var parentDirectory = _directoryRepository.Find(parentDirectoryName);
+                    _fileRepository.Update(new FileEntry(fileName, parentDirectory.Id, newData));
+                });
+            });
 
             _transactionWrapper.EndTransaction();
         }
@@ -205,24 +233,31 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(fileName))
+            _storageOperationLocker.LockEntry(fileName, () =>
             {
-                throw new InvalidNameException(fileName);
-            }
+                if (!NameValid(fileName))
+                {
+                    throw new InvalidNameException(fileName);
+                }
 
-            if (!FileExistsInternal(fileName))
-            {
-                throw new FileNotFoundException(fileName);
-            }
+                if (!FileExistsInternal(fileName))
+                {
+                    throw new FileNotFoundException(fileName);
+                }
 
-            if (sourceStream is null)
-            {
-                throw new DataIsNullException(fileName);
-            }
+                if (sourceStream is null)
+                {
+                    throw new DataIsNullException(fileName);
+                }
 
-            var parentDirectoryName = fileName.GetParentFullName();
-            var parentDirectory = _directoryRepository.Find(parentDirectoryName);
-            _fileRepository.Update(new StreamedFileEntry(fileName, parentDirectory.Id, sourceStream, length));
+                var parentDirectoryName = fileName.GetParentFullName();
+
+                _storageOperationLocker.LockEntry(parentDirectoryName, () =>
+                {
+                    var parentDirectory = _directoryRepository.Find(parentDirectoryName);
+                    _fileRepository.Update(new StreamedFileEntry(fileName, parentDirectory.Id, sourceStream, length));
+                });
+            });
 
             _transactionWrapper.EndTransaction();
         }
@@ -232,17 +267,26 @@ namespace FileFS.Client
         /// <exception cref="FileNotFoundException">Throws if file not found.</exception>
         public byte[] Read(string fileName)
         {
-            if (!NameValid(fileName))
-            {
-                throw new InvalidNameException(fileName);
-            }
+            _transactionWrapper.BeginTransaction();
 
-            if (!FileExistsInternal(fileName))
+            var data = _storageOperationLocker.LockEntry(fileName, () =>
             {
-                throw new FileNotFoundException(fileName);
-            }
+                if (!NameValid(fileName))
+                {
+                    throw new InvalidNameException(fileName);
+                }
 
-            return _fileRepository.Read(fileName).Data;
+                if (!FileExistsInternal(fileName))
+                {
+                    throw new FileNotFoundException(fileName);
+                }
+
+                return _fileRepository.Read(fileName).Data;
+            });
+
+            _transactionWrapper.EndTransaction();
+
+            return data;
         }
 
         /// <inheritdoc />
@@ -253,22 +297,25 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(fileName))
+            _storageOperationLocker.LockEntry(fileName, () =>
             {
-                throw new InvalidNameException(fileName);
-            }
+                if (!NameValid(fileName))
+                {
+                    throw new InvalidNameException(fileName);
+                }
 
-            if (!FileExistsInternal(fileName))
-            {
-                throw new FileNotFoundException(fileName);
-            }
+                if (!FileExistsInternal(fileName))
+                {
+                    throw new FileNotFoundException(fileName);
+                }
 
-            if (destinationStream is null)
-            {
-                throw new ArgumentNonValidException($"Argument cannot be null: {nameof(destinationStream)}");
-            }
+                if (destinationStream is null)
+                {
+                    throw new ArgumentNonValidException($"Argument cannot be null: {nameof(destinationStream)}");
+                }
 
-            _fileRepository.ReadData(fileName, destinationStream);
+                _fileRepository.ReadData(fileName, destinationStream);
+            });
 
             _transactionWrapper.EndTransaction();
         }
@@ -280,40 +327,47 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(currentName))
+            _storageOperationLocker.LockEntry(currentName, () =>
             {
-                throw new InvalidNameException(currentName);
-            }
+                _storageOperationLocker.LockEntry(newName, () =>
+                {
+                    if (!NameValid(currentName))
+                    {
+                        throw new InvalidNameException(currentName);
+                    }
 
-            if (!NameValid(newName))
-            {
-                throw new InvalidNameException(newName);
-            }
+                    if (!NameValid(newName))
+                    {
+                        throw new InvalidNameException(newName);
+                    }
 
-            if (!ExistsInternal(currentName))
-            {
-                throw new EntryNotFoundException(currentName);
-            }
+                    if (!ExistsInternal(currentName))
+                    {
+                        throw new EntryNotFoundException(currentName);
+                    }
 
-            if (ExistsInternal(newName))
-            {
-                throw new EntryAlreadyExistsException(newName);
-            }
+                    if (ExistsInternal(newName))
+                    {
+                        throw new EntryAlreadyExistsException(newName);
+                    }
 
-            var currentParentName = currentName.GetParentFullName();
-            var newParentName = newName.GetParentFullName();
+                    var currentParentName = currentName.GetParentFullName();
+                    var newParentName = newName.GetParentFullName();
 
-            if (currentParentName != newParentName)
-            {
-                throw new ArgumentNonValidException($"New name of an entry should be inside same directory as current name, expected '{currentParentName}', got '{newParentName}'");
-            }
+                    if (currentParentName != newParentName)
+                    {
+                        throw new ArgumentNonValidException(
+                            $"New name of an entry should be inside same directory as current name, expected '{currentParentName}', got '{newParentName}'");
+                    }
 
-            if (currentName == PathConstants.RootDirectoryName)
-            {
-                throw new OperationIsInvalid("Rename of root directory is not allowed");
-            }
+                    if (currentName == PathConstants.RootDirectoryName)
+                    {
+                        throw new OperationIsInvalid("Rename of root directory is not allowed");
+                    }
 
-            _entryRepository.Rename(currentName, newName);
+                    _entryRepository.Rename(currentName, newName);
+                });
+            });
 
             _transactionWrapper.EndTransaction();
         }
@@ -323,43 +377,49 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(from))
+            _storageOperationLocker.LockEntry(from, () =>
             {
-                throw new InvalidNameException(from);
-            }
+                _storageOperationLocker.LockEntry(to, () =>
+                {
+                    if (!NameValid(from))
+                    {
+                        throw new InvalidNameException(from);
+                    }
 
-            if (!NameValid(to))
-            {
-                throw new InvalidNameException(to);
-            }
+                    if (!NameValid(to))
+                    {
+                        throw new InvalidNameException(to);
+                    }
 
-            if (!ExistsInternal(from))
-            {
-                throw new EntryNotFoundException(from);
-            }
+                    if (!ExistsInternal(from))
+                    {
+                        throw new EntryNotFoundException(from);
+                    }
 
-            if (ExistsInternal(to))
-            {
-                throw new EntryAlreadyExistsException(to);
-            }
+                    if (ExistsInternal(to))
+                    {
+                        throw new EntryAlreadyExistsException(to);
+                    }
 
-            var newParentName = to.GetParentFullName();
-            if (!DirectoryExistsInternal(newParentName))
-            {
-                throw new DirectoryNotFoundException(newParentName);
-            }
+                    var newParentName = to.GetParentFullName();
+                    if (!DirectoryExistsInternal(newParentName))
+                    {
+                        throw new DirectoryNotFoundException(newParentName);
+                    }
 
-            if (from == PathConstants.RootDirectoryName)
-            {
-                throw new OperationIsInvalid("Move of root directory is not allowed");
-            }
+                    if (from == PathConstants.RootDirectoryName)
+                    {
+                        throw new OperationIsInvalid("Move of root directory is not allowed");
+                    }
 
-            if (from.IsParentTo(to))
-            {
-                throw new OperationIsInvalid("Move of parent entry inside it child is not allowed");
-            }
+                    if (from.IsParentTo(to))
+                    {
+                        throw new OperationIsInvalid("Move of parent entry inside it child is not allowed");
+                    }
+                });
+            });
 
-            _entryRepository.Move(from, to);
+            MoveInternal(from, to);
 
             _transactionWrapper.EndTransaction();
         }
@@ -367,41 +427,42 @@ namespace FileFS.Client
         /// <inheritdoc />
         public void Copy(string from, string to)
         {
-            if (!NameValid(from))
+            _storageOperationLocker.LockEntry(from, () =>
             {
-                throw new InvalidNameException(from);
-            }
+                _storageOperationLocker.LockEntry(to, () =>
+                {
+                    if (!NameValid(from))
+                    {
+                        throw new InvalidNameException(from);
+                    }
 
-            if (!NameValid(to))
-            {
-                throw new InvalidNameException(to);
-            }
+                    if (!NameValid(to))
+                    {
+                        throw new InvalidNameException(to);
+                    }
 
-            if (!ExistsInternal(from))
-            {
-                throw new EntryNotFoundException(from);
-            }
+                    if (!ExistsInternal(from))
+                    {
+                        throw new EntryNotFoundException(from);
+                    }
 
-            if (ExistsInternal(to))
-            {
-                throw new EntryAlreadyExistsException(to);
-            }
+                    var newParentName = to.GetParentFullName();
+                    if (!DirectoryExistsInternal(newParentName))
+                    {
+                        throw new DirectoryNotFoundException(newParentName);
+                    }
 
-            var newParentName = to.GetParentFullName();
-            if (!DirectoryExistsInternal(newParentName))
-            {
-                throw new DirectoryNotFoundException(newParentName);
-            }
+                    if (from == PathConstants.RootDirectoryName)
+                    {
+                        throw new OperationIsInvalid("Copy of root directory is not allowed");
+                    }
 
-            if (from == PathConstants.RootDirectoryName)
-            {
-                throw new OperationIsInvalid("Copy of root directory is not allowed");
-            }
-
-            if (from.IsParentTo(to))
-            {
-                throw new OperationIsInvalid("Copy of parent entry inside it child is not allowed");
-            }
+                    if (from.IsParentTo(to))
+                    {
+                        throw new OperationIsInvalid("Copy of parent entry inside it child is not allowed");
+                    }
+                });
+            });
 
             CopyInternal(from, to);
         }
@@ -413,22 +474,25 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(name))
+            _storageOperationLocker.LockEntry(name, () =>
             {
-                throw new InvalidNameException(name);
-            }
+                if (!NameValid(name))
+                {
+                    throw new InvalidNameException(name);
+                }
 
-            if (!ExistsInternal(name))
-            {
-                throw new EntryNotFoundException(name);
-            }
+                if (!ExistsInternal(name))
+                {
+                    throw new EntryNotFoundException(name);
+                }
 
-            if (name == PathConstants.RootDirectoryName)
-            {
-                throw new ArgumentNonValidException("Delete of root directory is not allowed");
-            }
+                if (name == PathConstants.RootDirectoryName)
+                {
+                    throw new ArgumentNonValidException("Delete of root directory is not allowed");
+                }
 
-            DeleteInternal(name);
+                DeleteInternal(name);
+            });
 
             _transactionWrapper.EndTransaction();
         }
@@ -441,23 +505,26 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(fileName))
+            _storageOperationLocker.LockEntry(fileName, () =>
             {
-                throw new InvalidNameException(fileName);
-            }
+                if (!NameValid(fileName))
+                {
+                    throw new InvalidNameException(fileName);
+                }
 
-            if (ExistsInternal(fileName))
-            {
-                throw new EntryAlreadyExistsException(fileName);
-            }
+                if (ExistsInternal(fileName))
+                {
+                    throw new EntryAlreadyExistsException(fileName);
+                }
 
-            if (!_externalFileManager.Exists(externalPath))
-            {
-                throw new ExternalFileNotFoundException(externalPath);
-            }
+                if (!_externalFileManager.Exists(externalPath))
+                {
+                    throw new ExternalFileNotFoundException(externalPath);
+                }
 
-            using var externalFileStream = _externalFileManager.OpenReadStream(externalPath);
-            CreateFileInternal(fileName, externalFileStream, (int)externalFileStream.Length);
+                using var externalFileStream = _externalFileManager.OpenReadStream(externalPath);
+                CreateFileInternal(fileName, externalFileStream, (int)externalFileStream.Length);
+            });
 
             _transactionWrapper.EndTransaction();
         }
@@ -470,23 +537,26 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(fileName))
+            _storageOperationLocker.LockEntry(fileName, () =>
             {
-                throw new InvalidNameException(fileName);
-            }
+                if (!NameValid(fileName))
+                {
+                    throw new InvalidNameException(fileName);
+                }
 
-            if (!FileExistsInternal(fileName))
-            {
-                throw new FileNotFoundException(fileName);
-            }
+                if (!FileExistsInternal(fileName))
+                {
+                    throw new FileNotFoundException(fileName);
+                }
 
-            if (_externalFileManager.Exists(externalPath))
-            {
-                throw new ExternalFileAlreadyExistsException(externalPath);
-            }
+                if (_externalFileManager.Exists(externalPath))
+                {
+                    throw new ExternalFileAlreadyExistsException(externalPath);
+                }
 
-            using var externalFileStream = _externalFileManager.OpenWriteStream(externalPath);
-            ReadInternal(fileName, externalFileStream);
+                using var externalFileStream = _externalFileManager.OpenWriteStream(externalPath);
+                ReadInternal(fileName, externalFileStream);
+            });
 
             _transactionWrapper.EndTransaction();
         }
@@ -497,12 +567,15 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(fileName))
+            var exists = _storageOperationLocker.LockEntry(fileName, () =>
             {
-                throw new InvalidNameException(fileName);
-            }
+                if (!NameValid(fileName))
+                {
+                    throw new InvalidNameException(fileName);
+                }
 
-            var exists = FileExistsInternal(fileName);
+                return FileExistsInternal(fileName);
+            });
 
             _transactionWrapper.EndTransaction();
 
@@ -515,12 +588,15 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(fileName))
+            var exists = _storageOperationLocker.LockEntry(fileName, () =>
             {
-                throw new InvalidNameException(fileName);
-            }
+                if (!NameValid(fileName))
+                {
+                    throw new InvalidNameException(fileName);
+                }
 
-            var exists = DirectoryExistsInternal(fileName);
+                return DirectoryExistsInternal(fileName);
+            });
 
             _transactionWrapper.EndTransaction();
 
@@ -533,12 +609,15 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(name))
+            var exists = _storageOperationLocker.LockEntry(name, () =>
             {
-                throw new InvalidNameException(name);
-            }
+                if (!NameValid(name))
+                {
+                    throw new InvalidNameException(name);
+                }
 
-            var exists = ExistsInternal(name);
+                return ExistsInternal(name);
+            });
 
             _transactionWrapper.EndTransaction();
 
@@ -550,19 +629,28 @@ namespace FileFS.Client
         /// <exception cref="DirectoryNotFoundException">Throws if directory is not found.</exception>
         public IEnumerable<FileFsEntryInfo> GetEntries(string directoryName)
         {
-            if (!NameValid(directoryName))
-            {
-                throw new InvalidNameException(directoryName);
-            }
+            _transactionWrapper.BeginTransaction();
 
-            if (!DirectoryExistsInternal(directoryName))
+            var result = _storageOperationLocker.LockEntry(directoryName, () =>
             {
-                throw new DirectoryNotFoundException(directoryName);
-            }
+                if (!NameValid(directoryName))
+                {
+                    throw new InvalidNameException(directoryName);
+                }
 
-            return _entryRepository
-                .GetEntriesInfo(directoryName)
-                .Where(entryInfo => entryInfo.EntryName != PathConstants.RootDirectoryName);
+                if (!DirectoryExistsInternal(directoryName))
+                {
+                    throw new DirectoryNotFoundException(directoryName);
+                }
+
+                return _entryRepository
+                    .GetEntriesInfo(directoryName)
+                    .Where(entryInfo => entryInfo.EntryName != PathConstants.RootDirectoryName);
+            });
+
+            _transactionWrapper.EndTransaction();
+
+            return result;
         }
 
         /// <inheritdoc />
@@ -572,17 +660,20 @@ namespace FileFS.Client
         {
             _transactionWrapper.BeginTransaction();
 
-            if (!NameValid(name))
+            var result = _storageOperationLocker.LockEntry(name, () =>
             {
-                throw new InvalidNameException(name);
-            }
+                if (!NameValid(name))
+                {
+                    throw new InvalidNameException(name);
+                }
 
-            if (!ExistsInternal(name))
-            {
-                throw new EntryNotFoundException(name);
-            }
+                if (!ExistsInternal(name))
+                {
+                    throw new EntryNotFoundException(name);
+                }
 
-            var result = _directoryRepository.Exists(name);
+                return _directoryRepository.Exists(name);
+            });
 
             _transactionWrapper.EndTransaction();
 
@@ -593,7 +684,9 @@ namespace FileFS.Client
         public int ForceOptimize()
         {
             _transactionWrapper.BeginTransaction();
-            var bytesOptimized = _optimizer.Optimize();
+
+            var bytesOptimized = _storageOperationLocker.GlobalLock(_optimizer.Optimize);
+
             _transactionWrapper.EndTransaction();
 
             return bytesOptimized;
@@ -622,29 +715,114 @@ namespace FileFS.Client
             _fileRepository.ReadData(name, destinationStream);
         }
 
-        private void CopyInternal(string from, string to)
+        private void MoveInternal(string from, string to)
         {
-            if (DirectoryExistsInternal(from))
+            if (_fileRepository.Exists(from))
             {
-                CopyDirectoryInternal(from, to);
+                MoveFileInternal(from, to);
             }
             else
             {
+                MoveDirectoryInternal(from, to);
+            }
+        }
+
+        private void MoveFileInternal(string from, string to)
+        {
+            _storageOperationLocker.LockEntry(from, () =>
+            {
+                _storageOperationLocker.LockEntry(to, () =>
+                {
+                    if (ExistsInternal(to))
+                    {
+                        throw new FileAlreadyExistsException(to);
+                    }
+
+                    _entryRepository.Move(from, to);
+                });
+            });
+        }
+
+        private void MoveDirectoryInternal(string from, string to)
+        {
+            _storageOperationLocker.LockEntry(from, () =>
+            {
+                _storageOperationLocker.LockEntry(to, () =>
+                {
+                    if (!DirectoryExistsInternal(to))
+                    {
+                        _entryRepository.Move(from, to);
+                    }
+                });
+            });
+
+            var entriesInfo = _entryRepository.GetEntriesInfo(from);
+            var directoriesInfo = entriesInfo.Where(entryInfo => entryInfo.EntryType is EntryType.Directory);
+            var filesInfo = entriesInfo.Where(entryInfo => entryInfo.EntryType is EntryType.File);
+
+            // Copy files firstly
+            foreach (var fileInfo in filesInfo)
+            {
+                var fileShortName = fileInfo.EntryName.GetShortName();
+                var newFileName = to.CombineWith(fileShortName);
+
+                MoveFileInternal(fileInfo.EntryName, newFileName);
+            }
+
+            // Then - directories using recursion
+            foreach (var directoryInfo in directoriesInfo)
+            {
+                var directoryShortName = directoryInfo.EntryName.GetShortName();
+                var newDirectoryName = to.CombineWith(directoryShortName);
+
+                MoveDirectoryInternal(directoryInfo.EntryName, newDirectoryName);
+            }
+        }
+
+        private void CopyInternal(string from, string to)
+        {
+            if (_fileRepository.Exists(from))
+            {
                 CopyFileInternal(from, to);
+            }
+            else
+            {
+                CopyDirectoryInternal(from, to);
             }
         }
 
         private void CopyFileInternal(string from, string to)
         {
-            _fileRepository.Copy(from, to);
+            _storageOperationLocker.LockEntry(from, () =>
+            {
+                _storageOperationLocker.LockEntry(to, () =>
+                {
+                    if (ExistsInternal(to))
+                    {
+                        throw new FileAlreadyExistsException(to);
+                    }
+
+                    _fileRepository.Copy(from, to);
+                });
+            });
         }
 
         private void CopyDirectoryInternal(string from, string to)
         {
-            var directoryEntry = CreateDirectoryEntry(to);
-            _directoryRepository.Create(directoryEntry);
+            var entriesInfo = _storageOperationLocker.LockEntry(from, () =>
+            {
+                _storageOperationLocker.LockEntry(to, () =>
+                {
+                    if (!DirectoryExistsInternal(to))
+                    {
+                        var newDirectoryEntry = CreateDirectoryEntry(to);
+                        _directoryRepository.Create(newDirectoryEntry);
+                    }
+                });
 
-            var entriesInfo = _entryRepository.GetEntriesInfo(from);
+                return _entryRepository.GetEntriesInfo(from);
+            });
+
             var directoriesInfo = entriesInfo.Where(entryInfo => entryInfo.EntryType is EntryType.Directory);
             var filesInfo = entriesInfo.Where(entryInfo => entryInfo.EntryType is EntryType.File);
 

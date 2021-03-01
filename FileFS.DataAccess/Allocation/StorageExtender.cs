@@ -14,6 +14,7 @@ namespace FileFS.DataAccess.Allocation
     {
         private readonly IStorageConnection _connection;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
+        private readonly IStorageOperationLocker _storageOperationLocker;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -21,42 +22,48 @@ namespace FileFS.DataAccess.Allocation
         /// </summary>
         /// <param name="connection">Storage connection instance.</param>
         /// <param name="filesystemDescriptorAccessor">Filesystem descriptor access instance.</param>
+        /// <param name="storageOperationLocker">Storage operation locker instance.</param>
         /// <param name="logger">Logger instance.</param>
         public StorageExtender(
             IStorageConnection connection,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
+            IStorageOperationLocker storageOperationLocker,
             ILogger logger)
         {
             _connection = connection;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
+            _storageOperationLocker = storageOperationLocker;
             _logger = logger;
         }
 
         /// <inheritdoc />
         public void Extend(long newSize)
         {
-            var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
-            var currentSize = _connection.GetSize();
-            if (newSize <= currentSize)
+            _storageOperationLocker.GlobalLock(() =>
             {
-                throw new OperationIsInvalid(
-                    $"New storage size should be greater that current size, current size {currentSize}, new size {newSize}");
-            }
+                var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+                var currentSize = _connection.GetSize();
+                if (newSize <= currentSize)
+                {
+                    throw new OperationIsInvalid(
+                        $"New storage size should be greater that current size, current size {currentSize}, new size {newSize}");
+                }
 
-            _logger.Information($"Start storage resize process with new storage size {newSize}");
+                _logger.Warning($"Start storage resize process with new storage size {newSize}");
 
-            _connection.SetSize(newSize);
+                _connection.SetSize(newSize);
 
-            // Filesystem descriptor will be written at new position at the new end of storage
-            var updatedFilesystemDescriptor =
-                _filesystemDescriptorAccessor.Update(
-                    _ => filesystemDescriptor.FilesDataLength,
-                    _ => filesystemDescriptor.EntryDescriptorsCount,
-                    _ => filesystemDescriptor.EntryDescriptorLength);
+                // Filesystem descriptor will be written at new position at the new end of storage
+                var updatedFilesystemDescriptor =
+                    _filesystemDescriptorAccessor.Update(
+                        _ => filesystemDescriptor.FilesDataLength,
+                        _ => filesystemDescriptor.EntryDescriptorsCount,
+                        _ => filesystemDescriptor.EntryDescriptorLength);
 
-            CopyDescriptors(updatedFilesystemDescriptor, (int)currentSize, (int)newSize);
+                CopyDescriptors(updatedFilesystemDescriptor, (int)currentSize, (int)newSize);
 
-            _logger.Information($"Finish storage resize process with new storage size {newSize}");
+                _logger.Warning($"Finish storage resize process with new storage size {newSize}");
+            });
         }
 
         private void CopyDescriptors(in FilesystemDescriptor filesystemDescriptor, int oldStorageSize, int newStorageSize)

@@ -9,7 +9,7 @@ namespace FileFS.Client
     /// <summary>
     /// Class that allows to create configured <see cref="IStorageInitializer"/> instances.
     /// </summary>
-    public class StorageInitializerFactory
+    public class FileFsStorageInitializerFactory
     {
         /// <summary>
         /// Creates instance of <see cref="IStorageInitializer"/>.

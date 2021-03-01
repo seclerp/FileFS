@@ -17,6 +17,7 @@ namespace FileFS.DataAccess.Allocation
         private readonly IStorageConnection _connection;
         private readonly IEntryDescriptorRepository _entryDescriptorRepository;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
+        private readonly IStorageOperationLocker _storageOperationLocker;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -25,71 +26,78 @@ namespace FileFS.DataAccess.Allocation
         /// <param name="connection">Storage connection instance.</param>
         /// <param name="entryDescriptorRepository">File descriptor repository instance.</param>
         /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
+        /// <param name="storageOperationLocker">Storage operation locker instance.</param>
         /// <param name="logger">Logger instance.</param>
         public StorageOptimizer(
             IStorageConnection connection,
             IEntryDescriptorRepository entryDescriptorRepository,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
+            IStorageOperationLocker storageOperationLocker,
             ILogger logger)
         {
             _connection = connection;
             _entryDescriptorRepository = entryDescriptorRepository;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
+            _storageOperationLocker = storageOperationLocker;
             _logger = logger;
         }
 
         /// <inheritdoc />
         public int Optimize()
         {
-            _logger.Information("Start optimization process");
-
-            var dataItemsMoved = 0;
-            var initialDataSize = _filesystemDescriptorAccessor.Value.FilesDataLength;
-
-            // 1. Get all descriptors
-            var descriptors = _entryDescriptorRepository.ReadAll();
-
-            _logger.Information($"There is {descriptors.Count} descriptors found");
-
-            // 2. Sort by offset, filter zero-sized data because it is not necessary to move empty data
-            var orderedDescriptors = descriptors
-                .Where(descriptor => descriptor.Value.DataLength > 0)
-                .OrderBy(descriptor => descriptor.Value.DataOffset)
-                .ToArray();
-
-            // 3a. Move first
-            if (orderedDescriptors.Length > 0 && orderedDescriptors[0].Value.DataOffset != 0)
+            return _storageOperationLocker.GlobalLock(() =>
             {
-                ProcessGap(orderedDescriptors, 0, 0);
-                dataItemsMoved++;
-            }
+                _logger.Information("Start optimization process");
 
-            // 3b. Iterate over all descriptors to find gaps
-            for (var i = 0; i < orderedDescriptors.Length - 1; i++)
-            {
-                var current = orderedDescriptors[i];
-                var next = orderedDescriptors[i + 1];
-                var currentEnd = current.Value.DataOffset + current.Value.DataLength;
-                var nextStart = next.Value.DataOffset;
+                var dataItemsMoved = 0;
+                var initialDataSize = _filesystemDescriptorAccessor.Value.FilesDataLength;
 
-                // 4. Found a gap, write data of second right after first
-                if (nextStart - currentEnd > 0)
+                // 1. Get all descriptors
+                var descriptors = _entryDescriptorRepository.ReadAll();
+
+                _logger.Information($"There is {descriptors.Count} descriptors found");
+
+                // 2. Sort by offset, filter zero-sized data because it is not necessary to move empty data
+                var orderedDescriptors = descriptors
+                    .Where(descriptor => descriptor.Value.DataLength > 0)
+                    .OrderBy(descriptor => descriptor.Value.DataOffset)
+                    .ToArray();
+
+                // 3a. Move first
+                if (orderedDescriptors.Length > 0 && orderedDescriptors[0].Value.DataOffset != 0)
                 {
-                    ProcessGap(orderedDescriptors, i + 1, currentEnd);
+                    ProcessGap(orderedDescriptors, 0, 0);
                     dataItemsMoved++;
                 }
-            }
 
-            // 4. Update new size of file data in descriptor.
-            var allEntriesDataLength = orderedDescriptors.Select(descriptor => descriptor.Value.DataLength).Sum();
+                // 3b. Iterate over all descriptors to find gaps
+                for (var i = 0; i < orderedDescriptors.Length - 1; i++)
+                {
+                    var current = orderedDescriptors[i];
+                    var next = orderedDescriptors[i + 1];
+                    var currentEnd = current.Value.DataOffset + current.Value.DataLength;
+                    var nextStart = next.Value.DataOffset;
 
-            _filesystemDescriptorAccessor.Update(filesDataLengthUpdater: _ => allEntriesDataLength);
+                    // 4. Found a gap, write data of second right after first
+                    if (nextStart - currentEnd > 0)
+                    {
+                        ProcessGap(orderedDescriptors, i + 1, currentEnd);
+                        dataItemsMoved++;
+                    }
+                }
 
-            var bytesOptimized = initialDataSize - allEntriesDataLength;
+                // 4. Update new size of file data in descriptor.
+                var allEntriesDataLength = orderedDescriptors.Select(descriptor => descriptor.Value.DataLength).Sum();
 
-            _logger.Information($"Optimization process completed, {dataItemsMoved} items moved, {bytesOptimized} bytes optimized");
+                _filesystemDescriptorAccessor.Update(filesDataLengthUpdater: _ => allEntriesDataLength);
 
-            return bytesOptimized;
+                var bytesOptimized = initialDataSize - allEntriesDataLength;
+
+                _logger.Information(
+                    $"Optimization process completed, {dataItemsMoved} items moved, {bytesOptimized} bytes optimized");
+
+                return bytesOptimized;
+            });
         }
 
         private void ProcessGap(IList<StorageItem<EntryDescriptor>> orderedDescriptors, int descriptorIndex, int gapOffset)

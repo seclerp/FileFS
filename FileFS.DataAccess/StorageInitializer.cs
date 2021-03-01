@@ -25,6 +25,7 @@ namespace FileFS.DataAccess
         /// Initializes a new instance of the <see cref="StorageInitializer"/> class.
         /// </summary>
         /// <param name="storageConnection">Storage connection instance.</param>
+        /// <param name="storageOperationLocker">Storage operation locker instance.</param>
         /// <param name="filesystemDescriptorAccessor">Filesystem descriptor accessor instance.</param>
         /// <param name="entryDescriptorRepository">Entry descriptor repository instance.</param>
         /// <param name="logger">Logger instance.</param>
@@ -47,9 +48,10 @@ namespace FileFS.DataAccess
         /// <exception cref="ArgumentNonValidException">Throws when fileNameLength less or equals to 0.</exception>
         public void Initialize(int fileSize, int fileNameLength)
         {
-            if (fileSize < FilesystemDescriptor.BytesTotal)
+            var minimalSize = FilesystemDescriptor.BytesTotal + EntryDescriptor.BytesWithoutFilename + fileNameLength;
+            if (fileSize < minimalSize)
             {
-                throw new ArgumentNonValidException($"Value '{nameof(fileSize)}' cannot be less than reserved bytes for filesystem descriptor ({FilesystemDescriptor.BytesTotal})");
+                throw new ArgumentNonValidException($"Value '{nameof(fileSize)}' cannot be less than reserved bytes for filesystem descriptor and root folder ({minimalSize})");
             }
 
             if (fileNameLength <= 0)
@@ -57,7 +59,7 @@ namespace FileFS.DataAccess
                 throw new ArgumentNonValidException($"Value '{nameof(fileNameLength)}'cannot be less or equals to 0");
             }
 
-            _storageOperationLocker.MakeGlobalOperation(() =>
+            _storageOperationLocker.GlobalLock(() =>
             {
                 _logger.Information($"Start storage initialization process, storage size {fileSize} bytes, max file name length {fileNameLength} bytes");
 

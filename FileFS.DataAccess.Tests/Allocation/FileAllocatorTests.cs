@@ -41,9 +41,9 @@ namespace FileFS.DataAccess.Tests.Allocation
                 var expectedCursor = new Cursor(dataSize * 2, SeekOrigin.Begin);
 
                 // Act
-                allocator.AllocateFile(dataSize);
-                allocator.AllocateFile(dataSize);
-                var cursor = allocator.AllocateFile(dataSize);
+                allocator.AllocateFile(dataSize, true);
+                allocator.AllocateFile(dataSize, true);
+                var cursor = allocator.AllocateFile(dataSize, true);
 
                 // Assert
                 Assert.Equal(expectedCursor, cursor);
@@ -71,9 +71,9 @@ namespace FileFS.DataAccess.Tests.Allocation
                 var expectedCursor = new Cursor(0, SeekOrigin.Begin);
 
                 // Act
-                var cursorA = allocator.AllocateFile(0);
-                var cursorB = allocator.AllocateFile(0);
-                var cursorC = allocator.AllocateFile(0);
+                var cursorA = allocator.AllocateFile(0, true);
+                var cursorB = allocator.AllocateFile(0, true);
+                var cursorC = allocator.AllocateFile(0, true);
 
                 // Assert
                 var filesystemDescriptor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>().Value;
@@ -111,7 +111,7 @@ namespace FileFS.DataAccess.Tests.Allocation
                 var expectedCursor = new Cursor(0, SeekOrigin.Begin);
 
                 // Ac
-                var cursor = allocator.AllocateFile(dataBytes.Length);
+                var cursor = allocator.AllocateFile(dataBytes.Length, true);
 
                 // Assert
                 var filesystemDescriptor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>().Value;
@@ -147,7 +147,7 @@ namespace FileFS.DataAccess.Tests.Allocation
                 var expectedCursor = new Cursor(dataBytes.Length * 3, SeekOrigin.Begin);
 
                 // Ac
-                var cursor = allocator.AllocateFile(dataBytes.Length + 5);
+                var cursor = allocator.AllocateFile(dataBytes.Length + 5, true);
 
                 // Assert
                 var filesystemDescriptor = serviceProvider.GetRequiredService<IFilesystemDescriptorAccessor>().Value;
@@ -178,7 +178,7 @@ namespace FileFS.DataAccess.Tests.Allocation
                 var allocator = serviceProvider.GetRequiredService<IFileAllocator>();
 
                 // Ac
-                allocator.AllocateFile(dataSize);
+                allocator.AllocateFile(dataSize, true);
 
                 // Assert
                 storageOptimizerMock.Verify(s => s.Optimize());

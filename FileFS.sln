@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Extensions.Dependenc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileFS.Tests.Shared", "FileFS.Tests.Shared\FileFS.Tests.Shared.csproj", "{D30ECE04-6765-4FB9-9E92-569C96F232BC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FIleFS.Examples.Multithreading", "FIleFS.Examples.Multithreading\FIleFS.Examples.Multithreading.csproj", "{70FEB6E8-4CE0-4E77-98FB-49B4CAB4A289}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{D30ECE04-6765-4FB9-9E92-569C96F232BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D30ECE04-6765-4FB9-9E92-569C96F232BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D30ECE04-6765-4FB9-9E92-569C96F232BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70FEB6E8-4CE0-4E77-98FB-49B4CAB4A289}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70FEB6E8-4CE0-4E77-98FB-49B4CAB4A289}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70FEB6E8-4CE0-4E77-98FB-49B4CAB4A289}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70FEB6E8-4CE0-4E77-98FB-49B4CAB4A289}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{B7FF70FC-0FBF-43B3-82B1-55020032D40D} = {CE32DAC6-5671-4870-BF69-FBA1578B87AC}

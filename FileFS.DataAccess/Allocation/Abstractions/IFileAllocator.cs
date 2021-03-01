@@ -9,7 +9,8 @@
         /// Returns cursor that points to a allocated space for a file data.
         /// </summary>
         /// <param name="dataSize">Required size of a file data to allocate.</param>
+        /// <param name="isNewFile">If true, space for additional entry descriptor will be checked to be allocated, otherwise false.</param>
         /// <returns>Cursor that points to a allocated space for a file data.</returns>
-        Cursor AllocateFile(int dataSize);
+        Cursor AllocateFile(int dataSize, bool isNewFile);
     }
 }

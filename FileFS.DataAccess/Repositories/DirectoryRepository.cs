@@ -16,7 +16,6 @@ namespace FileFS.DataAccess.Repositories
     {
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly IEntryDescriptorRepository _entryDescriptorRepository;
-        private readonly IStorageOperationLocker _storageOperationLocker;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -28,13 +27,11 @@ namespace FileFS.DataAccess.Repositories
         public DirectoryRepository(
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             IEntryDescriptorRepository entryDescriptorRepository,
-            IStorageOperationLocker storageOperationLocker,
             ILogger logger)
-            : base(filesystemDescriptorAccessor, entryDescriptorRepository, storageOperationLocker, logger)
+            : base(filesystemDescriptorAccessor, entryDescriptorRepository, logger)
         {
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _entryDescriptorRepository = entryDescriptorRepository;
-            _storageOperationLocker = storageOperationLocker;
             _logger = logger;
         }
 
@@ -68,9 +65,9 @@ namespace FileFS.DataAccess.Repositories
                 0);
 
             var entryDescriptorOffset = -FilesystemDescriptor.BytesTotal -
-                                       (filesystemDescriptor.EntryDescriptorsCount *
-                                        filesystemDescriptor.EntryDescriptorLength)
-                                       - filesystemDescriptor.EntryDescriptorLength;
+                                        (filesystemDescriptor.EntryDescriptorsCount *
+                                         filesystemDescriptor.EntryDescriptorLength)
+                                        - filesystemDescriptor.EntryDescriptorLength;
 
             var origin = SeekOrigin.End;
             var cursor = new Cursor(entryDescriptorOffset, origin);

@@ -3,6 +3,7 @@ using System.Text;
 using FileFS.Client.Abstractions;
 using FileFS.Client.Exceptions;
 using FileFS.Client.Transactions.Abstractions;
+using FileFS.DataAccess;
 using FileFS.DataAccess.Allocation.Abstractions;
 using FileFS.DataAccess.Constants;
 using FileFS.DataAccess.Entities;
@@ -54,7 +55,8 @@ namespace FileFS.Client.Tests.FileFsClientTests
                 _entryRepositoryMock.Object,
                 _externalFileManagerMock.Object,
                 _storageOptimizerMock.Object,
-                _transactionWrapperMock.Object);
+                _transactionWrapperMock.Object,
+                new StorageOperationLocker());
         }
 
         [Theory]
@@ -835,26 +837,6 @@ namespace FileFS.Client.Tests.FileFsClientTests
 
             // Assert
             Assert.Throws<EntryNotFoundException>(Act);
-        }
-
-        [Theory]
-        [InlineData("/from", "/to")]
-        public void Copy_WhenDestinationEntryExists_ShouldThrowException(string oldName, string newName)
-        {
-            // Arrange
-            _entryRepositoryMock
-                .Setup(r => r.Exists(oldName))
-                .Returns(true);
-
-            _entryRepositoryMock
-                .Setup(r => r.Exists(newName))
-                .Returns(true);
-
-            // Act
-            void Act() => _client.Copy(oldName, newName);
-
-            // Assert
-            Assert.Throws<EntryAlreadyExistsException>(Act);
         }
 
         [Theory]
