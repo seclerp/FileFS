@@ -2,6 +2,7 @@
 using System.Text;
 using FileFS.Client.Exceptions;
 using FileFS.Client.Transactions.Abstractions;
+using FileFS.DataAccess;
 using FileFS.DataAccess.Constants;
 using FileFS.DataAccess.Entities;
 using FileFS.DataAccess.Entities.Enums;
@@ -23,6 +24,7 @@ namespace FileFS.Client.Tests.FileFsClientTests
     public class FileFsClientGenericTests
     {
         private readonly Mock<IEntryRepository> _entryRepositoryMock;
+        private readonly Mock<IFileRepository> _fileRepositoryMock;
         private readonly Mock<IDirectoryRepository> _directoryRepositoryMock;
         private readonly Mock<ITransactionWrapper> _transactionWrapperMock;
         private readonly FileFsClient _client;
@@ -30,6 +32,7 @@ namespace FileFS.Client.Tests.FileFsClientTests
         public FileFsClientGenericTests()
         {
             _entryRepositoryMock = new Mock<IEntryRepository>();
+            _fileRepositoryMock = new Mock<IFileRepository>();
             _directoryRepositoryMock = new Mock<IDirectoryRepository>();
 
             _directoryRepositoryMock
@@ -41,12 +44,13 @@ namespace FileFS.Client.Tests.FileFsClientTests
             _transactionWrapperMock.Setup(t => t.EndTransaction());
 
             _client = new FileFsClient(
-                null,
+                _fileRepositoryMock.Object,
                 _directoryRepositoryMock.Object,
                 _entryRepositoryMock.Object,
                 null,
                 null,
-                _transactionWrapperMock.Object);
+                _transactionWrapperMock.Object,
+                new StorageOperationLocker());
         }
 
         [Theory]
@@ -172,6 +176,10 @@ namespace FileFS.Client.Tests.FileFsClientTests
         {
             // Arrange
             _entryRepositoryMock
+                .Setup(r => r.Exists(oldFileName))
+                .Returns(true);
+
+            _fileRepositoryMock
                 .Setup(r => r.Exists(oldFileName))
                 .Returns(true);
 

@@ -30,6 +30,7 @@ namespace FileFS.DataAccess.Allocation
         /// <param name="entryDescriptorRepository">File descriptor repository instance.</param>
         /// <param name="optimizer">Storage optimizer instance.</param>
         /// <param name="storageExtender">Storage extender instance.</param>
+        /// <param name="storageOperationLocker">Storage operation locker instance.</param>
         /// <param name="logger">Logger instance.</param>
         public FileAllocator(
             IStorageConnection connection,
@@ -50,7 +51,12 @@ namespace FileFS.DataAccess.Allocation
         }
 
         /// <inheritdoc />
-        public Cursor AllocateFile(int dataSize)
+        public Cursor AllocateFile(int dataSize, bool isNewFile)
+        {
+            return _storageOperationLocker.LockEntry("filesystem", () => AllocateFileInternal(dataSize, isNewFile));
+        }
+
+        private Cursor AllocateFileInternal(int dataSize, bool isNewFile)
         {
             _logger.Information($"Start memory allocation flow for {dataSize} bytes");
 
@@ -71,7 +77,7 @@ namespace FileFS.DataAccess.Allocation
             }
 
             // 2. No gaps with given size exists - try to allocate known empty space
-            if (!CouldAllocate(dataSize))
+            if (!CouldAllocate(dataSize, isNewFile))
             {
                 _logger.Information($"Failed to allocate new space with size of {dataSize} bytes, starting optimizer");
 
@@ -79,9 +85,9 @@ namespace FileFS.DataAccess.Allocation
                 _optimizer.Optimize();
 
                 // Recheck
-                if (!CouldAllocate(dataSize))
+                if (!CouldAllocate(dataSize, isNewFile))
                 {
-                    var totalAllocatedSpace = GetTotalAllocatedSpace();
+                    var totalAllocatedSpace = GetTotalAllocatedSpace(isNewFile);
                     var currentReservedSize = _connection.GetSize();
                     var timesResize = (int)Math.Ceiling(Math.Log((totalAllocatedSpace + dataSize) / (double)currentReservedSize, 2));
 
@@ -94,12 +100,12 @@ namespace FileFS.DataAccess.Allocation
             return PerformAllocate(dataSize);
         }
 
-        private bool CouldAllocate(int dataSize)
+        private bool CouldAllocate(int dataSize, bool isNewFile)
         {
             _logger.Information($"Checking possibility to allocate new {dataSize} bytes");
 
             var overallSpace = _connection.GetSize();
-            var totalAllocatedSpace = GetTotalAllocatedSpace();
+            var totalAllocatedSpace = GetTotalAllocatedSpace(isNewFile);
             var remainingSpace = overallSpace - totalAllocatedSpace;
 
             var couldAllocate = remainingSpace >= dataSize;
@@ -109,11 +115,13 @@ namespace FileFS.DataAccess.Allocation
             return couldAllocate;
         }
 
-        private int GetTotalAllocatedSpace()
+        private int GetTotalAllocatedSpace(bool includeNewEntryDescriptor)
         {
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
+            var entryDescriptorsCount =
+                filesystemDescriptor.EntryDescriptorsCount + (includeNewEntryDescriptor ? 1 : 0);
             var specialSpace = FilesystemDescriptor.BytesTotal +
-                               (filesystemDescriptor.EntryDescriptorsCount * filesystemDescriptor.EntryDescriptorLength);
+                               (entryDescriptorsCount * filesystemDescriptor.EntryDescriptorLength);
 
             var dataSpace = filesystemDescriptor.FilesDataLength;
 

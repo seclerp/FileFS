@@ -20,7 +20,6 @@ namespace FileFS.DataAccess.Repositories
         private readonly IFileAllocator _allocator;
         private readonly IFilesystemDescriptorAccessor _filesystemDescriptorAccessor;
         private readonly IEntryDescriptorRepository _entryDescriptorRepository;
-        private readonly IStorageOperationLocker _storageOperationLocker;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -36,15 +35,13 @@ namespace FileFS.DataAccess.Repositories
             IFileAllocator allocator,
             IFilesystemDescriptorAccessor filesystemDescriptorAccessor,
             IEntryDescriptorRepository entryDescriptorRepository,
-            IStorageOperationLocker storageOperationLocker,
             ILogger logger)
-            : base(filesystemDescriptorAccessor, entryDescriptorRepository, storageOperationLocker, logger)
+            : base(filesystemDescriptorAccessor, entryDescriptorRepository, logger)
         {
             _connection = connection;
             _allocator = allocator;
             _filesystemDescriptorAccessor = filesystemDescriptorAccessor;
             _entryDescriptorRepository = entryDescriptorRepository;
-            _storageOperationLocker = storageOperationLocker;
             _logger = logger;
         }
 
@@ -75,22 +72,18 @@ namespace FileFS.DataAccess.Repositories
         /// <inheritdoc />
         public void Copy(string fileNameFrom, string fileNameTo)
         {
-            var operationId = Guid.NewGuid();
-            _storageOperationLocker.MakeOperation(fileNameFrom, operationId, () =>
+            var sourceFileDescriptor = _entryDescriptorRepository.Find(fileNameFrom).Value;
+            var sourceDataCursor = new Cursor(sourceFileDescriptor.DataOffset, SeekOrigin.Begin);
+
+            var destinationParentName = fileNameTo.GetParentFullName();
+            var destinationParentDescriptor = _entryDescriptorRepository.Find(destinationParentName).Value;
+            var destinationPlaceholder = new PlaceholderFileEntry(fileNameTo, destinationParentDescriptor.Id, sourceFileDescriptor.DataLength);
+
+            // Create empty file of given size with no data
+            CreateInternal(destinationPlaceholder, destinationDataCursor =>
             {
-                var sourceFileDescriptor = _entryDescriptorRepository.Find(fileNameFrom).Value;
-                var sourceDataCursor = new Cursor(sourceFileDescriptor.DataOffset, SeekOrigin.Begin);
-
-                var destinationParentName = fileNameTo.GetParentFullName();
-                var destinationParentDescriptor = _entryDescriptorRepository.Find(destinationParentName).Value;
-                var destinationPlaceholder = new PlaceholderFileEntry(fileNameTo, destinationParentDescriptor.Id, sourceFileDescriptor.DataLength);
-
-                // Create empty file of given size with no data
-                CreateInternal(destinationPlaceholder, destinationDataCursor =>
-                {
-                    // Copy data from source file data origin to destination
-                    _connection.PerformCopy(sourceDataCursor, destinationDataCursor, sourceFileDescriptor.DataLength);
-                });
+                // Copy data from source file data origin to destination
+                _connection.PerformCopy(sourceDataCursor, destinationDataCursor, sourceFileDescriptor.DataLength);
             });
         }
 
@@ -128,7 +121,7 @@ namespace FileFS.DataAccess.Repositories
             _logger.Information($"Start file create process, filename {file.EntryName}, bytes count {file.DataLength}");
 
             // 1. Allocate space and write new file descriptor
-            var allocatedDataCursor = WriteFileDescriptor(file);
+            var allocatedDataCursor = WriteFileDescriptor(file, true);
 
             // 2. Update filesystem descriptor
             IncreaseEntriesCount(1);
@@ -139,15 +132,11 @@ namespace FileFS.DataAccess.Repositories
             _logger.Information($"File {file.EntryName} was created");
         }
 
-        private Cursor WriteFileDescriptor(IFileEntry file, Guid operationId)
+        private Cursor WriteFileDescriptor(IFileEntry file, bool isNewFile)
         {
             _logger.Information($"Start writing file descriptor for filename {file.EntryName}");
 
-            Cursor allocatedCursor = default;
-            _storageOperationLocker.MakeGlobalOperation(operationId, () =>
-            {
-                allocatedCursor = _allocator.AllocateFile(file.DataLength);
-            });
+            var allocatedCursor = _allocator.AllocateFile(file.DataLength, isNewFile);
 
             var filesystemDescriptor = _filesystemDescriptorAccessor.Value;
             var createdOn = DateTime.UtcNow.ToUnixTime();
@@ -180,7 +169,7 @@ namespace FileFS.DataAccess.Repositories
             // we don't need to allocate new space, only change length
             var allocatedCursor = file.DataLength <= descriptorItem.Value.DataLength
                 ? new Cursor(descriptorItem.Value.DataOffset, SeekOrigin.Begin)
-                : _allocator.AllocateFile(file.DataLength);
+                : _allocator.AllocateFile(file.DataLength, false);
 
             // 3. Write file data
             writeAction(allocatedCursor);

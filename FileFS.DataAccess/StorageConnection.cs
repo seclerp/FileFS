@@ -106,13 +106,15 @@ namespace FileFS.DataAccess
                 using var reader = CreateReader(stream);
                 using var writer = CreateWriter(stream);
 
-                for (var relativeOffset = 0; relativeOffset < length; relativeOffset += _bufferSize)
+                var relativeOffset = 0;
+                while (relativeOffset < length)
                 {
-                    var chunkSize = _bufferSize < length ? _bufferSize : length;
+                    var chunkSize = Math.Min(_bufferSize, length - relativeOffset);
                     stream.Seek(new Cursor(sourceCursor.Offset + relativeOffset, sourceCursor.Origin));
                     var chunk = reader.ReadBytes(chunkSize);
                     stream.Seek(new Cursor(destinationCursor.Offset + relativeOffset, destinationCursor.Origin));
                     writer.Write(chunk);
+                    relativeOffset += chunkSize;
                 }
             }
 

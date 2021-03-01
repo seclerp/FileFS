@@ -42,9 +42,9 @@ namespace FileFS.Client
             var entryDescriptorSerializer = new EntryDescriptorSerializer(filesystemDescriptorAccessor, logger);
             var entryDescriptorRepository = new EntryDescriptorRepository(connection, filesystemDescriptorAccessor, entryDescriptorSerializer, logger);
 
-            var optimizer = new StorageOptimizer(connection, entryDescriptorRepository, filesystemDescriptorAccessor, logger);
-            var extender = new StorageExtender(connection, filesystemDescriptorAccessor, logger);
             var operationLocker = new StorageOperationLocker();
+            var optimizer = new StorageOptimizer(connection, entryDescriptorRepository, filesystemDescriptorAccessor, operationLocker, logger);
+            var extender = new StorageExtender(connection, filesystemDescriptorAccessor, operationLocker, logger);
             var allocator = new FileAllocator(connection, filesystemDescriptorAccessor, entryDescriptorRepository, optimizer, extender, operationLocker, logger);
 
             var entryRepository = new EntryRepository(filesystemDescriptorAccessor, entryDescriptorRepository, logger);
@@ -54,7 +54,7 @@ namespace FileFS.Client
             var externalFileManager = new ExternalFileManager(logger);
             var transactionWrapper = CreateTransactionWrapper(options.EnableTransactions);
 
-            var client = new FileFsClient(fileRepository, directoryRepository, entryRepository, externalFileManager, optimizer, transactionWrapper);
+            var client = new FileFsClient(fileRepository, directoryRepository, entryRepository, externalFileManager, optimizer, transactionWrapper, operationLocker);
 
             return client;
         }

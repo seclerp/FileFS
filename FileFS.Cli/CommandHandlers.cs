@@ -24,7 +24,7 @@ namespace FileFS.Cli
             CommandHandlerHelper.TryExecute(initOptions, options =>
             {
                 var logger = CommandHandlerHelper.CreateLogger(options.IsDebug);
-                var storageInitializer = StorageInitializerFactory.Create(options.Instance, logger);
+                var storageInitializer = FileFsStorageInitializerFactory.Create(options.Instance, logger);
                 storageInitializer.Initialize(options.Size, options.FileNameLength);
             });
         }
