@@ -1,0 +1,5 @@
+var namespace_file_f_s_1_1_data_access_1_1_tests_1_1_serializers =
+[
+    [ "EntryDescriptorSerializerTests", "class_file_f_s_1_1_data_access_1_1_tests_1_1_serializers_1_1_entry_descriptor_serializer_tests.html", "class_file_f_s_1_1_data_access_1_1_tests_1_1_serializers_1_1_entry_descriptor_serializer_tests" ],
+    [ "FilesystemDescriptorSerializerTests", "class_file_f_s_1_1_data_access_1_1_tests_1_1_serializers_1_1_filesystem_descriptor_serializer_tests.html", "class_file_f_s_1_1_data_access_1_1_tests_1_1_serializers_1_1_filesystem_descriptor_serializer_tests" ]
+];

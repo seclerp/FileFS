@@ -1,0 +1,6 @@
+var searchData=
+[
+  ['write_474',['Write',['../interface_file_f_s_1_1_client_1_1_abstractions_1_1_i_external_file_manager.html#a682b9983936ada155fbb7dbc69e5c89d',1,'FileFS.Client.Abstractions.IExternalFileManager.Write()'],['../class_file_f_s_1_1_client_1_1_external_file_manager.html#a8a1b9ace44679fd04be99492eca44ac5',1,'FileFS.Client.ExternalFileManager.Write()'],['../interface_file_f_s_1_1_data_access_1_1_repositories_1_1_abstractions_1_1_i_entry_descriptor_repository.html#aacb068161b14fd249e6339b0f23e98b4',1,'FileFS.DataAccess.Repositories.Abstractions.IEntryDescriptorRepository.Write()'],['../class_file_f_s_1_1_data_access_1_1_repositories_1_1_entry_descriptor_repository.html#a7e116e2311a3ab427d720ddb8ac9c0ef',1,'FileFS.DataAccess.Repositories.EntryDescriptorRepository.Write()']]],
+  ['write_5fshouldwriteprovideddata_475',['Write_ShouldWriteProvidedData',['../class_file_f_s_1_1_client_1_1_tests_1_1_external_file_manager_tests.html#aab2a177f767e524fb310b6e87a8669a8',1,'FileFS::Client::Tests::ExternalFileManagerTests']]],
+  ['write_5fstorageshouldcontaincorrectitem_476',['Write_StorageShouldContainCorrectItem',['../class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests.html#affd1b40e520f38c1295eb71a669f5caa',1,'FileFS::DataAccess::Tests::Repositories::EntryDescriptorRepositoryTests']]]
+];

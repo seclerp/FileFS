@@ -1,0 +1,25 @@
+var class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests =
+[
+    [ "FileFsClientDirectoryTests", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a46b7333637a086fdb3bb90e2984061b3", null ],
+    [ "Copy_WhenDirectoryHasDirectory_ShouldCallDelete", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a99fbf2a82950924b2b6f77f8af2498b1", null ],
+    [ "Copy_WhenDirectoryHasDirectoryAndFile_ShouldCallDelete", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#acf436ed2e0ced994ad3a51f557e334d1", null ],
+    [ "Copy_WhenDirectoryHasFile_ShouldCallDelete", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a4ce86852aa4886a27a6eb5ebe01198b4", null ],
+    [ "Copy_WhenDirectoryIsEmpty_ShouldCallDelete", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#ad32cf3c745dd41b256f9a9462d8b4784", null ],
+    [ "Copy_WithValidParameters_ShouldCallMove", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a148a1c0f52750e5074295d7885f901bd", null ],
+    [ "CreateDirectory_WhenEntryAlreadyExists_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a927fe3a9a7f14ac1bee5b497098c8649", null ],
+    [ "CreateDirectory_WhenParentEntryNotExists_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a45d14f14f4ad333e388a1a328b33cd5c", null ],
+    [ "CreateDirectory_WithInvalidFileName_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#afbfc4a5b98bbaa455fd1befbdc84a203", null ],
+    [ "CreateDirectory_WithValidParameters_ShouldCallCreate", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#ad56a4f49f9633da7e466eb56af64d834", null ],
+    [ "Delete_WhenDirectoryHasDirectory_ShouldCallDelete", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a618be863527713920d03814569e01da4", null ],
+    [ "Delete_WhenDirectoryHasDirectoryAndFile_ShouldCallDelete", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a77fcd011895a7b0e9e0f13dec0b83999", null ],
+    [ "Delete_WhenDirectoryHasFile_ShouldCallDelete", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a307c7515ff5f76ff059c6ab602efb4b1", null ],
+    [ "Delete_WhenDirectoryIsEmpty_ShouldCallDelete", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#af3a61b24dca120f338f712f9d3ce4fb7", null ],
+    [ "Delete_WhenNameIsRootDirectory_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a420ede224df6156cbc8301fe73bf663c", null ],
+    [ "DirectoryExists_WhenDirectoryExists_ShouldReturnTrue", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a73ad0a0ab9e2f8388eefcc46d15e7bb8", null ],
+    [ "DirectoryExists_WhenDirectoryNotExists_ShouldReturnFalse", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a990a6d893cb10b6727089ef0ee08a7a8", null ],
+    [ "DirectoryExists_WithInvalidFileName_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a213baf0a481e7187e627876a4b21d406", null ],
+    [ "IsDirectory_WhenDirectoryExists_ShouldReturnTrue", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#aedba055c427b1272699959d369f9ad6c", null ],
+    [ "IsDirectory_WhenDirectoryNotExists_ShouldReturnFalse", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#aa9bfda39fc8eb0f9b28d5115690efaf3", null ],
+    [ "IsDirectory_WhenEntryNotExists_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#a2a98d753203017209f03cab3318be0f9", null ],
+    [ "IsDirectory_WithInvalidFileName_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html#afaca524d7e8786a787be835a82f642b3", null ]
+];

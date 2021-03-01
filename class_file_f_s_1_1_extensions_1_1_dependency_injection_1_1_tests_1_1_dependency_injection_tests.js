@@ -1,0 +1,4 @@
+var class_file_f_s_1_1_extensions_1_1_dependency_injection_1_1_tests_1_1_dependency_injection_tests =
+[
+    [ "AddFileFsClient_ShouldSuccessfullyResolveClient", "class_file_f_s_1_1_extensions_1_1_dependency_injection_1_1_tests_1_1_dependency_injection_tests.html#a6b1ed68404d7e73717b9969c6d167684", null ]
+];

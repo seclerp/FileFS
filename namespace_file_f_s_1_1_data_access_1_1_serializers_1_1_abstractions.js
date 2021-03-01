@@ -1,0 +1,4 @@
+var namespace_file_f_s_1_1_data_access_1_1_serializers_1_1_abstractions =
+[
+    [ "ISerializer", "interface_file_f_s_1_1_data_access_1_1_serializers_1_1_abstractions_1_1_i_serializer.html", "interface_file_f_s_1_1_data_access_1_1_serializers_1_1_abstractions_1_1_i_serializer" ]
+];

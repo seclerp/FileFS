@@ -1,0 +1,24 @@
+var searchData=
+[
+  ['idirectoryrepository_2ecs_675',['IDirectoryRepository.cs',['../_i_directory_repository_8cs.html',1,'']]],
+  ['ientry_2ecs_676',['IEntry.cs',['../_i_entry_8cs.html',1,'']]],
+  ['ientrydescriptorrepository_2ecs_677',['IEntryDescriptorRepository.cs',['../_i_entry_descriptor_repository_8cs.html',1,'']]],
+  ['ientryrepository_2ecs_678',['IEntryRepository.cs',['../_i_entry_repository_8cs.html',1,'']]],
+  ['iexternalfilemanager_2ecs_679',['IExternalFileManager.cs',['../_i_external_file_manager_8cs.html',1,'']]],
+  ['ifileallocator_2ecs_680',['IFileAllocator.cs',['../_i_file_allocator_8cs.html',1,'']]],
+  ['ifileentry_2ecs_681',['IFileEntry.cs',['../_i_file_entry_8cs.html',1,'']]],
+  ['ifilefsclient_2ecs_682',['IFileFsClient.cs',['../_i_file_fs_client_8cs.html',1,'']]],
+  ['ifilerepository_2ecs_683',['IFileRepository.cs',['../_i_file_repository_8cs.html',1,'']]],
+  ['ifilesystemdescriptoraccessor_2ecs_684',['IFilesystemDescriptorAccessor.cs',['../_i_filesystem_descriptor_accessor_8cs.html',1,'']]],
+  ['importoptions_2ecs_685',['ImportOptions.cs',['../_import_options_8cs.html',1,'']]],
+  ['initoptions_2ecs_686',['InitOptions.cs',['../_init_options_8cs.html',1,'']]],
+  ['invalidnameexception_2ecs_687',['InvalidNameException.cs',['../_invalid_name_exception_8cs.html',1,'']]],
+  ['iserializer_2ecs_688',['ISerializer.cs',['../_i_serializer_8cs.html',1,'']]],
+  ['istorageconnection_2ecs_689',['IStorageConnection.cs',['../_i_storage_connection_8cs.html',1,'']]],
+  ['istorageextender_2ecs_690',['IStorageExtender.cs',['../_i_storage_extender_8cs.html',1,'']]],
+  ['istorageinitializer_2ecs_691',['IStorageInitializer.cs',['../_i_storage_initializer_8cs.html',1,'']]],
+  ['istorageoperationlocker_2ecs_692',['IStorageOperationLocker.cs',['../_i_storage_operation_locker_8cs.html',1,'']]],
+  ['istorageoptimizer_2ecs_693',['IStorageOptimizer.cs',['../_i_storage_optimizer_8cs.html',1,'']]],
+  ['istoragestreamprovider_2ecs_694',['IStorageStreamProvider.cs',['../_i_storage_stream_provider_8cs.html',1,'']]],
+  ['itransactionwrapper_2ecs_695',['ITransactionWrapper.cs',['../_i_transaction_wrapper_8cs.html',1,'']]]
+];

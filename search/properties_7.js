@@ -1,0 +1,4 @@
+var searchData=
+[
+  ['parententryid_1010',['ParentEntryId',['../interface_file_f_s_1_1_data_access_1_1_entities_1_1_abstractions_1_1_i_entry.html#a799a623f8aaf16e100ea50302bfd3aac',1,'FileFS.DataAccess.Entities.Abstractions.IEntry.ParentEntryId()'],['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_directory_entry.html#a0ef586972d915c75c30cef1fa8fb2324',1,'FileFS.DataAccess.Entities.DirectoryEntry.ParentEntryId()'],['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_file_entry.html#a3dfa0f6c834513fcaa08e72e1e68b78f',1,'FileFS.DataAccess.Entities.FileEntry.ParentEntryId()'],['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_placeholder_file_entry.html#ada1dda60835b011405d75e889dc9ed2a',1,'FileFS.DataAccess.Entities.PlaceholderFileEntry.ParentEntryId()'],['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_streamed_file_entry.html#a8eed761b58ad9580318008247dd52975',1,'FileFS.DataAccess.Entities.StreamedFileEntry.ParentEntryId()']]]
+];

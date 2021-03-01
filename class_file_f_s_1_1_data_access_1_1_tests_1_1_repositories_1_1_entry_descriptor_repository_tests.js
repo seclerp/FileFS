@@ -1,0 +1,10 @@
+var class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests =
+[
+    [ "Exists_WhenItemExists_ShouldReturnTrue", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests.html#a2757958eac9f3c44e705866088d6353f", null ],
+    [ "Exists_WhenItemNotExists_ShouldReturnFalse", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests.html#af15609c8fdba987e4069cee8e801aaf8", null ],
+    [ "Find_ShouldReturnCorrectItemByFilename", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests.html#a98f6444699f9183d8daa6a0cb6d69325", null ],
+    [ "Read_WhereThereIsOneDescriptor_ShouldReturnCorrectItem", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests.html#aca02f52e07555518b6410b170bdc6110", null ],
+    [ "ReadAll_WhenThereAreExistingItems_ShouldReturnCollectionWithAllItems", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests.html#ab51765a46e5cadadaf2fa1bc5e715c1a", null ],
+    [ "ReadAll_WhereThereAreNoDescriptors_ShouldReturnOnlyRootDirectory", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests.html#a79451ae82879ae6d48db8cbd3e3499f6", null ],
+    [ "Write_StorageShouldContainCorrectItem", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests.html#affd1b40e520f38c1295eb71a669f5caa", null ]
+];

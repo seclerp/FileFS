@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['idirectoryrepository_529',['IDirectoryRepository',['../interface_file_f_s_1_1_data_access_1_1_repositories_1_1_abstractions_1_1_i_directory_repository.html',1,'FileFS::DataAccess::Repositories::Abstractions']]],
+  ['ientry_530',['IEntry',['../interface_file_f_s_1_1_data_access_1_1_entities_1_1_abstractions_1_1_i_entry.html',1,'FileFS::DataAccess::Entities::Abstractions']]],
+  ['ientrydescriptorrepository_531',['IEntryDescriptorRepository',['../interface_file_f_s_1_1_data_access_1_1_repositories_1_1_abstractions_1_1_i_entry_descriptor_repository.html',1,'FileFS::DataAccess::Repositories::Abstractions']]],
+  ['ientryrepository_532',['IEntryRepository',['../interface_file_f_s_1_1_data_access_1_1_repositories_1_1_abstractions_1_1_i_entry_repository.html',1,'FileFS::DataAccess::Repositories::Abstractions']]],
+  ['iexternalfilemanager_533',['IExternalFileManager',['../interface_file_f_s_1_1_client_1_1_abstractions_1_1_i_external_file_manager.html',1,'FileFS::Client::Abstractions']]],
+  ['ifileallocator_534',['IFileAllocator',['../interface_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions_1_1_i_file_allocator.html',1,'FileFS::DataAccess::Allocation::Abstractions']]],
+  ['ifileentry_535',['IFileEntry',['../interface_file_f_s_1_1_data_access_1_1_entities_1_1_abstractions_1_1_i_file_entry.html',1,'FileFS::DataAccess::Entities::Abstractions']]],
+  ['ifilefsclient_536',['IFileFsClient',['../interface_file_f_s_1_1_client_1_1_abstractions_1_1_i_file_fs_client.html',1,'FileFS::Client::Abstractions']]],
+  ['ifilerepository_537',['IFileRepository',['../interface_file_f_s_1_1_data_access_1_1_repositories_1_1_abstractions_1_1_i_file_repository.html',1,'FileFS::DataAccess::Repositories::Abstractions']]],
+  ['ifilesystemdescriptoraccessor_538',['IFilesystemDescriptorAccessor',['../interface_file_f_s_1_1_data_access_1_1_abstractions_1_1_i_filesystem_descriptor_accessor.html',1,'FileFS::DataAccess::Abstractions']]],
+  ['importoptions_539',['ImportOptions',['../class_file_f_s_1_1_cli_1_1_options_1_1_import_options.html',1,'FileFS::Cli::Options']]],
+  ['initoptions_540',['InitOptions',['../class_file_f_s_1_1_cli_1_1_options_1_1_init_options.html',1,'FileFS::Cli::Options']]],
+  ['invalidnameexception_541',['InvalidNameException',['../class_file_f_s_1_1_client_1_1_exceptions_1_1_invalid_name_exception.html',1,'FileFS::Client::Exceptions']]],
+  ['iserializer_542',['ISerializer',['../interface_file_f_s_1_1_data_access_1_1_serializers_1_1_abstractions_1_1_i_serializer.html',1,'FileFS::DataAccess::Serializers::Abstractions']]],
+  ['iserializer_3c_20entrydescriptor_20_3e_543',['ISerializer&lt; EntryDescriptor &gt;',['../interface_file_f_s_1_1_data_access_1_1_serializers_1_1_abstractions_1_1_i_serializer.html',1,'FileFS::DataAccess::Serializers::Abstractions']]],
+  ['iserializer_3c_20filesystemdescriptor_20_3e_544',['ISerializer&lt; FilesystemDescriptor &gt;',['../interface_file_f_s_1_1_data_access_1_1_serializers_1_1_abstractions_1_1_i_serializer.html',1,'FileFS::DataAccess::Serializers::Abstractions']]],
+  ['istorageconnection_545',['IStorageConnection',['../interface_file_f_s_1_1_data_access_1_1_abstractions_1_1_i_storage_connection.html',1,'FileFS::DataAccess::Abstractions']]],
+  ['istorageextender_546',['IStorageExtender',['../interface_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions_1_1_i_storage_extender.html',1,'FileFS::DataAccess::Allocation::Abstractions']]],
+  ['istorageinitializer_547',['IStorageInitializer',['../interface_file_f_s_1_1_data_access_1_1_abstractions_1_1_i_storage_initializer.html',1,'FileFS::DataAccess::Abstractions']]],
+  ['istorageoperationlocker_548',['IStorageOperationLocker',['../interface_file_f_s_1_1_data_access_1_1_abstractions_1_1_i_storage_operation_locker.html',1,'FileFS::DataAccess::Abstractions']]],
+  ['istorageoptimizer_549',['IStorageOptimizer',['../interface_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions_1_1_i_storage_optimizer.html',1,'FileFS::DataAccess::Allocation::Abstractions']]],
+  ['istoragestreamprovider_550',['IStorageStreamProvider',['../interface_file_f_s_1_1_data_access_1_1_abstractions_1_1_i_storage_stream_provider.html',1,'FileFS::DataAccess::Abstractions']]],
+  ['itransactionwrapper_551',['ITransactionWrapper',['../interface_file_f_s_1_1_client_1_1_transactions_1_1_abstractions_1_1_i_transaction_wrapper.html',1,'FileFS::Client::Transactions::Abstractions']]]
+];

@@ -1,0 +1,24 @@
+var searchData=
+[
+  ['fileallocator_508',['FileAllocator',['../class_file_f_s_1_1_data_access_1_1_allocation_1_1_file_allocator.html',1,'FileFS::DataAccess::Allocation']]],
+  ['fileallocatortests_509',['FileAllocatorTests',['../class_file_f_s_1_1_data_access_1_1_tests_1_1_allocation_1_1_file_allocator_tests.html',1,'FileFS::DataAccess::Tests::Allocation']]],
+  ['filealreadyexistsexception_510',['FileAlreadyExistsException',['../class_file_f_s_1_1_client_1_1_exceptions_1_1_file_already_exists_exception.html',1,'FileFS::Client::Exceptions']]],
+  ['fileentry_511',['FileEntry',['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_file_entry.html',1,'FileFS::DataAccess::Entities']]],
+  ['fileentryinfoequalitycomparer_512',['FileEntryInfoEqualityComparer',['../class_file_f_s_1_1_tests_1_1_shared_1_1_comparers_1_1_file_entry_info_equality_comparer.html',1,'FileFS::Tests::Shared::Comparers']]],
+  ['filefsclient_513',['FileFsClient',['../class_file_f_s_1_1_client_1_1_file_fs_client.html',1,'FileFS::Client']]],
+  ['filefsclientdirectorytests_514',['FileFsClientDirectoryTests',['../class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_directory_tests.html',1,'FileFS::Client::Tests::FileFsClientTests']]],
+  ['filefsclientfiletests_515',['FileFsClientFileTests',['../class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_file_tests.html',1,'FileFS::Client::Tests::FileFsClientTests']]],
+  ['filefsclientgenerictests_516',['FileFsClientGenericTests',['../class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html',1,'FileFS::Client::Tests::FileFsClientTests']]],
+  ['filefsclientoptions_517',['FileFsClientOptions',['../class_file_f_s_1_1_client_1_1_configuration_1_1_file_fs_client_options.html',1,'FileFS::Client::Configuration']]],
+  ['filefsentryinfo_518',['FileFsEntryInfo',['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_file_fs_entry_info.html',1,'FileFS::DataAccess::Entities']]],
+  ['filefsexception_519',['FileFsException',['../class_file_f_s_1_1_data_access_1_1_exceptions_1_1_file_fs_exception.html',1,'FileFS::DataAccess::Exceptions']]],
+  ['filefsstorageinitializerfactory_520',['FileFsStorageInitializerFactory',['../class_file_f_s_1_1_client_1_1_file_fs_storage_initializer_factory.html',1,'FileFS::Client']]],
+  ['filenotfoundexception_521',['FileNotFoundException',['../class_file_f_s_1_1_client_1_1_exceptions_1_1_file_not_found_exception.html',1,'FileFS::Client::Exceptions']]],
+  ['filerepository_522',['FileRepository',['../class_file_f_s_1_1_data_access_1_1_repositories_1_1_file_repository.html',1,'FileFS::DataAccess::Repositories']]],
+  ['filerepositorytests_523',['FileRepositoryTests',['../class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_file_repository_tests.html',1,'FileFS::DataAccess::Tests::Repositories']]],
+  ['filesystemdescriptor_524',['FilesystemDescriptor',['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_filesystem_descriptor.html',1,'FileFS::DataAccess::Entities']]],
+  ['filesystemdescriptoraccessor_525',['FilesystemDescriptorAccessor',['../class_file_f_s_1_1_data_access_1_1_filesystem_descriptor_accessor.html',1,'FileFS::DataAccess']]],
+  ['filesystemdescriptoraccessortests_526',['FilesystemDescriptorAccessorTests',['../class_file_f_s_1_1_data_access_1_1_tests_1_1_filesystem_descriptor_accessor_tests.html',1,'FileFS::DataAccess::Tests']]],
+  ['filesystemdescriptorserializer_527',['FilesystemDescriptorSerializer',['../class_file_f_s_1_1_data_access_1_1_serializers_1_1_filesystem_descriptor_serializer.html',1,'FileFS::DataAccess::Serializers']]],
+  ['filesystemdescriptorserializertests_528',['FilesystemDescriptorSerializerTests',['../class_file_f_s_1_1_data_access_1_1_tests_1_1_serializers_1_1_filesystem_descriptor_serializer_tests.html',1,'FileFS::DataAccess::Tests::Serializers']]]
+];

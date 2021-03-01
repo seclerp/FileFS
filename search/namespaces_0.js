@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['abstractions_580',['Abstractions',['../namespace_file_f_s_1_1_client_1_1_abstractions.html',1,'FileFS.Client.Abstractions'],['../namespace_file_f_s_1_1_client_1_1_transactions_1_1_abstractions.html',1,'FileFS.Client.Transactions.Abstractions'],['../namespace_file_f_s_1_1_data_access_1_1_abstractions.html',1,'FileFS.DataAccess.Abstractions'],['../namespace_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions.html',1,'FileFS.DataAccess.Allocation.Abstractions'],['../namespace_file_f_s_1_1_data_access_1_1_entities_1_1_abstractions.html',1,'FileFS.DataAccess.Entities.Abstractions'],['../namespace_file_f_s_1_1_data_access_1_1_repositories_1_1_abstractions.html',1,'FileFS.DataAccess.Repositories.Abstractions'],['../namespace_file_f_s_1_1_data_access_1_1_serializers_1_1_abstractions.html',1,'FileFS.DataAccess.Serializers.Abstractions']]],
+  ['allocation_581',['Allocation',['../namespace_file_f_s_1_1_data_access_1_1_allocation.html',1,'FileFS.DataAccess.Allocation'],['../namespace_file_f_s_1_1_data_access_1_1_tests_1_1_allocation.html',1,'FileFS.DataAccess.Tests.Allocation']]],
+  ['cli_582',['Cli',['../namespace_file_f_s_1_1_cli.html',1,'FileFS']]],
+  ['client_583',['Client',['../namespace_file_f_s_1_1_client.html',1,'FileFS']]],
+  ['comparers_584',['Comparers',['../namespace_file_f_s_1_1_tests_1_1_shared_1_1_comparers.html',1,'FileFS::Tests::Shared']]],
+  ['configuration_585',['Configuration',['../namespace_file_f_s_1_1_client_1_1_configuration.html',1,'FileFS::Client']]],
+  ['constants_586',['Constants',['../namespace_file_f_s_1_1_cli_1_1_constants.html',1,'FileFS.Cli.Constants'],['../namespace_file_f_s_1_1_client_1_1_constants.html',1,'FileFS.Client.Constants'],['../namespace_file_f_s_1_1_data_access_1_1_constants.html',1,'FileFS.DataAccess.Constants']]],
+  ['dataaccess_587',['DataAccess',['../namespace_file_f_s_1_1_data_access.html',1,'FileFS']]],
+  ['dependencyinjection_588',['DependencyInjection',['../namespace_file_f_s_1_1_extensions_1_1_dependency_injection.html',1,'FileFS::Extensions']]],
+  ['entities_589',['Entities',['../namespace_file_f_s_1_1_data_access_1_1_entities.html',1,'FileFS::DataAccess']]],
+  ['enums_590',['Enums',['../namespace_file_f_s_1_1_data_access_1_1_entities_1_1_enums.html',1,'FileFS::DataAccess::Entities']]],
+  ['exceptions_591',['Exceptions',['../namespace_file_f_s_1_1_client_1_1_exceptions.html',1,'FileFS.Client.Exceptions'],['../namespace_file_f_s_1_1_data_access_1_1_exceptions.html',1,'FileFS.DataAccess.Exceptions']]],
+  ['extensions_592',['Extensions',['../namespace_file_f_s_1_1_cli_1_1_extensions.html',1,'FileFS.Cli.Extensions'],['../namespace_file_f_s_1_1_data_access_1_1_extensions.html',1,'FileFS.DataAccess.Extensions'],['../namespace_file_f_s_1_1_data_access_1_1_tests_1_1_extensions.html',1,'FileFS.DataAccess.Tests.Extensions'],['../namespace_file_f_s_1_1_extensions.html',1,'FileFS.Extensions']]],
+  ['factories_593',['Factories',['../namespace_file_f_s_1_1_tests_1_1_shared_1_1_factories.html',1,'FileFS::Tests::Shared']]],
+  ['filefs_594',['FileFS',['../namespace_file_f_s.html',1,'']]],
+  ['filefsclienttests_595',['FileFsClientTests',['../namespace_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests.html',1,'FileFS::Client::Tests']]],
+  ['options_596',['Options',['../namespace_file_f_s_1_1_cli_1_1_options.html',1,'FileFS::Cli']]],
+  ['repositories_597',['Repositories',['../namespace_file_f_s_1_1_data_access_1_1_repositories.html',1,'FileFS.DataAccess.Repositories'],['../namespace_file_f_s_1_1_data_access_1_1_tests_1_1_repositories.html',1,'FileFS.DataAccess.Tests.Repositories']]],
+  ['serializers_598',['Serializers',['../namespace_file_f_s_1_1_data_access_1_1_serializers.html',1,'FileFS.DataAccess.Serializers'],['../namespace_file_f_s_1_1_data_access_1_1_tests_1_1_serializers.html',1,'FileFS.DataAccess.Tests.Serializers']]],
+  ['shared_599',['Shared',['../namespace_file_f_s_1_1_tests_1_1_shared.html',1,'FileFS::Tests']]],
+  ['tests_600',['Tests',['../namespace_file_f_s_1_1_client_1_1_tests.html',1,'FileFS.Client.Tests'],['../namespace_file_f_s_1_1_data_access_1_1_tests.html',1,'FileFS.DataAccess.Tests'],['../namespace_file_f_s_1_1_extensions_1_1_dependency_injection_1_1_tests.html',1,'FileFS.Extensions.DependencyInjection.Tests'],['../namespace_file_f_s_1_1_tests.html',1,'FileFS.Tests']]],
+  ['transactions_601',['Transactions',['../namespace_file_f_s_1_1_client_1_1_transactions.html',1,'FileFS::Client']]]
+];

@@ -1,0 +1,19 @@
+var searchData=
+[
+  ['storageconnection_562',['StorageConnection',['../class_file_f_s_1_1_data_access_1_1_storage_connection.html',1,'FileFS::DataAccess']]],
+  ['storageconnectiontests_563',['StorageConnectionTests',['../class_file_f_s_1_1_data_access_1_1_tests_1_1_storage_connection_tests.html',1,'FileFS::DataAccess::Tests']]],
+  ['storageextender_564',['StorageExtender',['../class_file_f_s_1_1_data_access_1_1_allocation_1_1_storage_extender.html',1,'FileFS::DataAccess::Allocation']]],
+  ['storageextendertests_565',['StorageExtenderTests',['../class_file_f_s_1_1_data_access_1_1_tests_1_1_allocation_1_1_storage_extender_tests.html',1,'FileFS::DataAccess::Tests::Allocation']]],
+  ['storageinitializer_566',['StorageInitializer',['../class_file_f_s_1_1_data_access_1_1_storage_initializer.html',1,'FileFS::DataAccess']]],
+  ['storageinitializertests_567',['StorageInitializerTests',['../class_file_f_s_1_1_data_access_1_1_tests_1_1_storage_initializer_tests.html',1,'FileFS::DataAccess::Tests']]],
+  ['storageitem_568',['StorageItem',['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_storage_item.html',1,'FileFS::DataAccess::Entities']]],
+  ['storagenotavailableexception_569',['StorageNotAvailableException',['../class_file_f_s_1_1_data_access_1_1_exceptions_1_1_storage_not_available_exception.html',1,'FileFS::DataAccess::Exceptions']]],
+  ['storagenotfoundexception_570',['StorageNotFoundException',['../class_file_f_s_1_1_data_access_1_1_exceptions_1_1_storage_not_found_exception.html',1,'FileFS::DataAccess::Exceptions']]],
+  ['storageoperationlocker_571',['StorageOperationLocker',['../class_file_f_s_1_1_data_access_1_1_storage_operation_locker.html',1,'FileFS::DataAccess']]],
+  ['storageoptimizer_572',['StorageOptimizer',['../class_file_f_s_1_1_data_access_1_1_allocation_1_1_storage_optimizer.html',1,'FileFS::DataAccess::Allocation']]],
+  ['storageoptimizertests_573',['StorageOptimizerTests',['../class_file_f_s_1_1_data_access_1_1_tests_1_1_allocation_1_1_storage_optimizer_tests.html',1,'FileFS::DataAccess::Tests::Allocation']]],
+  ['storagestreamprovider_574',['StorageStreamProvider',['../class_file_f_s_1_1_data_access_1_1_storage_stream_provider.html',1,'FileFS::DataAccess']]],
+  ['storagestreamprovidertests_575',['StorageStreamProviderTests',['../class_file_f_s_1_1_data_access_1_1_tests_1_1_storage_stream_provider_tests.html',1,'FileFS::DataAccess::Tests']]],
+  ['streamcomparer_576',['StreamComparer',['../class_file_f_s_1_1_tests_1_1_shared_1_1_comparers_1_1_stream_comparer.html',1,'FileFS::Tests::Shared::Comparers']]],
+  ['streamedfileentry_577',['StreamedFileEntry',['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_streamed_file_entry.html',1,'FileFS::DataAccess::Entities']]]
+];

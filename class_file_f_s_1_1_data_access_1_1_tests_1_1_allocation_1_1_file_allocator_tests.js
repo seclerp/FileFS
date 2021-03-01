@@ -1,0 +1,8 @@
+var class_file_f_s_1_1_data_access_1_1_tests_1_1_allocation_1_1_file_allocator_tests =
+[
+    [ "AllocateFile_WhenDataSizeBiggerThanExistingSpace_ShouldTryOptimizeAndExtend", "class_file_f_s_1_1_data_access_1_1_tests_1_1_allocation_1_1_file_allocator_tests.html#a995995316d189e25fcf860cd2aa18405", null ],
+    [ "AllocateFile_WhenSizeIsZero_ShouldAlwaysReturnZeroCursor", "class_file_f_s_1_1_data_access_1_1_tests_1_1_allocation_1_1_file_allocator_tests.html#a0c8ca12d35b4a1c308dff8358c2499b3", null ],
+    [ "AllocateFile_WhenSuitableGapExists_ShouldAllocateInGap", "class_file_f_s_1_1_data_access_1_1_tests_1_1_allocation_1_1_file_allocator_tests.html#a31a63af8350465c20a742c406b47e0e9", null ],
+    [ "AllocateFile_WhenSuitableGapNotExists_ShouldAllocateOnEnd", "class_file_f_s_1_1_data_access_1_1_tests_1_1_allocation_1_1_file_allocator_tests.html#a406fddfb787925e218bf199afed701dd", null ],
+    [ "AllocateFile_WhenThereAreDataAndSizeIsNonZero_ShouldAllocateOnEnd", "class_file_f_s_1_1_data_access_1_1_tests_1_1_allocation_1_1_file_allocator_tests.html#a04bfe9012ced1f37114b7a37bc4538d3", null ]
+];

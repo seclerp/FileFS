@@ -1,0 +1,21 @@
+var class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests =
+[
+    [ "FileFsClientGenericTests", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#af4188e83ffb39dbcc0a60c44174ca009", null ],
+    [ "Exists_WithInvalidFileName_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a7c3648089c8d372f7633b175d23ac2fe", null ],
+    [ "Exists_WithValidParameters_ShouldCallExists", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#adeb9c8083dbcf721ce82b1c208d1fa5a", null ],
+    [ "GetEntriesInfo_WhenThereAreFiles_ShouldCallGetAllFilesInfo", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a3120d40a611087fe9a73d13ecf251617", null ],
+    [ "GetEntriesInfo_WhenThereAreNoFiles_ShouldReturnEmptyCollection", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a048a9d62686a3d899c00b53814b6694d", null ],
+    [ "Move_WhenDestinationEntryExists_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#aeaaed30256fdd487da323ed322a5adc3", null ],
+    [ "Move_WhenDestinationIsChildToSource_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#acf0d0681cc7f0c5984b26ba8d00c3d79", null ],
+    [ "Move_WhenDestinationParentEntryNotExists_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#aa3cb59ee34c1dca2d98e14fdb5673b8a", null ],
+    [ "Move_WhenEntryIsRootDirectory_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#ac69cbbbf5413459d15fd9fa5f2ff75e9", null ],
+    [ "Move_WhenEntryNotExists_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a33a877af89f26e5bf09af191ea2d1a72", null ],
+    [ "Move_WithOneOfNamesIsInvalid_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a592e09bfb387d9424542f84953da621b", null ],
+    [ "Move_WithValidParameters_ShouldCallMove", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a07f1741830ec35381bb25ef1e26681a2", null ],
+    [ "Rename_WhenDestinationEntryExists_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a9037fb74a0eed42680e60da34b9d88e4", null ],
+    [ "Rename_WhenEntryIsRootDirectory_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a0b47d1653f20e5714614ca2ebfeeb0bd", null ],
+    [ "Rename_WhenEntryNotExists_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a3b60b595365a69bf5b643865d82b33eb", null ],
+    [ "Rename_WhenParentsNotMatch_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a709860d95b757546c72e53033633b840", null ],
+    [ "Rename_WithOneOfNamesIsInvalid_ShouldThrowException", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#acce678e79c748721a97e3b7586c6b1c9", null ],
+    [ "Rename_WithValidParameters_ShouldCallRename", "class_file_f_s_1_1_client_1_1_tests_1_1_file_fs_client_tests_1_1_file_fs_client_generic_tests.html#a38e65a8919d4fa07af65d719c9e6a3f3", null ]
+];

@@ -1,0 +1,5 @@
+var class_file_f_s_1_1_data_access_1_1_tests_1_1_serializers_1_1_entry_descriptor_serializer_tests =
+[
+    [ "FromBuffer_ShouldCreatedCorrectModelFromBuffer", "class_file_f_s_1_1_data_access_1_1_tests_1_1_serializers_1_1_entry_descriptor_serializer_tests.html#a228bc5f27a99d7ce2304cc34c3f0bbd2", null ],
+    [ "ToBuffer_ShouldCreatedCorrectBufferWithData", "class_file_f_s_1_1_data_access_1_1_tests_1_1_serializers_1_1_entry_descriptor_serializer_tests.html#affde029f2a3a66f58f3c24a555237255", null ]
+];

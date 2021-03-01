@@ -1,0 +1,6 @@
+var namespace_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions =
+[
+    [ "IFileAllocator", "interface_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions_1_1_i_file_allocator.html", "interface_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions_1_1_i_file_allocator" ],
+    [ "IStorageExtender", "interface_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions_1_1_i_storage_extender.html", "interface_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions_1_1_i_storage_extender" ],
+    [ "IStorageOptimizer", "interface_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions_1_1_i_storage_optimizer.html", "interface_file_f_s_1_1_data_access_1_1_allocation_1_1_abstractions_1_1_i_storage_optimizer" ]
+];

@@ -1,0 +1,7 @@
+var namespace_file_f_s_1_1_data_access_1_1_tests_1_1_repositories =
+[
+    [ "DirectoryRepositoryTests", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_directory_repository_tests.html", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_directory_repository_tests" ],
+    [ "EntryDescriptorRepositoryTests", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests.html", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_descriptor_repository_tests" ],
+    [ "EntryRepositoryTests", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_repository_tests.html", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_entry_repository_tests" ],
+    [ "FileRepositoryTests", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_file_repository_tests.html", "class_file_f_s_1_1_data_access_1_1_tests_1_1_repositories_1_1_file_repository_tests" ]
+];

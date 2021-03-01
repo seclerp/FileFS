@@ -1,0 +1,5 @@
+var searchData=
+[
+  ['datalength_996',['DataLength',['../interface_file_f_s_1_1_data_access_1_1_entities_1_1_abstractions_1_1_i_file_entry.html#a8aee30c24f48ad2d69d0c9fa89edd1c4',1,'FileFS.DataAccess.Entities.Abstractions.IFileEntry.DataLength()'],['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_file_entry.html#a5229c5b361b51e2877987ca66e9bf956',1,'FileFS.DataAccess.Entities.FileEntry.DataLength()'],['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_placeholder_file_entry.html#ab8259f1f026241e122ff7eeb08cf681d',1,'FileFS.DataAccess.Entities.PlaceholderFileEntry.DataLength()'],['../struct_file_f_s_1_1_data_access_1_1_entities_1_1_streamed_file_entry.html#a13f5c76400b0273a94f38c942282de7b',1,'FileFS.DataAccess.Entities.StreamedFileEntry.DataLength()']]],
+  ['directoryname_997',['DirectoryName',['../class_file_f_s_1_1_cli_1_1_options_1_1_create_directory_options.html#a608d4ce3be1996515e588e85b75d5b0e',1,'FileFS.Cli.Options.CreateDirectoryOptions.DirectoryName()'],['../class_file_f_s_1_1_cli_1_1_options_1_1_list_options.html#ace58761489b26f02acdb66c24e3d98ba',1,'FileFS.Cli.Options.ListOptions.DirectoryName()']]]
+];
