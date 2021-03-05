@@ -1,7 +1,7 @@
 <Project>
     <!-- StyleCop Analyzers configuration -->
     <PropertyGroup>
-        <Version>1.0.0</Version>
+        <Version>2.0.0</Version>
         <Authors>Andrew Rublyov</Authors>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\style\Main.ruleset</CodeAnalysisRuleSet>
